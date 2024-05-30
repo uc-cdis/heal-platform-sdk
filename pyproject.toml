@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "heal"
+version = "0.1.0"
+description = "HEAL Platform SDK"
+authors = ["Center for Translational Data Science at the University of Chicago <support@datacommons.io>"]
+license = "Apache-2.0"
+packages = [
+    { include = "heal" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+cdislogging = "^1.1.0"
+gen3 = "^4.22.4"
+requests = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.0.0"
+pytest-cov = "*"
+requests-mock = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-vv"
+pythonpath = "heal"
+testpaths = [
+    "tests",
+]
