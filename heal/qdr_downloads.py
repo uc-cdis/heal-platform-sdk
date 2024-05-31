@@ -1,11 +1,22 @@
 """
-This module sends requests to the Syracuse QDR API for downloading studies or files.
+This module includes an external file retriever function intended to be called
+by the external_files_download module in the Gen3-SDK.
+
+The retriever function sends requests to the Syracuse QDR API for downloading studies or files.
 
 The QDR documentation describes how to download studies
 https://https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dataset
 
 and how to do bulk downloads of files
 https://guides.dataverse.org/en/latest/api/dataaccess.html#multiple-file-bundle-download
+
+In order to get an API token from the WTS server, users should have already
+sent a request to
+<WTS-SERVER>/oauth2/authorization_url?idp=externaldata-keycloak
+and logged in to QDR after the redirect.
+
+The WTS-SERVER is a Gen3 commons that has been configured to return
+tokens for the 'idp' specified in the external_file_metadata.
 """
 
 import os
@@ -21,11 +32,9 @@ from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
 
 logger = get_logger("__name__", log_level="debug")
 
+
 def get_syracuse_qdr_files(
-    wts_hostname: str,
-    auth,
-    file_metadata_list: List,
-    download_path
+    wts_hostname: str, auth, file_metadata_list: List, download_path
 ) -> Dict:
     """
     Retrieves external data from the Syracuse QDR.
@@ -53,32 +62,35 @@ def get_syracuse_qdr_files(
         logger.critical(f"Input file metadata list should be a list.")
         return None
     COLLATE_FILES = True
-    file_metadata_list = check_ids_and_collate_file_ids(file_metadata_list, COLLATE_FILES)
+    file_metadata_list = check_ids_and_collate_file_ids(
+        file_metadata_list, COLLATE_FILES
+    )
     logger.debug(f"New file_metadata_list = {file_metadata_list}")
 
     for file_metadata in file_metadata_list:
-
         id = get_id(file_metadata)
         logger.info(f"ID = {id}")
-        completed[id] = DownloadStatus(filename=id, status='pending')
+        completed[id] = DownloadStatus(filename=id, status="pending")
 
         download_url = get_download_url_for_qdr(file_metadata)
         request_type = get_request_type(file_metadata)
         if request_type == None:
             logger.critical("Could not get valid request type from file_metadata")
-            completed[id].status='invalid metadata'
+            completed[id].status = "invalid metadata"
             continue
 
         idp_access_token = get_idp_access_token(wts_hostname, auth, file_metadata)
-        request_headers = get_request_headers(idp_access_token,file_metadata)
-        if 'X-Dataverse-key' not in request_headers:
+        request_headers = get_request_headers(idp_access_token, file_metadata)
+        if "X-Dataverse-key" not in request_headers:
             logger.critical("WARNING Request headers do not include 'X-Dataverse-key'.")
         request_body = get_request_body(file_metadata)
 
         logger.debug(f"Request headers = {request_headers}")
         logger.debug(f"Request body = {request_body}")
 
-        logger.debug(f"Ready to send request to download_url: {request_type} {download_url}")
+        logger.debug(
+            f"Ready to send request to download_url: {request_type} {download_url}"
+        )
         download_success = download_from_url(
             download_filename=filepath,
             request_type=request_type,
@@ -87,7 +99,7 @@ def get_syracuse_qdr_files(
             body=request_body,
         )
         if download_success == False:
-            completed[id].status = 'failed'
+            completed[id].status = "failed"
             continue
 
         # unpack the zip file
@@ -95,12 +107,10 @@ def get_syracuse_qdr_files(
             logger.debug(f"Ready to unpack {filepath}.")
             unpackage_object(filepath=filepath)
         except Exception as e:
-            logger.critical(
-                f"{id} had an issue while being unpackaged: {e}"
-            )
-            completed[id].status = 'failed'
+            logger.critical(f"{id} had an issue while being unpackaged: {e}")
+            completed[id].status = "failed"
 
-        completed[id].status = 'downloaded'
+        completed[id].status = "downloaded"
         # remove the zip file
         Path(filepath).unlink()
 
@@ -109,7 +119,9 @@ def get_syracuse_qdr_files(
     return completed
 
 
-def check_ids_and_collate_file_ids(file_metadata_list: List, collate_file_ids: bool) -> List:
+def check_ids_and_collate_file_ids(
+    file_metadata_list: List, collate_file_ids: bool
+) -> List:
     """
     Check that items have 1 of the required keys 'study_id' or 'file_id'.
 
@@ -135,19 +147,19 @@ def check_ids_and_collate_file_ids(file_metadata_list: List, collate_file_ids: b
             new_metadata_list.append(item)
         elif "file_id" in item:
             if collate_file_ids:
-                file_ids.append(item.get('file_id'))
-                file_retriever = item.get('file_retriever')
+                file_ids.append(item.get("file_id"))
+                file_retriever = item.get("file_retriever")
                 # TODO: start new list if any of these don't match previous item - though they should
-                file_idp = item.get('external_oidc_idp')
+                file_idp = item.get("external_oidc_idp")
             else:
                 new_metadata_list.append(item)
 
     if collate_file_ids:
         if len(file_ids) > 0:
             file_ids_item = {
-                "file_ids": ','.join(file_ids),
+                "file_ids": ",".join(file_ids),
                 "file_retriever": file_retriever,
-                "external_oidc_idp": file_idp
+                "external_oidc_idp": file_idp,
             }
             new_metadata_list.append(file_ids_item)
 
@@ -158,7 +170,7 @@ def download_from_url(
     download_filename: str,
     request_type: str,
     qdr_url: str,
-    headers = None,
+    headers=None,
     body: str = None,
 ) -> bool:
     """
@@ -195,8 +207,8 @@ def download_from_url(
         logger.critical(f"content-length is 0 and it should not be")
         return False
 
-    if not 'application/zip' in response.headers.get('Content-Type'):
-        logger.critical('Response headers do not show zipfile content-type')
+    if not "application/zip" in response.headers.get("Content-Type"):
+        logger.critical("Response headers do not show zipfile content-type")
 
     try:
         logger.debug(f"Saving zip file as {download_filename}")
@@ -238,11 +250,8 @@ def get_download_url_for_qdr(file_metadata: Dict) -> str:
 
     return url
 
-def get_idp_access_token(
-    wts_hostname: str,
-    auth: Gen3Auth,
-    file_metadata: Dict
-) -> str:
+
+def get_idp_access_token(wts_hostname: str, auth: Gen3Auth, file_metadata: Dict) -> str:
     """Get an access token for QDR using a Gen3 commons WTS"""
     try:
         print("Ready to get auth token")
@@ -255,14 +264,11 @@ def get_idp_access_token(
     except Exception as e:
         logger.critical(f"Could not get token: {e}")
         return None
-    
+
     return idp_access_token
 
 
-def get_request_headers(
-    idp_access_token: str,
-    file_metadata: Dict
-) -> Dict:
+def get_request_headers(idp_access_token: str, file_metadata: Dict) -> Dict:
     """
     Include dataverse header for files, None for studies
 
@@ -304,7 +310,7 @@ def get_id(file_metadata: Dict) -> str:
     Returns:
         string
     """
-    id_types = ['study_id', 'file_id', 'file_ids']
+    id_types = ["study_id", "file_id", "file_ids"]
     for id_type in id_types:
         if id_type in file_metadata:
             return file_metadata.get(id_type)
@@ -330,7 +336,9 @@ def is_valid_qdr_file_metadata(file_metadata: Dict) -> bool:
         logger.critical(f"Invalid metadata - missing required QDR keys {file_metadata}")
         return False
     if "study_id" in file_metadata and "file_id" in file_metadata:
-        logger.critical(f"Invalid metadata - item has both 'study_id' and 'file_id': {file_metadata}")
+        logger.critical(
+            f"Invalid metadata - item has both 'study_id' and 'file_id': {file_metadata}"
+        )
         return False
     return True
 
