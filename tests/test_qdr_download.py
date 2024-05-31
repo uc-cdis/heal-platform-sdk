@@ -353,65 +353,55 @@ def test_get_idp_access_token(wts_hostname):
             )
 
 
-# TODO: just have 2 cases in test - don't parametrize
-@pytest.mark.parametrize(
-    "file_metadata, expected",
-    [
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "study_id": "QDR_study_01",
-            },
-            {"X-Dataverse-key": "some-idp-token"},
-        ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "file_id": "QDR_file_02",
-            },
-            {"X-Dataverse-key": "some-idp-token"},
-        ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "file_ids": "QDR_file_01,QDR_file_02",
-            },
-            {"Content-Type": "text/plain", "X-Dataverse-key": "some-idp-token"},
-        ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-            },
-            {"X-Dataverse-key": "some-idp-token"},
-        ),
-    ],
-)
-def test_get_request_headers(wts_hostname: str, file_metadata: Dict, expected: str):
-    returned_idp_token = "some-idp-token"
-    mock_auth = MagicMock()
-    mock_auth.get_access_token.return_value = "some_token"
-    with requests_mock.Mocker() as m:
-        m.get(
-            f"https://{wts_hostname}/wts/token/?idp={file_metadata.get('external_oidc_idp')}",
-            json={"token": returned_idp_token},
+def test_get_request_headers_for_file_ids():
+    mock_idp_token = "some-idp-token"
+
+    # with file_ids - includes the 'Content-Type' header
+    file_metadata = {
+        "external_oidc_idp": "test-external-idp",
+        "file_retriever": "QDR",
+        "file_ids": "QDR_file_01,QDR_file_02",
+    }
+    expected_headers = {"Content-Type": "text/plain", "X-Dataverse-key": mock_idp_token}
+    assert (
+        get_request_headers(
+            idp_access_token=mock_idp_token, file_metadata=file_metadata
         )
-        with mock.patch(
-            "gen3.tools.download.drs_download.wts_get_token"
-        ) as wts_get_token:
-            wts_get_token.return_value = "some-idp-token"
-            assert (
-                get_request_headers(
-                    idp_access_token=returned_idp_token, file_metadata=file_metadata
-                )
-                == expected
-            )
+        == expected_headers
+    )
+
+    # missing idp token - no 'X-Dataverse-key' header
+    expected_headers = {
+        "Content-Type": "text/plain",
+    }
+    assert (
+        get_request_headers(idp_access_token=None, file_metadata=file_metadata)
+        == expected_headers
+    )
 
 
-# TODO: add case of failure in getting access token.
+def test_get_request_headers_for_study_or_file():
+    mock_idp_token = "some-idp-token"
+
+    # without file_ids - just the X-Dataverse-key
+    file_metadata = {
+        "external_oidc_idp": "test-external-idp",
+        "file_retriever": "QDR",
+        "study_id": "QDR_study_01",
+    }
+    expected_headers = {"X-Dataverse-key": mock_idp_token}
+    assert (
+        get_request_headers(
+            idp_access_token=mock_idp_token, file_metadata=file_metadata
+        )
+        == expected_headers
+    )
+
+    # missing idp token - empty headers
+    expected_headers = {
+        "Content-Type": "text/plain",
+    }
+    assert get_request_headers(idp_access_token=None, file_metadata=file_metadata) == {}
 
 
 # TODO: split into 2 tests valid and failed
