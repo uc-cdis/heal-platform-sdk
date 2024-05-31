@@ -189,39 +189,41 @@ def download_from_url(
 
     try:
         if request_type == "GET":
-            response = requests.get(url=qdr_url, headers=headers)
+            response = requests.get(url=qdr_url, headers=headers, stream=True)
         else:
-            response = requests.post(url=qdr_url, headers=headers, data=body)
+            response = requests.post(
+                url=qdr_url, headers=headers, data=body, stream=True
+            )
         response.raise_for_status()
+    except requests.exceptions.Timeout:
+        logger.critical(
+            f"Was unable to get the download url: {qdr_url}. Timeout Error."
+        )
+        return False
     except requests.exceptions.HTTPError as exc:
         logger.critical(f"Download error {exc}")
         return False
-
-    print(f"Status code={response.status_code}")
-    print(f"File size={len(response.content)}")
-    print(f"Content-disposition={response.headers.get('Content-disposition')}")
-    print(f"Content-Type={response.headers.get('Content-Type')}")
-
-    total_size_in_bytes = len(response.content)
-    if total_size_in_bytes == 0:
-        logger.critical(f"content-length is 0 and it should not be")
-        return False
+    logger.debug(f"Status code={response.status_code}")
 
     if not "application/zip" in response.headers.get("Content-Type"):
         logger.critical("Response headers do not show zipfile content-type")
 
+    total_downloaded = 0
+    block_size = 8092  # 8K blocks might want to tune this.
     try:
         logger.debug(f"Saving zip file as {download_filename}")
         with open(download_filename, "wb") as file:
-            # TODO: show progress bar
-            # for data in response.iter_content(block_size):
-            #     progress_bar.update(len(data))
-            #     total_downloaded += len(data)
-            #     file.write(data)
-            file.write(response.content)
+            for data in response.iter_content(block_size):
+                total_downloaded += len(data)
+                file.write(data)
     except IOError as ex:
         logger.critical(f"IOError opening {download_filename} for writing: {ex}")
         return False
+
+    if total_downloaded == 0:
+        logger.critical(f"content-length is 0 and it should not be")
+        return False
+    logger.debug(f"Download size = {total_downloaded}")
 
     return True
 
@@ -254,9 +256,9 @@ def get_download_url_for_qdr(file_metadata: Dict) -> str:
 def get_idp_access_token(wts_hostname: str, auth: Gen3Auth, file_metadata: Dict) -> str:
     """Get an access token for QDR using a Gen3 commons WTS"""
     try:
-        print("Ready to get auth token")
+        logger.debug("Ready to get auth token")
         wts_access_token = auth.get_access_token()
-        print("Ready to get idp token")
+        logger.debug("Ready to get idp token")
         idp = file_metadata.get("external_oidc_idp")
         idp_access_token = wts_get_token(
             hostname=wts_hostname, idp=idp, access_token=wts_access_token
