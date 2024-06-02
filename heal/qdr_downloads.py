@@ -243,10 +243,11 @@ def get_download_url_for_qdr(file_metadata: Dict) -> str:
 
     if "study_id" in file_metadata:
         url = f"{base_url}/dataset/:persistentId/?persistentId={file_metadata.get('study_id')}"
-    elif "file_id" in file_metadata:
-        url = f"{base_url}/datafiles/{file_metadata.get('file_id')}"
     elif "file_ids" in file_metadata:
         url = f"{base_url}/datafiles"
+    elif "file_id" in file_metadata:
+        url = f"{base_url}/datafile/{file_metadata.get('file_id')}"
+
     else:
         url = None
 

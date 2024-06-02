@@ -251,11 +251,6 @@ def test_get_id_bad_input():
                     "file_retriever": "QDR",
                     "file_id": "QDR_file_02",
                 },
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "file_id": "QDR_file_03",
-                },
             ],
             False,
             [
@@ -268,11 +263,6 @@ def test_get_id_bad_input():
                     "external_oidc_idp": "test-external-idp",
                     "file_retriever": "QDR",
                     "file_id": "QDR_file_02",
-                },
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "file_id": "QDR_file_03",
                 },
             ],
         ),
@@ -404,42 +394,37 @@ def test_get_request_headers_for_study_or_file():
     assert get_request_headers(idp_access_token=None, file_metadata=file_metadata) == {}
 
 
-# TODO: split into 2 tests valid and failed
 @pytest.mark.parametrize(
     "file_metadata, expected",
     [
         (
             {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
                 "study_id": "QDR_study_01",
             },
             "https://data.qdr.syr.edu/api/access/dataset/:persistentId/?persistentId=QDR_study_01",
         ),
         (
             {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "file_id": "QDR_file_02",
-            },
-            "https://data.qdr.syr.edu/api/access/datafiles/QDR_file_02",
-        ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
                 "file_ids": "QDR_file_01, QDR_file_02",
             },
             "https://data.qdr.syr.edu/api/access/datafiles",
         ),
         (
-            {},
-            None,
+            {
+                "file_id": "QDR_file_02",
+            },
+            "https://data.qdr.syr.edu/api/access/datafile/QDR_file_02",
         ),
     ],
 )
 def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
     assert get_download_url_for_qdr(file_metadata) == expected
+
+
+def test_get_download_url_for_qdr_failed():
+    # missing file_ids or study_id
+    file_metadata = {}
+    assert get_download_url_for_qdr(file_metadata) == None
 
 
 def test_download_from_url(download_dir):
@@ -572,9 +557,6 @@ def test_get_syracuse_qdr_files_bad_input(
         download_path=download_dir,
     )
     assert result == None
-
-
-# TODO: add test for bad download path
 
 
 def test_get_syracuse_qdr_files(wts_hostname, download_dir):
