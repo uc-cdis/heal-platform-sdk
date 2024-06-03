@@ -239,7 +239,6 @@ def get_download_url_for_qdr(file_metadata: Dict) -> str:
         url, None if there are errors
     """
     base_url = "https://data.qdr.syr.edu/api/access"
-    # base_url = "https://data.stage.qdr.org/api/access"
 
     if "study_id" in file_metadata:
         url = f"{base_url}/dataset/:persistentId/?persistentId={file_metadata.get('study_id')}"
@@ -273,10 +272,10 @@ def get_idp_access_token(wts_hostname: str, auth: Gen3Auth, file_metadata: Dict)
 
 def get_request_headers(idp_access_token: str, file_metadata: Dict) -> Dict:
     """
-    Include dataverse header for files, None for studies
+    Generate the request headers.
 
     Args:
-        idp_access_token (str)
+        idp_access_token (str): QDR token is included in X-Dataverse-key header
         file_metadata (Dict)
 
     Returns:
