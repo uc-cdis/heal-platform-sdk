@@ -528,37 +528,6 @@ def test_download_from_url_failures(download_dir):
         Path(download_filename).unlink()
 
 
-@pytest.mark.parametrize(
-    "file_metadata_list",
-    [
-        ({"not": "a list"},),
-        (["not", "dict", "items"],),
-        (
-            [
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "missing": "file_id key",
-                }
-            ],
-        ),
-    ],
-)
-def test_get_syracuse_qdr_files_bad_input(
-    wts_hostname, download_dir, file_metadata_list
-):
-    mock_auth = MagicMock()
-    mock_auth.get_access_token.return_value = "some_token"
-
-    result = get_syracuse_qdr_files(
-        wts_hostname=wts_hostname,
-        auth=mock_auth,
-        file_metadata_list=file_metadata_list,
-        download_path=download_dir,
-    )
-    assert result == None
-
-
 def test_get_syracuse_qdr_files(wts_hostname, download_dir):
     idp = "test-external-idp"
     test_data = "foo"
@@ -606,6 +575,72 @@ def test_get_syracuse_qdr_files(wts_hostname, download_dir):
             download_path=download_dir,
         )
         assert result == expected_status
+
+
+@pytest.mark.parametrize(
+    "file_metadata_list",
+    [
+        ({"not": "a list"},),
+        (["not", "dict", "items"],),
+        (
+            [
+                {
+                    "external_oidc_idp": "test-external-idp",
+                    "file_retriever": "QDR",
+                    "missing": "file_id key",
+                }
+            ],
+        ),
+    ],
+)
+def test_get_syracuse_qdr_files_bad_input(
+    wts_hostname, download_dir, file_metadata_list
+):
+    mock_auth = MagicMock()
+    mock_auth.get_access_token.return_value = "some_token"
+
+    result = get_syracuse_qdr_files(
+        wts_hostname=wts_hostname,
+        auth=mock_auth,
+        file_metadata_list=file_metadata_list,
+        download_path=download_dir,
+    )
+    assert result == None
+
+
+def test_get_syracuse_qdr_files_no_url(wts_hostname, download_dir):
+    file_metadata_list = [
+        {
+            "external_oidc_idp": "test-external-idp",
+            "file_retriever": "QDR",
+            "file_id": "QDR_file_02",
+        },
+        {
+            "external_oidc_idp": "test-external-idp",
+            "file_retriever": "QDR",
+            "file_id": "QDR_file_03",
+        },
+    ]
+    expected_status_invalid_url = {
+        "QDR_file_02,QDR_file_03": DownloadStatus(
+            filename="QDR_file_02,QDR_file_03", status="invalid url"
+        )
+    }
+    mock_auth = MagicMock()
+    mock_auth.get_access_token.return_value = "some_token"
+    with mock.patch(
+        "heal.qdr_downloads.get_download_url_for_qdr"
+    ) as mock_get_download_url_for_qdr:
+        # failed get_download_url
+        mock_get_download_url_for_qdr.return_value = None
+
+        result = get_syracuse_qdr_files(
+            wts_hostname=wts_hostname,
+            auth=mock_auth,
+            file_metadata_list=file_metadata_list,
+            download_path=download_dir,
+        )
+        assert result == expected_status_invalid_url
 
 
 def test_get_syracuse_qdr_files_failed_download(wts_hostname, download_dir):

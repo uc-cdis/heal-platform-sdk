@@ -5,7 +5,7 @@ by the external_files_download module in the Gen3-SDK.
 The retriever function sends requests to the Syracuse QDR API for downloading studies or files.
 
 The QDR documentation describes how to download studies
-https://https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dataset
+//https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dataset
 
 and how to do bulk downloads of files
 https://guides.dataverse.org/en/latest/api/dataaccess.html#multiple-file-bundle-download
@@ -34,7 +34,7 @@ logger = get_logger("__name__", log_level="debug")
 
 
 def get_syracuse_qdr_files(
-    wts_hostname: str, auth, file_metadata_list: List, download_path
+    wts_hostname: str, auth, file_metadata_list: List, download_path: str = "."
 ) -> Dict:
     """
     Retrieves external data from the Syracuse QDR.
@@ -73,9 +73,13 @@ def get_syracuse_qdr_files(
         completed[id] = DownloadStatus(filename=id, status="pending")
 
         download_url = get_download_url_for_qdr(file_metadata)
+        if download_url == None:
+            logger.critical(f"Could not get download_url for {id}")
+            completed[id].status = "invalid url"
+            continue
         request_type = get_request_type(file_metadata)
         if request_type == None:
-            logger.critical("Could not get valid request type from file_metadata")
+            logger.critical(f"Could not get valid request type for {id}")
             completed[id].status = "invalid metadata"
             continue
 
