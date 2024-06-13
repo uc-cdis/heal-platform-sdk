@@ -167,7 +167,7 @@ def test_get_id_bad_input():
 
 
 @pytest.mark.parametrize(
-    "file_metadata, collate_file_ids, expected",
+    "file_metadata, bulk_file_download, expected",
     [
         (
             [
@@ -269,9 +269,9 @@ def test_get_id_bad_input():
     ],
 )
 def test_check_ids_and_collate_file_ids(
-    file_metadata: Dict, collate_file_ids: bool, expected: Dict
+    file_metadata: Dict, bulk_file_download: bool, expected: Dict
 ):
-    assert check_ids_and_collate_file_ids(file_metadata, collate_file_ids) == expected
+    assert check_ids_and_collate_file_ids(file_metadata, bulk_file_download) == expected
 
 
 def test_get_request_body():
@@ -529,18 +529,18 @@ def test_download_from_url_failures(download_dir):
 
 
 def test_get_syracuse_qdr_files(wts_hostname, download_dir):
-    idp = "test-external-idp"
+    test_idp = "test-external-idp"
     test_data = "foo"
 
     # valid input and successful download
     file_metadata_list = [
         {
-            "external_oidc_idp": "test-external-idp",
+            "external_oidc_idp": test_idp,
             "file_retriever": "QDR",
             "file_id": "QDR_file_02",
         },
         {
-            "external_oidc_idp": "test-external-idp",
+            "external_oidc_idp": test_idp,
             "file_retriever": "QDR",
             "file_id": "QDR_file_03",
         },
@@ -559,7 +559,7 @@ def test_get_syracuse_qdr_files(wts_hostname, download_dir):
         "gen3.tools.download.drs_download.wts_get_token"
     ) as wts_get_token:
         m.get(
-            f"https://{wts_hostname}/wts/token/?idp={idp}",
+            f"https://{wts_hostname}/wts/token/?idp={test_idp}",
             json={"token": returned_idp_token},
         )
         m.post(
