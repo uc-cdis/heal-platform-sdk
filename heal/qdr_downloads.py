@@ -7,8 +7,8 @@ The retriever function sends requests to the Syracuse QDR API for downloading st
 The QDR documentation describes how to download studies
 https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dataset
 
-and how to do bulk downloads of files
-https://guides.dataverse.org/en/latest/api/dataaccess.html#multiple-file-bundle-download
+and how to download files
+https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-file-access
 
 In order to get an API token from the WTS server, users should have already
 sent a request to
@@ -22,9 +22,10 @@ tokens for the 'idp' specified in the external_file_metadata.
 import os
 
 from pathlib import Path
-import zipfile
 import requests
 from typing import Dict, List, Tuple
+from urllib.parse import unquote
+import zipfile
 
 from cdislogging import get_logger
 from gen3.auth import Gen3Auth
@@ -34,11 +35,7 @@ logger = get_logger("__name__", log_level="debug")
 
 
 def get_syracuse_qdr_files(
-    wts_hostname: str,
-    auth,
-    file_metadata_list: List,
-    download_path: str = ".",
-    bulk_file_download: bool = True,
+    wts_hostname: str, auth, file_metadata_list: List, download_path: str = "."
 ) -> Dict:
     """
     Retrieves external data from the Syracuse QDR.
@@ -48,7 +45,6 @@ def get_syracuse_qdr_files(
         auth (Gen3Auth): auth for commons with wts
         file_metadata_list (List of Dict): list of studies or files
         download_path (str): path to download files and unpack
-        bulk_file_download (bool): do bulk file downloads
 
     Returns:
         Dict of download status
@@ -60,17 +56,13 @@ def get_syracuse_qdr_files(
     completed = {}
     logger.debug(f"Input file metadata list={file_metadata_list}")
 
-    # validate and parse the file_metadata list
-    if not isinstance(file_metadata_list, list):
-        logger.critical(f"Input file metadata list should be a list.")
-        return None
-    file_metadata_list = check_ids_and_collate_file_ids(
-        file_metadata_list, bulk_file_download
-    )
-    logger.debug(f"New file_metadata_list = {file_metadata_list}")
-
     for file_metadata in file_metadata_list:
         id = get_id(file_metadata)
+        if id == None:
+            logger.warning(
+                f"Could not find 'study_id' or 'file_id' in metadata {file_metadata}"
+            )
+            continue
         logger.info(f"ID = {id}")
         completed[id] = DownloadStatus(filename=id, status="pending")
 
@@ -79,51 +71,41 @@ def get_syracuse_qdr_files(
             logger.critical(f"Could not get download_url for {id}")
             completed[id].status = "invalid url"
             continue
-        request_type = get_request_type(file_metadata)
-        if request_type == None:
-            logger.critical(f"Could not get valid request type for {id}")
-            completed[id].status = "invalid metadata"
-            continue
-        if request_type == "POST" or "study_id" in file_metadata:
+
+        if "study_id" in file_metadata:
             filepath = f"{download_path}/dataverse_files.zip"
         else:
             filepath = f"{download_path}/{id}"
 
         idp_access_token = get_idp_access_token(wts_hostname, auth, file_metadata)
-        request_headers = get_request_headers(idp_access_token, file_metadata)
+        request_headers = get_request_headers(idp_access_token)
         if "X-Dataverse-key" not in request_headers:
             logger.critical("WARNING Request headers do not include 'X-Dataverse-key'.")
-        request_body = get_request_body(file_metadata)
 
         logger.debug(f"Request headers = {request_headers}")
-        logger.debug(f"Request body = {request_body}")
 
-        logger.debug(
-            f"Ready to send request to download_url: {request_type} {download_url}"
-        )
-        download_success = download_from_url(
-            download_filename=filepath,
-            request_type=request_type,
+        logger.debug(f"Ready to send request to download_url: GET {download_url}")
+        downloaded_file = download_from_url(
             qdr_url=download_url,
             headers=request_headers,
-            body=request_body,
+            download_path=download_path,
         )
-        if download_success == False:
+        if downloaded_file == None:
             completed[id].status = "failed"
             continue
 
-        if request_type == "POST" or "study_id" in file_metadata:
+        if downloaded_file.endswith("zip"):
             # unpack if download is zip file
             try:
-                logger.debug(f"Ready to unpack {filepath}.")
-                unpackage_object(filepath=filepath)
+                logger.debug(f"Ready to unpack {downloaded_file}.")
+                unpackage_object(filepath=downloaded_file)
             except Exception as e:
                 logger.critical(f"{id} had an issue while being unpackaged: {e}")
                 completed[id].status = "failed"
 
             completed[id].status = "downloaded"
             # remove the zip file
-            Path(filepath).unlink()
+            Path(downloaded_file).unlink()
         else:
             completed[id].status = "downloaded"
 
@@ -132,108 +114,54 @@ def get_syracuse_qdr_files(
     return completed
 
 
-def check_ids_and_collate_file_ids(
-    file_metadata_list: List, bulk_file_download: bool
-) -> List:
-    """
-    Check that items have 1 of the required keys 'study_id' or 'file_id'.
-
-    If bulk_file_download=True then group the items with files into an
-    item with a list of files
-
-    Args:
-        file_metadata_list (List): list of file_metadata items
-        bulk_file_download (bool): if True then do file_id grouping
-
-    Returns:
-        List of file_metadata items.
-    """
-    new_metadata_list = []
-    file_ids = []
-    file_idp = None
-    file_retriever = None
-
-    for item in file_metadata_list:
-        logger.debug(f"Checking item = {item}")
-        if not is_valid_qdr_file_metadata(item):
-            continue
-        if "study_id" in item:
-            new_metadata_list.append(item)
-        elif "file_id" in item:
-            if bulk_file_download:
-                file_ids.append(item.get("file_id"))
-                file_retriever = item.get("file_retriever")
-                # TODO: start new list if any of these don't match previous item - though they should
-                file_idp = item.get("external_oidc_idp")
-            else:
-                new_metadata_list.append(item)
-
-    if bulk_file_download:
-        if len(file_ids) > 0:
-            file_ids_item = {
-                "file_ids": ",".join(file_ids),
-                "file_retriever": file_retriever,
-                "external_oidc_idp": file_idp,
-            }
-            new_metadata_list.append(file_ids_item)
-
-    return new_metadata_list
-
-
 def download_from_url(
-    download_filename: str,
-    request_type: str,
     qdr_url: str,
     headers=None,
-    body: str = None,
-) -> bool:
+    download_path: str = ".",
+) -> str:
     """
-    Retrieve data file (study or files) from url.
+    Retrieve data file (study_id or file_id) from url.
+    Save the file based on the filename in the Content-Disposition response header.
 
     Args:
-        download_filename (str): path for saving downloaded zip file
-        request_type (str): GET or POST
         qdr_url (str): url for QDR API
         headers (Dict): request headers
-        body (str): fileIds for files, None for study
+        download_path (str): path for saving downloaded zip file
 
     Returns:
-        bool
+        path to downloaded and renamed file.
     """
     try:
-        if request_type == "GET":
-            logger.debug("Using GET request")
-            response = requests.get(url=qdr_url, headers=headers, stream=True)
-        else:
-            logger.debug("Using POST request")
-            response = requests.post(
-                url=qdr_url, headers=headers, data=body, stream=True
-            )
+        response = requests.get(url=qdr_url, headers=headers, stream=True)
         response.raise_for_status()
     except requests.exceptions.Timeout:
         logger.critical(
             f"Was unable to get the download url: {qdr_url}. Timeout Error."
         )
-        return False
+        return None
     except requests.exceptions.HTTPError as exc:
-        logger.critical(f"Download error {exc}")
-        return False
+        logger.critical(f"HTTPError in download {exc}")
+        return None
+    except requests.exceptions.ConnectionError as exc:
+        logger.critical(f"ConnectionError in download {exc}")
+        return None
+    except Exception as exc:
+        logger.critical(f"Error in download {exc}")
+        return None
     logger.debug(f"Status code={response.status_code}")
-    try:
-        downloaded_file_name = (
-            response.headers.get("Content-Disposition")
-            .split("filename")[1]
-            .split("=")[1]
-        )
-        logger.info(f"Downloaded file = {downloaded_file_name}")
-    except Exception as e:
-        logger.info("Could not get file name from headers")
+    downloaded_file_name = get_filename_from_headers(response.headers)
+    if downloaded_file_name == None:
+        downloaded_file_name = qdr_url.split("/")[-1]
+        logger.info(f"Using file name from id in url {downloaded_file_name}")
 
-    if not "application/zip" in response.headers.get("Content-Type"):
+    if downloaded_file_name.endswith(
+        "zip"
+    ) and not "application/zip" in response.headers.get("Content-Type"):
         logger.critical("Response headers do not show zipfile content-type")
 
     total_downloaded = 0
     block_size = 8092  # 8K blocks might want to tune this.
+    download_filename = f"{download_path}/{downloaded_file_name}"
     try:
         logger.debug(f"Saving download as {download_filename}")
         with open(download_filename, "wb") as file:
@@ -242,14 +170,14 @@ def download_from_url(
                 file.write(data)
     except IOError as ex:
         logger.critical(f"IOError opening {download_filename} for writing: {ex}")
-        return False
+        return None
 
     if total_downloaded == 0:
         logger.critical(f"content-length is 0 and it should not be")
-        return False
+        return None
     logger.debug(f"Download size = {total_downloaded}")
 
-    return True
+    return download_filename
 
 
 def get_download_url_for_qdr(file_metadata: Dict) -> str:
@@ -266,15 +194,47 @@ def get_download_url_for_qdr(file_metadata: Dict) -> str:
 
     if "study_id" in file_metadata:
         url = f"{base_url}/dataset/:persistentId/?persistentId={file_metadata.get('study_id')}"
-    elif "file_ids" in file_metadata:
-        url = f"{base_url}/datafiles"
     elif "file_id" in file_metadata:
         url = f"{base_url}/datafile/{file_metadata.get('file_id')}"
-
     else:
         url = None
 
     return url
+
+
+def get_filename_from_headers(headers: Dict) -> str:
+    """ "
+    Parse and decode downloaded file name from response headers
+
+    Args:
+        headers (dict): response headers
+
+    Returns:
+        file name as string
+    """
+    try:
+        file_name = None
+        content_response = headers.get("Content-Disposition").split(";")
+        for part in content_response:
+            logger.debug(f"Checking part {part}")
+            # look for UTF-8 encoded file name
+            if part.strip().startswith("filename*="):
+                logger.debug("Encoded")
+                file_name = part.split("=", 1)[1].strip()
+                if file_name.lower().startswith("utf-8''"):
+                    file_name = file_name[7:]
+                    file_name = unquote(file_name)
+                    break
+            elif part.strip().startswith("filename="):
+                file_name = part.split("=", 1)[1].strip().strip('"')
+                break
+        if file_name == None:
+            logger.info("Could not parse file name from headers")
+
+    except Exception as e:
+        logger.warning("Could not get file name from headers")
+
+    return file_name
 
 
 def get_idp_access_token(wts_hostname: str, auth: Gen3Auth, file_metadata: Dict) -> str:
@@ -294,7 +254,7 @@ def get_idp_access_token(wts_hostname: str, auth: Gen3Auth, file_metadata: Dict)
     return idp_access_token
 
 
-def get_request_headers(idp_access_token: str, file_metadata: Dict) -> Dict:
+def get_request_headers(idp_access_token: str) -> Dict:
     """
     Generate the request headers.
 
@@ -306,24 +266,10 @@ def get_request_headers(idp_access_token: str, file_metadata: Dict) -> Dict:
         Dictionary of request headers
     """
     headers = {}
-    if "file_ids" in file_metadata:
-        headers["Content-Type"] = "text/plain"
     if idp_access_token:
         headers["X-Dataverse-key"] = idp_access_token
 
     return headers
-
-
-def get_request_body(file_metadata: Dict) -> str:
-    """
-    If id type = 'file_ids' then return
-    fileIds=file1,file2,etc.
-    else return None
-    """
-    if "file_ids" in file_metadata:
-        return f"fileIds={file_metadata.get('file_ids')}"
-    else:
-        return None
 
 
 def get_id(file_metadata: Dict) -> str:
@@ -336,7 +282,7 @@ def get_id(file_metadata: Dict) -> str:
     Returns:
         string
     """
-    id_types = ["study_id", "file_id", "file_ids"]
+    id_types = ["study_id", "file_id"]
     for id_type in id_types:
         if id_type in file_metadata:
             return file_metadata.get(id_type)
@@ -367,19 +313,6 @@ def is_valid_qdr_file_metadata(file_metadata: Dict) -> bool:
         )
         return False
     return True
-
-
-def get_request_type(file_metadata: Dict) -> str:
-    """
-    Return "GET" for studies, "POST" for files.
-    """
-
-    if "study_id" in file_metadata or "file_id" in file_metadata:
-        return "GET"
-    elif "file_ids" in file_metadata:
-        return "POST"
-    else:
-        return None
 
 
 def unpackage_object(filepath: str):

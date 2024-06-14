@@ -10,15 +10,13 @@ from unittest.mock import MagicMock
 
 from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
 from heal.qdr_downloads import (
-    check_ids_and_collate_file_ids,
     download_from_url,
     get_download_url_for_qdr,
-    get_request_headers,
-    get_request_body,
-    get_syracuse_qdr_files,
+    get_filename_from_headers,
     get_id,
     get_idp_access_token,
-    get_request_type,
+    get_request_headers,
+    get_syracuse_qdr_files,
     is_valid_qdr_file_metadata,
 )
 
@@ -32,46 +30,6 @@ def download_dir(tmpdir_factory):
 @pytest.fixture
 def wts_hostname():
     return "test.commons.io"
-
-
-@pytest.mark.parametrize(
-    "file_metadata, expected",
-    [
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "study_id": "QDR_study_01",
-            },
-            "GET",
-        ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "file_id": "QDR_file_02",
-            },
-            "GET",
-        ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "file_ids": "QDR_file_01, QDR_file_02",
-            },
-            "POST",
-        ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-            },
-            None,
-        ),
-    ],
-)
-def test_get_request_type(file_metadata: Dict, expected: str):
-    assert get_request_type(file_metadata) == expected
 
 
 @pytest.mark.parametrize(
@@ -143,14 +101,6 @@ def test_is_valid_qdr_file_metadata_failed():
             },
             "QDR_file_02",
         ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "file_ids": "QDR_file_01,QDR_file_02",
-            },
-            "QDR_file_01,QDR_file_02",
-        ),
     ],
 )
 def test_get_id(file_metadata: Dict, expected: str):
@@ -164,154 +114,6 @@ def test_get_id_bad_input():
         "file_retriever": "QDR",
     }
     assert get_id(file_metadata) == None
-
-
-@pytest.mark.parametrize(
-    "file_metadata, bulk_file_download, expected",
-    [
-        (
-            [
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "study_id": "QDR_study_01",
-                },
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                },
-            ],
-            True,
-            [
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "study_id": "QDR_study_01",
-                }
-            ],
-        ),
-        (
-            [
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "file_id": "QDR_file_02",
-                }
-            ],
-            True,
-            [
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "file_ids": "QDR_file_02",
-                }
-            ],
-        ),
-        (
-            [
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "study_id": "QDR_study_01",
-                },
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "file_id": "QDR_file_02",
-                },
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "file_id": "QDR_file_03",
-                },
-            ],
-            True,
-            [
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "study_id": "QDR_study_01",
-                },
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "file_ids": "QDR_file_02,QDR_file_03",
-                },
-            ],
-        ),
-        (
-            [
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "study_id": "QDR_study_01",
-                },
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "file_id": "QDR_file_02",
-                },
-            ],
-            False,
-            [
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "study_id": "QDR_study_01",
-                },
-                {
-                    "external_oidc_idp": "test-external-idp",
-                    "file_retriever": "QDR",
-                    "file_id": "QDR_file_02",
-                },
-            ],
-        ),
-    ],
-)
-def test_check_ids_and_collate_file_ids(
-    file_metadata: Dict, bulk_file_download: bool, expected: Dict
-):
-    assert check_ids_and_collate_file_ids(file_metadata, bulk_file_download) == expected
-
-
-def test_get_request_body():
-    # include 'file_ids' key
-    file_metadata = {
-        "external_oidc_idp": "test-external-idp",
-        "file_retriever": "QDR",
-        "file_ids": "QDR_file_01,QDR_file_02",
-    }
-    assert get_request_body(file_metadata) == "fileIds=QDR_file_01,QDR_file_02"
-
-
-@pytest.mark.parametrize(
-    "file_metadata",
-    [
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "study_id": "QDR_study_01",
-            },
-        ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-                "file_id": "QDR_file_02",
-            },
-        ),
-        (
-            {
-                "external_oidc_idp": "test-external-idp",
-                "file_retriever": "QDR",
-            },
-        ),
-    ],
-)
-def test_get_request_body_no_file_ids_key(file_metadata: Dict):
-    # file_metadata does not have 'file_ids' key
-    assert get_request_body(file_metadata) == None
 
 
 def test_get_idp_access_token(wts_hostname):
@@ -343,55 +145,15 @@ def test_get_idp_access_token(wts_hostname):
             )
 
 
-def test_get_request_headers_for_file_ids():
-    mock_idp_token = "some-idp-token"
-
-    # with file_ids - includes the 'Content-Type' header
-    file_metadata = {
-        "external_oidc_idp": "test-external-idp",
-        "file_retriever": "QDR",
-        "file_ids": "QDR_file_01,QDR_file_02",
-    }
-    expected_headers = {"Content-Type": "text/plain", "X-Dataverse-key": mock_idp_token}
-    assert (
-        get_request_headers(
-            idp_access_token=mock_idp_token, file_metadata=file_metadata
-        )
-        == expected_headers
-    )
-
-    # missing idp token - no 'X-Dataverse-key' header
-    expected_headers = {
-        "Content-Type": "text/plain",
-    }
-    assert (
-        get_request_headers(idp_access_token=None, file_metadata=file_metadata)
-        == expected_headers
-    )
-
-
 def test_get_request_headers_for_study_or_file():
     mock_idp_token = "some-idp-token"
 
-    # without file_ids - just the X-Dataverse-key
-    file_metadata = {
-        "external_oidc_idp": "test-external-idp",
-        "file_retriever": "QDR",
-        "study_id": "QDR_study_01",
-    }
+    # idp_token is present - just the X-Dataverse-key
     expected_headers = {"X-Dataverse-key": mock_idp_token}
-    assert (
-        get_request_headers(
-            idp_access_token=mock_idp_token, file_metadata=file_metadata
-        )
-        == expected_headers
-    )
+    assert get_request_headers(idp_access_token=mock_idp_token) == expected_headers
 
     # missing idp token - empty headers
-    expected_headers = {
-        "Content-Type": "text/plain",
-    }
-    assert get_request_headers(idp_access_token=None, file_metadata=file_metadata) == {}
+    assert get_request_headers(idp_access_token=None) == {}
 
 
 @pytest.mark.parametrize(
@@ -402,12 +164,6 @@ def test_get_request_headers_for_study_or_file():
                 "study_id": "QDR_study_01",
             },
             "https://data.qdr.syr.edu/api/access/dataset/:persistentId/?persistentId=QDR_study_01",
-        ),
-        (
-            {
-                "file_ids": "QDR_file_01, QDR_file_02",
-            },
-            "https://data.qdr.syr.edu/api/access/datafiles",
         ),
         (
             {
@@ -427,103 +183,145 @@ def test_get_download_url_for_qdr_failed():
     assert get_download_url_for_qdr(file_metadata) == None
 
 
+def test_get_filename_from_headers():
+    # zip file for study_id
+    mock_zip_file_name = "test.zip"
+    mock_response_headers = {
+        "Content-Type": "application/zip",
+        "Content-Disposition": f"application; filename={mock_zip_file_name}",
+    }
+    assert get_filename_from_headers(mock_response_headers) == mock_zip_file_name
+
+    # utf-8 encoded file name for file_id
+    mock_file_name = "test.pdf"
+    mock_response_headers = {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": f"application; filename*=UTF-8''{mock_file_name}",
+    }
+    assert get_filename_from_headers(mock_response_headers) == mock_file_name
+
+
+def test_get_filename_from_headers_invalid():
+    mock_response_headers = {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": f"application; filename",
+    }
+    assert get_filename_from_headers(mock_response_headers) == None
+
+
 def test_download_from_url(download_dir):
     request_headers = {"X-Dataverse-key": "some-idp-token"}
-    valid_response_headers = {"Content-Type": "application/zip"}
-    test_data = "foo"
-    download_filename = f"{download_dir}/dataverse_files.zip"
-    if os.path.exists(download_filename):
-        Path(download_filename).unlink()
+    mock_data = "foo"
 
     with requests_mock.Mocker() as m:
         # get study_id
+        mock_zip_file_name = "dataverse_files.zip"
         qdr_url = "https://data.qdr.test.edu/api/access/:persistentId/?persistentId=QDR_study_01"
+        valid_response_headers = {
+            "Content-Type": "application/zip",
+            "Content-Disposition": f"application; filename={mock_zip_file_name}",
+        }
         m.get(
-            qdr_url, headers=valid_response_headers, content=bytes(test_data, "utf-8")
+            qdr_url, headers=valid_response_headers, content=bytes(mock_data, "utf-8")
         )
-        result = download_from_url(
-            download_filename=download_filename,
-            request_type="GET",
+        download_filename = download_from_url(
             qdr_url=qdr_url,
             headers=request_headers,
-            body=None,
+            download_path=download_dir,
         )
-        assert result == True
+        assert download_filename == f"{download_dir}/{mock_zip_file_name}"
         assert os.path.exists(download_filename)
         with open(download_filename, "r") as f:
-            assert f.read() == test_data
-        Path(download_filename).unlink()
+            assert f.read() == mock_data
 
-        # post file_ids
-        qdr_url = "https://data.qdr.test.edu/api/access/datafiles"
-        m.post(
-            qdr_url, headers=valid_response_headers, content=bytes(test_data, "utf-8")
+        # get file_id
+        mock_file_id = "123456"
+        mock_filename = "some_file.pdf"
+        valid_response_headers = {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": f"application; filename*=UTF-8''{mock_filename}",
+        }
+        qdr_url = f"https://data.qdr.test.edu/api/access/datafile/{mock_file_id}"
+        m.get(
+            qdr_url, headers=valid_response_headers, content=bytes(mock_data, "utf-8")
         )
-        result = download_from_url(
-            download_filename=download_filename,
-            request_type="POST",
+
+        download_filename = download_from_url(
             qdr_url=qdr_url,
             headers=request_headers,
-            body="fileIds=QDR_file_01,QDR_file_02",
+            download_path=download_dir,
         )
-        assert result == True
+        # filename is from response headers, not file_id
+        assert download_filename == f"{download_dir}/{mock_filename}"
         assert os.path.exists(download_filename)
         with open(download_filename, "r") as f:
-            assert f.read() == test_data
-        Path(download_filename).unlink()
+            assert f.read() == mock_data
+
+        # cannot get downloaded file name from header - fall back to file id
+        response_headers = {
+            "Content-Disposition": "application; ",
+        }
+        m.get(qdr_url, headers=response_headers, content=bytes(mock_data, "utf-8"))
+
+        download_filename = download_from_url(
+            qdr_url=qdr_url,
+            headers=request_headers,
+            download_path=download_dir,
+        )
+        # filename is from file_id
+        assert download_filename != f"{download_dir}/{mock_filename}"
+        assert download_filename == f"{download_dir}/{mock_file_id}"
+        assert os.path.exists(download_filename)
+        with open(download_filename, "r") as f:
+            assert f.read() == mock_data
 
 
 def test_download_from_url_failures(download_dir):
     request_headers = {"X-Dataverse-key": "some-idp-token"}
     valid_response_headers = {"Content-Type": "application/zip"}
-    test_data = "foo"
+    mock_data = "foo"
+    mock_zip_file_name = "dataverse_files.zip"
     download_filename = f"{download_dir}/dataverse_files.zip"
     if os.path.exists(download_filename):
         Path(download_filename).unlink()
 
-    with requests_mock.Mocker() as m:
-        # bad url
-        m.post(
-            "https://bad_url",
-            headers=valid_response_headers,
-            content=bytes(test_data, "utf-8"),
-        )
-        result = download_from_url(
-            download_filename="/path/does/not/exist",
-            request_type="POST",
-            qdr_url="https://bad_url",
-            headers=request_headers,
-            body="fileIds=QDR_file_01,QDR_file_02",
-        )
-        assert result == False
-        assert not os.path.exists(download_filename)
+    # bad url
+    downloaded_file = download_from_url(
+        qdr_url="https://bad_url",
+        headers=request_headers,
+        download_path=download_dir,
+    )
+    assert downloaded_file == None
+    assert not os.path.exists(download_filename)
 
-        qdr_url = "https://data.qdr.test.edu/api/access/datafiles"
+    with requests_mock.Mocker() as m:
+        valid_response_headers = {
+            "Content-Type": "application/zip",
+            "Content-Disposition": f"application; filename={mock_zip_file_name}",
+        }
 
         # bad download path
-        m.post(
-            qdr_url, headers=valid_response_headers, content=bytes(test_data, "utf-8")
+        qdr_url = "https://data.qdr.test.edu/api/access/datafiles/some_id"
+        m.get(
+            qdr_url, headers=valid_response_headers, content=bytes(mock_data, "utf-8")
         )
-        result = download_from_url(
-            download_filename="/path/does/not/exist",
-            request_type="POST",
+
+        download_file = download_from_url(
             qdr_url=qdr_url,
             headers=request_headers,
-            body="fileIds=QDR_file_01,QDR_file_02",
+            download_path="/path/does/not/exist",
         )
-        assert result == False
+        assert download_file == None
         assert not os.path.exists(download_filename)
 
         # zero size response
-        m.post(qdr_url, headers=valid_response_headers, content=bytes())
-        result = download_from_url(
-            download_filename=download_filename,
-            request_type="POST",
+        m.get(qdr_url, headers=valid_response_headers, content=bytes())
+        download_file = download_from_url(
             qdr_url=qdr_url,
             headers=request_headers,
-            body="fileIds=QDR_file_01,QDR_file_02",
+            download_path=download_dir,
         )
-        assert result == False
+        assert download_file == None
         assert (os.path.getsize(download_filename)) == 0
         Path(download_filename).unlink()
 
@@ -533,28 +331,22 @@ def test_get_syracuse_qdr_files(wts_hostname, download_dir):
     test_data = "foo"
 
     # valid input and successful download
+    test_file_id = "some_id"
     file_metadata_list = [
         {
             "external_oidc_idp": test_idp,
             "file_retriever": "QDR",
-            "file_id": "QDR_file_02",
-        },
-        {
-            "external_oidc_idp": test_idp,
-            "file_retriever": "QDR",
-            "file_id": "QDR_file_03",
+            "file_id": test_file_id,
         },
     ]
     expected_status = {
-        "QDR_file_02,QDR_file_03": DownloadStatus(
-            filename="QDR_file_02,QDR_file_03", status="downloaded"
-        )
+        test_file_id: DownloadStatus(filename=test_file_id, status="downloaded")
     }
 
     returned_idp_token = "some-idp-token"
     mock_auth = MagicMock()
     mock_auth.get_access_token.return_value = "some_token"
-    valid_response_headers = {"Content-Type": "application/zip"}
+    valid_response_headers = {"Content-Type": "application/pdf"}
     with requests_mock.Mocker() as m, mock.patch(
         "gen3.tools.download.drs_download.wts_get_token"
     ) as wts_get_token:
@@ -562,8 +354,8 @@ def test_get_syracuse_qdr_files(wts_hostname, download_dir):
             f"https://{wts_hostname}/wts/token/?idp={test_idp}",
             json={"token": returned_idp_token},
         )
-        m.post(
-            "https://data.qdr.syr.edu/api/access/datafiles",
+        m.get(
+            f"https://data.qdr.syr.edu/api/access/datafile/{test_file_id}",
             headers=valid_response_headers,
             content=bytes(test_data, "utf-8"),
         )
@@ -609,22 +401,16 @@ def test_get_syracuse_qdr_files_bad_input(
 
 
 def test_get_syracuse_qdr_files_no_url(wts_hostname, download_dir):
+    test_file_id = "some_id"
     file_metadata_list = [
         {
             "external_oidc_idp": "test-external-idp",
             "file_retriever": "QDR",
-            "file_id": "QDR_file_02",
-        },
-        {
-            "external_oidc_idp": "test-external-idp",
-            "file_retriever": "QDR",
-            "file_id": "QDR_file_03",
+            "file_id": test_file_id,
         },
     ]
     expected_status_invalid_url = {
-        "QDR_file_02,QDR_file_03": DownloadStatus(
-            filename="QDR_file_02,QDR_file_03", status="invalid url"
-        )
+        test_file_id: DownloadStatus(filename=test_file_id, status="invalid url")
     }
     mock_auth = MagicMock()
     mock_auth.get_access_token.return_value = "some_token"
@@ -648,18 +434,17 @@ def test_get_syracuse_qdr_files_failed_download(wts_hostname, download_dir):
     test_data = "foo"
 
     # valid input
+    test_file_id = "some_id"
     file_metadata_list = [
         {
             "external_oidc_idp": "test-external-idp",
             "file_retriever": "QDR",
-            "file_id": "QDR_file_02",
-        },
-        {
-            "external_oidc_idp": "test-external-idp",
-            "file_retriever": "QDR",
-            "file_id": "QDR_file_03",
+            "file_id": test_file_id,
         },
     ]
+    expected_status = {
+        test_file_id: DownloadStatus(filename=test_file_id, status="failed")
+    }
 
     returned_idp_token = "some-idp-token"
     mock_auth = MagicMock()
@@ -672,21 +457,17 @@ def test_get_syracuse_qdr_files_failed_download(wts_hostname, download_dir):
             f"https://{wts_hostname}/wts/token/?idp={idp}",
             json={"token": returned_idp_token},
         )
-        # failed downloads
-        m.post(
-            "https://data.qdr.syr.edu/api/access/datafiles",
+        m.get(
+            "https://data.qdr.syr.edu/api/access/datafile/{test_file_id}",
             headers=valid_response_headers,
             content=bytes(test_data, "utf-8"),
         )
         with mock.patch(
             "heal.qdr_downloads.download_from_url"
         ) as mock_download_from_url:
-            mock_download_from_url.return_value = False
-            expected_status = {
-                "QDR_file_02,QDR_file_03": DownloadStatus(
-                    filename="QDR_file_02,QDR_file_03", status="failed"
-                )
-            }
+            # failed download
+            mock_download_from_url.return_value = None
+
             result = get_syracuse_qdr_files(
                 wts_hostname=wts_hostname,
                 auth=mock_auth,
