@@ -158,7 +158,7 @@ def download_from_url(
     block_size = 8092  # 8K blocks might want to tune this.
     download_filename = f"{download_path}/{downloaded_file_name}"
     try:
-        logger.debug(f"Saving download as {download_filename}")
+        logger.info(f"Saving download as {download_filename}")
         with open(download_filename, "wb") as file:
             for data in response.iter_content(block_size):
                 total_downloaded += len(data)
@@ -198,7 +198,7 @@ def get_download_url_for_qdr(file_metadata: Dict) -> str:
 
 
 def get_filename_from_headers(headers: Dict) -> str:
-    """ "
+    """
     Parse and decode downloaded file name from response headers
 
     Args:
@@ -211,10 +211,8 @@ def get_filename_from_headers(headers: Dict) -> str:
         file_name = None
         content_response = headers.get("Content-Disposition").split(";")
         for part in content_response:
-            logger.debug(f"Checking part {part}")
             # look for UTF-8 encoded file name
             if part.strip().startswith("filename*="):
-                logger.debug("Encoded")
                 file_name = part.split("=", 1)[1].strip()
                 if file_name.lower().startswith("utf-8''"):
                     file_name = file_name[7:]
