@@ -72,11 +72,6 @@ def get_syracuse_qdr_files(
             completed[id].status = "invalid url"
             continue
 
-        if "study_id" in file_metadata:
-            filepath = f"{download_path}/dataverse_files.zip"
-        else:
-            filepath = f"{download_path}/{id}"
-
         idp_access_token = get_idp_access_token(wts_hostname, auth, file_metadata)
         request_headers = get_request_headers(idp_access_token)
         if "X-Dataverse-key" not in request_headers:
