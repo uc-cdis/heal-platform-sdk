@@ -58,7 +58,7 @@ def get_syracuse_qdr_files(
 
     for file_metadata in file_metadata_list:
         id = get_id(file_metadata)
-        if id == None:
+        if id is None:
             logger.warning(
                 f"Could not find 'study_id' or 'file_id' in metadata {file_metadata}"
             )
@@ -67,7 +67,7 @@ def get_syracuse_qdr_files(
         completed[id] = DownloadStatus(filename=id, status="pending")
 
         download_url = get_download_url_for_qdr(file_metadata)
-        if download_url == None:
+        if download_url is None:
             logger.critical(f"Could not get download_url for {id}")
             completed[id].status = "invalid url"
             continue
@@ -85,7 +85,7 @@ def get_syracuse_qdr_files(
             headers=request_headers,
             download_path=download_path,
         )
-        if downloaded_file == None:
+        if downloaded_file is None:
             completed[id].status = "failed"
             continue
 
@@ -104,7 +104,7 @@ def get_syracuse_qdr_files(
         else:
             completed[id].status = "downloaded"
 
-    if completed == {}:
+    if not completed:
         return None
     return completed
 
@@ -145,7 +145,7 @@ def download_from_url(
         return None
     logger.debug(f"Status code={response.status_code}")
     downloaded_file_name = get_filename_from_headers(response.headers)
-    if downloaded_file_name == None:
+    if downloaded_file_name is None:
         downloaded_file_name = qdr_url.split("/")[-1]
         logger.info(f"Using file name from id in url {downloaded_file_name}")
 
@@ -168,7 +168,7 @@ def download_from_url(
         return None
 
     if total_downloaded == 0:
-        logger.critical(f"content-length is 0 and it should not be")
+        logger.critical("content-length is 0 and it should not be")
         return None
     logger.debug(f"Download size = {total_downloaded}")
 
@@ -186,6 +186,8 @@ def get_download_url_for_qdr(file_metadata: Dict) -> str:
         url, None if there are errors
     """
     base_url = "https://data.qdr.syr.edu/api/access"
+    if "use_qdr_staging" in file_metadata and bool(file_metadata.use_qdr_staging):
+        base_url = "https://data.stage.qdr.org/api/access"
 
     if "study_id" in file_metadata:
         url = f"{base_url}/dataset/:persistentId/?persistentId={file_metadata.get('study_id')}"
@@ -221,7 +223,7 @@ def get_filename_from_headers(headers: Dict) -> str:
             elif part.strip().startswith("filename="):
                 file_name = part.split("=", 1)[1].strip().strip('"')
                 break
-        if file_name == None:
+        if file_name is None:
             logger.info("Could not parse file name from headers")
 
     except Exception as e:
