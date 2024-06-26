@@ -177,6 +177,26 @@ def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
     assert get_download_url_for_qdr(file_metadata) == expected
 
 
+@pytest.mark.parametrize(
+    "file_metadata_qdr_staging, expected",
+    [
+        (
+            {
+                "external_oidc_idp": "test-external-idp",
+                "file_retriever": "QDR",
+                "study_id": "QDR_study_01",
+                "use_qdr_staging": True,
+            },
+            "https://data.stage.qdr.org/api/access/dataset/:persistentId/?persistentId=QDR_study_01",
+        )
+    ],
+)
+def test_get_download_url_for_qdr_staging(
+    file_metadata_qdr_staging: Dict, expected: str
+):
+    assert get_download_url_for_qdr(file_metadata_qdr_staging) == expected
+
+
 def test_get_download_url_for_qdr_failed():
     # missing file_ids or study_id
     file_metadata = {}

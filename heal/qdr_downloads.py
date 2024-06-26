@@ -186,7 +186,7 @@ def get_download_url_for_qdr(file_metadata: Dict) -> str:
         url, None if there are errors
     """
     base_url = "https://data.qdr.syr.edu/api/access"
-    if "use_qdr_staging" in file_metadata and bool(file_metadata.use_qdr_staging):
+    if "use_qdr_staging" in file_metadata and bool(file_metadata["use_qdr_staging"]):
         base_url = "https://data.stage.qdr.org/api/access"
 
     if "study_id" in file_metadata:
