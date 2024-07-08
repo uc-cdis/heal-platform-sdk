@@ -1,4 +1,5 @@
 # heal-platform-sdk
+<img src="docs/images/gen3-blue-dark.png" width=250px>
 
 The HEAL Platform Software Development Kit (SDK) for Python provides classes and functions for handling HEAL specific tasks.
 
