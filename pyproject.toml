@@ -15,7 +15,7 @@ gen3 = "^4.22.4"
 requests = "*"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.0.0"
+pytest = "^7.0.0"
 pytest-cov = "*"
 requests-mock = "*"
 
@@ -24,7 +24,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "7.0"
 addopts = "-vv"
 pythonpath = "heal"
 testpaths = [
