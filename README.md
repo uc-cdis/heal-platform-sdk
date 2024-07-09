@@ -30,7 +30,7 @@ pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git#egg=heal
 or a particular branch, eg,
 
 ```
-pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git@feat/add-syracuse-qdr-retriever#egg=heal
+pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git@my-branch#egg=heal
 ```
 
 The specification can also be listed in requirements.txt file
