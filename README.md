@@ -24,18 +24,18 @@ As an example, `pip install` can be called from the command line for getting
 the master branch of the `heal-platform-sdk`,
 
 ```
-pip install -e git+ssh://git@github.com/uc-cdis/heal-platform-sdk.git#egg=heal
+pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git#egg=heal
 ```
 
 or a particular branch, eg,
 
 ```
-pip install -e git+ssh://git@github.com/uc-cdis/heal-platform-sdk.git@feat/add-syracuse-qdr-retriever#egg=heal
+pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git@feat/add-syracuse-qdr-retriever#egg=heal
 ```
 
 The specification can also be listed in requirements.txt file
 (with, say, a tag specification of 0.1.0)
 
 ```
--e git+ssh://git@github.com/uc-cdis/heal-platform-sdk.git@0.1.0#egg=heal
+pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git@0.1.0#egg=heal
 ```
