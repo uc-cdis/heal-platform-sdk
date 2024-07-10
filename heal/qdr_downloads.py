@@ -74,8 +74,8 @@ def get_syracuse_qdr_files(
 
         idp_access_token = get_idp_access_token(wts_hostname, auth, file_metadata)
         request_headers = get_request_headers(idp_access_token)
-        if "X-Dataverse-key" not in request_headers:
-            logger.critical("WARNING Request headers do not include 'X-Dataverse-key'.")
+        if "Authorization" not in request_headers:
+            logger.critical("WARNING Request headers do not include a bearer token.")
 
         logger.debug(f"Request headers = {request_headers}")
 
@@ -254,7 +254,7 @@ def get_request_headers(idp_access_token: str) -> Dict:
     Generate the request headers.
 
     Args:
-        idp_access_token (str): QDR token is included in X-Dataverse-key header
+        idp_access_token (str): QDR access token is included in request header as bearer token
         file_metadata (Dict)
 
     Returns:
@@ -262,7 +262,7 @@ def get_request_headers(idp_access_token: str) -> Dict:
     """
     headers = {}
     if idp_access_token:
-        headers["X-Dataverse-key"] = idp_access_token
+        headers["Authorization"] = f"Bearer {idp_access_token}"
 
     return headers
 
