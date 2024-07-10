@@ -148,8 +148,8 @@ def test_get_idp_access_token(wts_hostname):
 def test_get_request_headers_for_study_or_file():
     mock_idp_token = "some-idp-token"
 
-    # idp_token is present - just the X-Dataverse-key
-    expected_headers = {"X-Dataverse-key": mock_idp_token}
+    # idp_token is present - just the bearer token
+    expected_headers = {"Authorization": f"Bearer {mock_idp_token}"}
     assert get_request_headers(idp_access_token=mock_idp_token) == expected_headers
 
     # missing idp token - empty headers
@@ -230,7 +230,7 @@ def test_get_filename_from_headers_invalid():
 
 
 def test_download_from_url(download_dir):
-    request_headers = {"X-Dataverse-key": "some-idp-token"}
+    request_headers = {"Authorization": "Bearer some-idp-token"}
     mock_data = "foo"
 
     with requests_mock.Mocker() as m:
@@ -297,7 +297,7 @@ def test_download_from_url(download_dir):
 
 
 def test_download_from_url_failures(download_dir):
-    request_headers = {"X-Dataverse-key": "some-idp-token"}
+    request_headers = {"Authorization": "Bearer some-idp-token"}
     valid_response_headers = {"Content-Type": "application/zip"}
     mock_data = "foo"
     mock_zip_file_name = "dataverse_files.zip"
