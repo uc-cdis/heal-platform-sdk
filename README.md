@@ -9,6 +9,13 @@ The qdr_downloads module include a retriever function for downloading files from
 
 This is intended to be called by gen3sdk [external download functions](https://github.com/uc-cdis/gen3sdk-python/blob/master/gen3/tools/download/external_file_download.py). It is also possible to write a wrapper script for the qdr download functions.
 
+### Notebooks
+
+In the notebooks directory there are jupyter notebooks that may be used to download files from a corresponding platform. For instance the qdr_data_download.ipynb notebook may be used to download files from Syracuse QDR.
+
+These notebooks perform optimally within a HEAL Gen3 Workspace and the notebooks will be automatically installed to a user's workspace when the workspace is initiated. However, you may also use these notebooks on your local machine.
+
+
 ### Run tests
 
 ```
