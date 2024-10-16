@@ -15,6 +15,9 @@ In the notebooks directory there are jupyter notebooks that may be used to downl
 
 These notebooks perform optimally within a HEAL Gen3 Workspace and the notebooks will be automatically installed to a user's workspace when the workspace is initiated. However, you may also use these notebooks on your local machine.
 
+### VLMD validation
+
+The [VLMD validation docs](heal/vlmd/README.md) describe how to use the SDK for validating VLMD dictionaries.
 
 ### Run tests
 
