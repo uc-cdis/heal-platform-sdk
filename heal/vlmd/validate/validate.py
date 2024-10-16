@@ -29,7 +29,6 @@ def vlmd_validate(input_file: str, schema_type="auto") -> bool:
         Raises SchemaError if schema is invalid.
     """
 
-    # TODO: log input file and schema type to info
     logger.info(
         f"Validating VLMD file '{input_file}' against shema type '{schema_type}'"
     )
