@@ -34,7 +34,7 @@ from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
 logger = get_logger("__name__", log_level="debug")
 
 
-def get_syracuse_qdr_files(
+def get_harvard_dataverse_files(
     wts_hostname: str, auth, file_metadata_list: List, download_path: str = "."
 ) -> Dict:
     """
@@ -72,17 +72,10 @@ def get_syracuse_qdr_files(
             completed[id].status = "invalid url"
             continue
 
-        idp_access_token = get_idp_access_token(wts_hostname, auth, file_metadata)
-        request_headers = get_request_headers(idp_access_token)
-        if "Authorization" not in request_headers:
-            logger.critical("WARNING Request headers do not include a bearer token.")
-
-        logger.debug(f"Request headers = {request_headers}")
-
         logger.debug(f"Ready to send request to download_url: GET {download_url}")
         downloaded_file = download_from_url(
-            qdr_url=download_url,
-            headers=request_headers,
+            harvard_url=download_url,
+            headers=None,
             download_path=download_path,
         )
         if downloaded_file is None:
@@ -110,7 +103,7 @@ def get_syracuse_qdr_files(
 
 
 def download_from_url(
-    qdr_url: str,
+    harvard_url: str,
     headers=None,
     download_path: str = ".",
 ) -> str:
@@ -119,7 +112,7 @@ def download_from_url(
     Save the file based on the filename in the Content-Disposition response header.
 
     Args:
-        qdr_url (str): url for QDR API
+        harvard_url (str): url for QDR API
         headers (Dict): request headers
         download_path (str): path for saving downloaded zip file
 
@@ -127,11 +120,11 @@ def download_from_url(
         path to downloaded and renamed file.
     """
     try:
-        response = requests.get(url=qdr_url, headers=headers, stream=True)
+        response = requests.get(url=harvard_url, headers=headers, stream=True)
         response.raise_for_status()
     except requests.exceptions.Timeout:
         logger.critical(
-            f"Was unable to get the download url: {qdr_url}. Timeout Error."
+            f"Was unable to get the download url: {harvard_url}. Timeout Error."
         )
         return None
     except requests.exceptions.HTTPError as exc:
@@ -146,7 +139,7 @@ def download_from_url(
     logger.debug(f"Status code={response.status_code}")
     downloaded_file_name = get_filename_from_headers(response.headers)
     if downloaded_file_name is None:
-        downloaded_file_name = qdr_url.split("/")[-1]
+        downloaded_file_name = harvard_url.split("/")[-1]
         logger.info(f"Using file name from id in url {downloaded_file_name}")
 
     if downloaded_file_name.endswith(
@@ -187,8 +180,6 @@ def get_download_url_for_harvard_dataverse(file_metadata: Dict) -> str:
         url, None if there are errors
     """
     base_url = "https://dataverse.harvard.edu/api/access"
-    if "use_qdr_staging" in file_metadata and bool(file_metadata["use_qdr_staging"]):
-        base_url = "https://data.stage.qdr.org/api/access"
 
     if "study_id" in file_metadata:
         url = f"{base_url}/dataset/:persistentId/?persistentId={file_metadata.get('study_id')}"
@@ -233,41 +224,6 @@ def get_filename_from_headers(headers: Dict) -> str:
     return file_name
 
 
-def get_idp_access_token(wts_hostname: str, auth: Gen3Auth, file_metadata: Dict) -> str:
-    """Get an access token for QDR using a Gen3 commons WTS"""
-    try:
-        logger.debug("Ready to get auth token")
-        wts_access_token = auth.get_access_token()
-        logger.debug("Ready to get idp token")
-        idp = file_metadata.get("external_oidc_idp")
-        idp_access_token = wts_get_token(
-            hostname=wts_hostname, idp=idp, access_token=wts_access_token
-        )
-    except Exception as e:
-        logger.critical(f"Could not get token: {e}")
-        return None
-
-    return idp_access_token
-
-
-def get_request_headers(idp_access_token: str) -> Dict:
-    """
-    Generate the request headers.
-
-    Args:
-        idp_access_token (str): QDR access token is included in request header as bearer token
-        file_metadata (Dict)
-
-    Returns:
-        Dictionary of request headers
-    """
-    headers = {}
-    if idp_access_token:
-        headers["Authorization"] = f"Bearer {idp_access_token}"
-
-    return headers
-
-
 def get_id(file_metadata: Dict) -> str:
     """
     Parse out the object id from the metadata.
@@ -286,7 +242,7 @@ def get_id(file_metadata: Dict) -> str:
     return None
 
 
-def is_valid_qdr_file_metadata(file_metadata: Dict) -> bool:
+def is_valid_harvard_file_metadata(file_metadata: Dict) -> bool:
     """
     Check that the file_metadata has the required keys:
     'study_id' or 'file_id'.
