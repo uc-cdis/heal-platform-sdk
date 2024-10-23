@@ -30,7 +30,7 @@ def vlmd_validate(input_file: str, schema_type="auto") -> bool:
     """
 
     logger.info(
-        f"Validating VLMD file '{input_file}' against shema type '{schema_type}'"
+        f"Validating VLMD file '{input_file}' against schema type '{schema_type}'"
     )
 
     if schema_type not in ALLOWED_SCHEMA_TYPES:
