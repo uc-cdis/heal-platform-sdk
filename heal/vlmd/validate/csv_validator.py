@@ -17,7 +17,9 @@ def vlmd_validate_csv(input_file: str, schema_type: str) -> bool:
             Allowed values for now are “csv”, “tsv”, “json” and “auto”.
 
     Returns:
-        Dict of validation status
+        True for valid data and schema.
+        Raises jsonschema.ValidationError if data is not valid
+        or jsonschema.SchemaError if schema is not valid
     """
 
     if schema_type not in ALLOWED_SCHEMA_TYPES:
