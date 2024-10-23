@@ -1,19 +1,21 @@
-from unittest.mock import patch
 import pytest
 
-from heal.vlmd.schemas.heal_csv import heal_csv_schema
-from heal.vlmd.schemas.heal_json import heal_json_schema
-from heal.vlmd.config import ALLOWED_INPUT_TYPES, ALLOWED_SCHEMA_TYPES
+from heal.vlmd.config import (
+    ALLOWED_INPUT_TYPES,
+    ALLOWED_SCHEMA_TYPES,
+    CSV_SCHEMA,
+    JSON_SCHEMA,
+)
 
 
 @pytest.fixture()
 def VALID_CSV_SCHEMA():
-    return heal_csv_schema
+    return CSV_SCHEMA
 
 
 @pytest.fixture()
 def VALID_JSON_SCHEMA():
-    return heal_json_schema
+    return JSON_SCHEMA
 
 
 @pytest.fixture()
