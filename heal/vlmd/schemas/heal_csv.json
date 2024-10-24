@@ -126,7 +126,7 @@
         },
         "enumOrdered": {
             "title": "An ordered variable",
-            "description": "Indicates whether a categorical variable is ordered. This variable  is relevant for variables that have an ordered relationship but not necessarily  a numerical relationship (e.g., Strongly disagree < Disagree < Neutral < Agree). This field is intended to follow the ordering aspect of this [this pattern][this pattern](https://specs.frictionlessdata.io/patterns/#table-schema-enum-labels-and-ordering)",
+            "description": "Indicates whether a categorical variable is ordered. This variable is relevant for variables that have an ordered relationship but not necessarily a numerical relationship (e.g., Strongly disagree < Disagree < Neutral < Agree). This field is intended to follow the ordering aspect of this [this pattern][this pattern](https://specs.frictionlessdata.io/patterns/#table-schema-enum-labels-and-ordering)",
             "type": "boolean"
         },
         "missingValues": {
@@ -195,7 +195,7 @@
         "^standardsMappings\\[\\d+\\].instrument.id$": {
             "type": "string",
             "title": "Identifier",
-            "description": "A code or other string that identifies the instrument within the source. This should always be from the source's formal, standardized identification system ",
+            "description": "A code or other string that identifies the instrument within the source. This should always be from the source's formal, standardized identification system",
             "examples": [
                 "5141"
             ]
