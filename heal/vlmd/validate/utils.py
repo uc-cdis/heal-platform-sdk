@@ -1,3 +1,5 @@
+import os
+
 import charset_normalizer
 import pandas as pd
 from pathlib import Path
@@ -52,29 +54,35 @@ def read_delim(file_path, cast_d_type="string"):
     return file_encoding
 
 
-def get_schema(input_file: str, schema_type: str):
+def get_schema(data_or_path, schema_type: str):
     """
     Get the schema for the specified schema_type.
     Use the input_file suffix for "auto".
 
     Args:
-        input_file (str): the path of the input VLMD file to be validated
+        data_or_path: json dictionary or path to input file
         schema_type (str): the type of the schema that can be validated against.
             Allowed values for now are “csv”, “tsv”, “json” and “auto”. Defaults to “auto”
     Returns:
         schema (dict)
     """
 
-    file_suffix = Path(input_file).suffix.replace(".", "")
-    if schema_type == "csv" or (schema_type == "auto" and file_suffix == "csv"):
+    if isinstance(data_or_path, (str, os.PathLike)):
+        dictionary_type = Path(data_or_path).suffix.replace(".", "")
+    elif isinstance(data_or_path, dict):
+        dictionary_type = "json"
+    else:
+        raise ValueError("Input should be path or dict")
+
+    if schema_type == "csv" or (schema_type == "auto" and dictionary_type == "csv"):
         schema = {"type": "array", "items": CSV_SCHEMA}
         logger.debug("Validator will use CSV schema")
         return schema
-    if schema_type == "tsv" or (schema_type == "auto" and file_suffix == "tsv"):
+    if schema_type == "tsv" or (schema_type == "auto" and dictionary_type == "tsv"):
         schema = {"type": "array", "items": CSV_SCHEMA}
         logger.debug("Validator will use CSV schema for TSV file")
         return schema
-    if schema_type == "json" or (schema_type == "auto" and file_suffix == "json"):
+    if schema_type == "json" or (schema_type == "auto" and dictionary_type == "json"):
         schema = JSON_SCHEMA
         logger.debug("Validator will use json schema")
         return schema
@@ -133,3 +141,18 @@ def add_types_to_props(schema: dict) -> dict:
     schema["items"]["patternProperties"] = patterns_with_missing
 
     return schema
+
+
+def remove_empty_props(props):
+    """
+    Remove any fields with emtpy values.
+    Can be used for json dictionaries that have been extracted from csv dictionaries.
+    """
+    if isinstance(props, dict):
+        new_dict = {}
+        for k, v in props.items():
+            cleaned_value = remove_empty_props(v)
+            if cleaned_value or cleaned_value == 0:
+                new_dict[k] = cleaned_value
+        return new_dict
+    return props

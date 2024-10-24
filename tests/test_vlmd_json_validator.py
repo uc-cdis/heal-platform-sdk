@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from unittest.mock import patch
 
 from jsonschema import SchemaError, ValidationError
@@ -8,9 +10,17 @@ from heal.vlmd.validate.json_validator import vlmd_validate_json
 
 
 @pytest.mark.parametrize("test_schema_type", ["auto", "json"])
-def test_valid_json(test_schema_type):
+def test_valid_json_file(test_schema_type):
     test_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
-    result = vlmd_validate_json(input_file=test_file, schema_type=test_schema_type)
+    result = vlmd_validate_json(data_or_path=test_file, schema_type=test_schema_type)
+    assert result == True
+
+
+@pytest.mark.parametrize("test_schema_type", ["auto", "json"])
+def test_valid_json_object(test_schema_type):
+    test_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
+    data = json.loads(Path(test_file).read_text())
+    result = vlmd_validate_json(data_or_path=data, schema_type=test_schema_type)
     assert result == True
 
 
@@ -19,7 +29,7 @@ def test_invalid_json(test_schema_type):
     test_file = "tests/test_data/vlmd/invalid/vlmd_missing_description.json"
 
     with pytest.raises(ValidationError) as e:
-        vlmd_validate_json(input_file=test_file, schema_type=test_schema_type)
+        vlmd_validate_json(data_or_path=test_file, schema_type=test_schema_type)
 
     expected_message = f"'description' is a required property"
     assert expected_message in str(e.value)
@@ -40,6 +50,6 @@ def test_invalid_json_schema(invalid_json_schema):
     with patch("heal.vlmd.validate.json_validator.get_schema") as mock_get_schema:
         mock_get_schema.return_value = invalid_json_schema
         with pytest.raises(SchemaError) as e:
-            vlmd_validate_json(input_file=test_file, schema_type="json")
+            vlmd_validate_json(data_or_path=test_file, schema_type="json")
         expected_message = "5 is not of type 'object', 'boolean'"
         assert expected_message in str(e.value)
