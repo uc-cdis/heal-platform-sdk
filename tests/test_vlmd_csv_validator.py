@@ -6,10 +6,15 @@ from heal.vlmd.validate.csv_validator import vlmd_validate_csv
 
 
 @pytest.mark.parametrize("test_schema_type", ["auto", "csv"])
-def test_valid_csv(test_schema_type):
+def test_valid_csv_file(test_schema_type):
     test_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
 
     result = vlmd_validate_csv(test_file, test_schema_type)
+    assert result == True
+
+
+def test_valid_csv_array(valid_array_data):
+    result = vlmd_validate_csv(valid_array_data, "csv")
     assert result == True
 
 
@@ -29,14 +34,14 @@ def test_read_non_delim_data_in_csv(test_schema_type):
 
     with pytest.raises(ValueError) as e:
         vlmd_validate_csv(test_file, test_schema_type)
-    expected_message = "Could not read data from file"
+    expected_message = "Could not read csv data from input"
     assert expected_message in str(e.value)
 
 
 def test_unallowed_schema_type(allowed_schema_types):
     test_file = f"tests/test_data/vlmd/valid/vlmd_valid.csv"
     with pytest.raises(ValueError) as e:
-        vlmd_validate_csv(input_file=test_file, schema_type="txt")
+        vlmd_validate_csv(data_or_path=test_file, schema_type="txt")
     expected_message = f"Schema type must be in {allowed_schema_types}"
     assert expected_message in str(e.value)
 
@@ -47,7 +52,7 @@ def test_invalid_csv_schema(invalid_csv_schema):
     with patch("heal.vlmd.validate.csv_validator.get_schema") as mock_get_schema:
         mock_get_schema.return_value = invalid_csv_schema
         with pytest.raises(SchemaError) as e:
-            vlmd_validate_csv(input_file=test_file, schema_type="csv")
+            vlmd_validate_csv(data_or_path=test_file, schema_type="csv")
         expected_message = "is not valid under any of the given schemas"
         print(f"Got message {str(e.value)}")
         assert expected_message in str(e.value)

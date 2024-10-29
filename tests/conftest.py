@@ -61,3 +61,47 @@ def invalid_json_schema():
             },
         },
     }
+
+
+@pytest.fixture()
+def valid_array_data():
+    return [
+        {
+            "section": "Enrollment",
+            "name": "participant_id",
+            "title": "Participant Id",
+            "description": "Unique identifier for participant",
+            "type": "string",
+            "format": "",
+            "constraints.maxLength": "",
+            "constraints.enum": "",
+            "constraints.pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
+            "constraints.maximum": "",
+            "constraints.minimum": "",
+            "enumLabels": "",
+            "enumOrdered": "",
+            "missingValues": "",
+            "trueValues": "",
+            "falseValues": "",
+            "custom.notes": "This is a note",
+        },
+        {
+            "section": "Demographics",
+            "name": "race",
+            "title": "Race",
+            "description": "Self-reported race",
+            "type": "integer",
+            "format": "",
+            "constraints.maxLength": "",
+            "constraints.enum": "1|2|3|4|5|6|7|8",
+            "constraints.pattern": "",
+            "constraints.maximum": "",
+            "constraints.minimum": "",
+            "enumLabels": "1=White|2=Black or African American|3=American Indian or Alaska Native|4=Native| 5=Hawaiian or Other Pacific Islander|6=Asian|7=Some other race|8=Multiracial|99=Not reported",
+            "enumOrdered": "",
+            "missingValues": "99",
+            "trueValues": "",
+            "falseValues": "",
+            "custom.notes": "This is a custom note",
+        },
+    ]
