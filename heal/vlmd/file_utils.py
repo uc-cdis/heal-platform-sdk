@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 
 import pandas as pd
-from slugify import slugify
 
 from cdislogging import get_logger
 from heal.vlmd.config import OUTPUT_FILE_PREFIX
@@ -17,7 +16,6 @@ def get_output_filepath(output_dir, infile_name, output_type="auto"):
     """
     Generate the output file path.
     Replace path to infile_name with output_dir.
-    Slugify file name.
     Replace suffix with 'json' if needed.
 
     Args:
@@ -31,9 +29,6 @@ def get_output_filepath(output_dir, infile_name, output_type="auto"):
           <output_dir>/<prefix>_<infile_name>.<suffix>
     """
 
-    # TODO: don't strip suffix if type = "auto"
-    # TODO: decide if we want to keep the slugify
-    # Strip any existing suffix from infile_name
     prefix = OUTPUT_FILE_PREFIX
     file_name = os.path.basename(infile_name)
     if output_type == "auto":
