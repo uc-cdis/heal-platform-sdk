@@ -18,12 +18,12 @@ def read_data_from_json_file(input_file: str) -> Dict:
     return data
 
 
-def vlmd_validate_json(data_or_path: str, schema_type: str) -> bool:
+def vlmd_validate_json(data_or_path, schema_type: str) -> bool:
     """
     Validate json file against specified schema type.
 
     Args:
-        data_or_path (str): the path of the input HEAL VLMD file that to be validated
+        data_or_path: the path of the input HEAL VLMD file that to be validated
         schema_type (str): the type of the schema that can be validated against.
             Allowed values for now are “csv”, “tsv”, “json” and “auto”. Defaults to “auto”
 
@@ -36,18 +36,18 @@ def vlmd_validate_json(data_or_path: str, schema_type: str) -> bool:
     if schema_type not in ALLOWED_SCHEMA_TYPES:
         raise ValueError(f"Schema type must be in {ALLOWED_SCHEMA_TYPES}")
 
-    schema = get_schema(data_or_path, schema_type)
-    if schema == None:
-        raise ValueError(f"Could not get schema for type = {schema_type}")
-    logger.debug("Checking schema")
-    jsonschema.validators.Draft7Validator.check_schema(schema)
-
     if isinstance(data_or_path, (str, PathLike)):
         logger.debug("Getting json data from file")
         data = read_data_from_json_file(data_or_path)
     else:
         logger.debug("Getting json data from object")
         data = data_or_path
+
+    schema = get_schema(data_or_path, schema_type)
+    if schema == None:
+        raise ValueError(f"Could not get schema for type = {schema_type}")
+    logger.debug("Checking schema")
+    jsonschema.validators.Draft7Validator.check_schema(schema)
 
     logger.debug("Validating data")
     jsonschema.validate(instance=data, schema=schema)
