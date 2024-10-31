@@ -8,7 +8,7 @@ from heal.vlmd.config import ALLOWED_INPUT_TYPES, ALLOWED_SCHEMA_TYPES
 from heal.vlmd.validate.csv_validator import vlmd_validate_csv
 from heal.vlmd.validate.json_validator import vlmd_validate_json
 
-logger = get_logger("VALIDATE", log_level="debug")
+logger = get_logger("vlmd-validate", log_level="debug")
 
 
 def vlmd_validate(input_file: str, schema_type="auto") -> bool:
