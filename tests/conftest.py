@@ -109,9 +109,30 @@ def valid_array_data():
 
 
 @pytest.fixture()
+def valid_json_data():
+    with open("tests/test_data/vlmd/valid/vlmd_valid.json", "r") as f:
+        data = json.load(f)
+    return data
+
+
+@pytest.fixture()
 def valid_json_output():
     header = {"schemaVersion": "0.3.2"}
     with open("tests/test_data/vlmd/valid/vlmd_valid.json", "r") as f:
         data = json.load(f)
     header.update(data)
     return header
+
+
+@pytest.fixture()
+def valid_converted_csv_to_json():
+    with open("tests/test_data/vlmd/valid/vlmd_csv_to_json.json", "r") as f:
+        data = json.load(f)
+    return data
+
+
+@pytest.fixture()
+def valid_csv_output():
+    with open("tests/test_data/vlmd/valid/vlmd_csv_to_csv.json", "r") as f:
+        data = json.load(f)
+    return data

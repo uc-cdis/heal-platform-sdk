@@ -24,11 +24,11 @@ def convert_templatejson(
     overwritten.
 
     Args
-    jsontemplate : str or path-like or an object that can be inferred as data by frictionless's Resource class.
-        Data or path to data with the data being a tabular HEAL-specified data dictionary.
-        This input can be any data object or path-like string excepted by a frictionless Resource object.
-    data_dictionary_props : dict
-        The HEAL-specified data dictionary properties.
+        jsontemplate : str or path-like or an object that can be inferred as data by frictionless's Resource class.
+            Data or path to data with the data being a tabular HEAL-specified data dictionary.
+            This input can be any data object or path-like string excepted by a frictionless Resource object.
+        data_dictionary_props : dict
+            The HEAL-specified data dictionary properties.
 
     Returns
         A dictionary with two keys:
@@ -42,7 +42,7 @@ def convert_templatejson(
     elif isinstance(jsontemplate, collections.abc.MutableMapping):
         jsontemplate_dict = jsontemplate
     else:
-        raise Exception(
+        raise ValueError(
             "jsontemplate needs to be either dictionary-like or a path to a json"
         )
 

@@ -1,0 +1,48 @@
+{
+    "custom": {
+        "notes": "This is a custom note"
+    },
+    "fields": [
+        {
+            "section": "Enrollment",
+            "name": "participant_id",
+            "title": "Participant Id",
+            "description": "Unique identifier for participant",
+            "type": "string",
+            "format": "",
+            "constraints": {
+                "maxLength": "",
+                "enum": "",
+                "pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
+                "maximum": "",
+                "minimum": ""
+            },
+            "enumLabels": "",
+            "enumOrdered": "",
+            "missingValues": "",
+            "trueValues": "",
+            "falseValues": ""
+        },
+        {
+            "section": "Demographics",
+            "name": "race",
+            "title": "Race",
+            "description": "Self-reported race",
+            "type": "integer",
+            "format": "",
+            "constraints": {
+                "maxLength": "",
+                "enum": ["1", "2", "3", "4", "5", "6", "7", "8"],
+                "pattern": "",
+                "maximum": "",
+                "minimum": ""
+            },
+            "enumLabels": {
+                "1": "White", "2": "Black or African American", "3": "American Indian or Alaska Native", "4": "Native", "5": "Hawaiian or Other Pacific Islander", "6": "Asian", "7": "Some other race", "8": "Multiracial", "99": "Not reported"
+            },
+            "enumOrdered": "",
+            "missingValues": ["99"],
+            "trueValues": "", "falseValues": ""
+        }
+    ]
+}
