@@ -76,10 +76,10 @@ def vlmd_extract(input_file, file_type="auto", output_dir=".", output_type="json
     logger.debug("Validating input file")
     try:
         vlmd_validate(input_file)
-    except Exception as e:
+    except ValidationError as e:
         logger.error(f"Exception in validating input file {input_file}")
         logger.error(e)
-        raise ValidationError(e)
+        raise e
 
     # extract
     logger.debug("Ready to extract to vlmd")
