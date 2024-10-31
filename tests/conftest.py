@@ -1,3 +1,4 @@
+import json
 import pytest
 
 from heal.vlmd.config import (
@@ -105,3 +106,12 @@ def valid_array_data():
             "custom.notes": "This is a custom note",
         },
     ]
+
+
+@pytest.fixture()
+def valid_json_output():
+    header = {"schemaVersion": "0.3.2"}
+    with open("tests/test_data/vlmd/valid/vlmd_valid.json", "r") as f:
+        data = json.load(f)
+    header.update(data)
+    return header
