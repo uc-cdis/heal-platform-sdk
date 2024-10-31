@@ -92,7 +92,8 @@ def vlmd_extract(input_file, file_type="auto", output_dir=".", output_type="json
         )
     except Exception as e:
         logger.error(f"Error in extracting dictionary from {input_file}")
-        raise ExtractionError(e)
+        logger.error(e)
+        raise ExtractionError(f"Error in extracting dictionary from {input_file}")
 
     logger.debug(f"Got dictionaries with keys {data_dictionaries.keys()}")
 
@@ -106,9 +107,9 @@ def vlmd_extract(input_file, file_type="auto", output_dir=".", output_type="json
             vlmd_validate_csv(converted_dictionary, schema_type="csv")
         if output_type == "json":
             vlmd_validate_json(converted_dictionary, schema_type="json")
-    except Exception as e:
+    except ValidationError as e:
         logger.error(f"Error in validating converted {output_type}")
-        raise ValidationError(e)
+        raise e
 
     output_filepath = get_output_filepath(
         output_dir, input_file, output_type=output_type
@@ -119,6 +120,6 @@ def vlmd_extract(input_file, file_type="auto", output_dir=".", output_type="json
     except Exception as e:
         logger.error(f"Error in writing converted dictionary")
         logger.error(e)
-        raise ExtractionError(e)
+        raise ExtractionError(f"Error in writing converted dictionary")
 
     return True
