@@ -19,6 +19,9 @@ pytest = "^7.0.0"
 pytest-cov = "*"
 requests-mock = "*"
 
+[tool.poetry.scripts]
+heal = "heal.cli.heal_cli:main"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
