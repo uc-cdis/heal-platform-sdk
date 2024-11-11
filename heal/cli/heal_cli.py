@@ -2,28 +2,29 @@ import click
 import logging
 
 import cdislogging
-import heal.cli.extract as extract
-import heal.cli.validate as validate
 import heal.cli.vlmd as vlmd
-
-# import heal
 
 
 @click.group()
-@click.option("--version", is_flag=True, default=False, help="Show HEAL-SDK Version")
+@click.option(
+    "--silent",
+    "silent",
+    is_flag=True,
+    default=False,
+    help="don't show ANY logs",
+)
 @click.pass_context
-def main(ctx, version):
+def main(ctx, silent):
     """HEAL-Platform SDK Command Line Interface"""
     ctx.ensure_object(dict)
 
-    if version:
-        click.echo("0.1.1.")
-        exit()
+    if silent:
+        # we still need to define the logger, the log_level here doesn't
+        # really matter b/c we immediately disable all logging
+        logger = cdislogging.get_logger("heal_cli", log_level="debug")
+        # disables all logging
+        logging.disable(logging.CRITICAL)
 
 
 main.add_command(vlmd.vlmd)
-# main.add_command(extract.extract)
-# main.add_command(validate.validate)
-
-if __name__ == "__main__":
-    main()
+main()
