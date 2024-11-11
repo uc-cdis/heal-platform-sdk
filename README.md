@@ -15,9 +15,9 @@ In the notebooks directory there are jupyter notebooks that may be used to downl
 
 These notebooks perform optimally within a HEAL Gen3 Workspace and the notebooks will be automatically installed to a user's workspace when the workspace is initiated. However, you may also use these notebooks on your local machine.
 
-### VLMD validation
+### VLMD extraction and validation
 
-The [VLMD validation docs](heal/vlmd/README.md) describe how to use the SDK for validating VLMD dictionaries.
+The [VLMD documentation](heal/vlmd/README.md) describe how to use the SDK for extracting and validating VLMD dictionaries.
 
 ### Run tests
 
@@ -49,3 +49,22 @@ The specification can also be listed in requirements.txt file
 ```
 pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git@0.1.0#egg=heal
 ```
+
+### CLI
+
+The SDK exposes a Command Line Interface (CLI) for some functions.
+
+The CLI can be invoked as follows
+
+`heal [OPTIONS] COMMAND [ARGS]`
+
+For a list of commands and options run
+
+`heal --help`
+
+For example, the following can validate a VLMD file in csv format:
+
+`heal vlmd validate --input_file "vlmd_for_validation.csv"`
+
+The [VLMD documentation](heal/VLMD/README.md)  provides information on
+using the VLMD functions, such as `extract` and `validate`.
