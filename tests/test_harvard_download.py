@@ -32,7 +32,7 @@ def download_dir(tmpdir_factory):
             {
                 "external_oidc_idp": "test-external-idp",
                 "file_retriever": "harvard",
-                "study_id": "QDR_study_01",
+                "study_id": "harvard_study_01",
             }
         ),
     ],
@@ -108,7 +108,7 @@ def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
                 "study_id": "harvard_study_01",
                 "use_harvard_staging": True,
             },
-            "https://demo.dataverse.org/api/access/dataset/:persistentId/?persistentId=QDR_study_01",
+            "https://demo.dataverse.org/api/access/dataset/:persistentId/?persistentId=harvard_study_01",
         )
     ],
 )
@@ -160,7 +160,7 @@ def test_download_from_url(download_dir):
     with requests_mock.Mocker() as m:
         # get study_id
         mock_zip_file_name = "dataverse_files.zip"
-        harvard_url = "https://dataverse.harvard.edu/api/access/:persistentId/?persistentId=QDR_study_01"
+        harvard_url = "https://dataverse.harvard.edu/api/access/:persistentId/?persistentId=harvard_study_01"
         valid_response_headers = {
             "Content-Type": "application/zip",
             "Content-Disposition": f"application; filename={mock_zip_file_name}",
