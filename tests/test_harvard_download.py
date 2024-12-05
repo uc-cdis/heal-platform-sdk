@@ -185,7 +185,8 @@ def test_download_from_url(download_dir):
             "Content-Disposition": "application; ",
         }
         m.get(harvard_url, headers=response_headers, content=bytes(mock_data, "utf-8"))
-
+        mock_file_id = "123456"
+        mock_filename = "some_file.pdf"
         download_filename = download_from_url(
             harvard_url=harvard_url,
             headers=request_headers,
