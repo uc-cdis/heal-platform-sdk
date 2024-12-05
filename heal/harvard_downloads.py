@@ -168,7 +168,6 @@ def download_from_url(
     return download_filename
 
 
-# https://dataverse.harvard.edu/api/access/dataset/:persistentId/?persistentId=doi:10.7910/DVN/FB2GGC
 def get_download_url_for_harvard_dataverse(file_metadata: Dict) -> str:
     """
     Get the download url for Syracuse QDR.
@@ -180,11 +179,12 @@ def get_download_url_for_harvard_dataverse(file_metadata: Dict) -> str:
         url, None if there are errors
     """
     base_url = "https://dataverse.harvard.edu/api/access"
-
+    if "use_harvard_staging" in file_metadata and bool(
+        file_metadata["use_harvard_staging"]
+    ):
+        base_url = "https://demo.dataverse.org/api/access"
     if "study_id" in file_metadata:
         url = f"{base_url}/dataset/:persistentId/?persistentId={file_metadata.get('study_id')}"
-    elif "file_id" in file_metadata:
-        url = f"{base_url}/datafile/{file_metadata.get('file_id')}"
     else:
         url = None
 
@@ -234,10 +234,8 @@ def get_id(file_metadata: Dict) -> str:
     Returns:
         string
     """
-    id_types = ["study_id", "file_id"]
-    for id_type in id_types:
-        if id_type in file_metadata:
-            return file_metadata.get(id_type)
+    if "study_id" in file_metadata:
+        return file_metadata.get("study_id")
 
     return None
 
@@ -256,12 +254,9 @@ def is_valid_harvard_file_metadata(file_metadata: Dict) -> bool:
     if not isinstance(file_metadata, dict):
         logger.critical(f"Invalid metadata - item is not a dict: {file_metadata}")
         return False
-    if "study_id" not in file_metadata and "file_id" not in file_metadata:
-        logger.critical(f"Invalid metadata - missing required QDR keys {file_metadata}")
-        return False
-    if "study_id" in file_metadata and "file_id" in file_metadata:
+    if "study_id" not in file_metadata:
         logger.critical(
-            f"Invalid metadata - item has both 'study_id' and 'file_id': {file_metadata}"
+            f"Invalid metadata - missing required Harvard Dataverse keys {file_metadata}"
         )
         return False
     return True
