@@ -27,4 +27,5 @@ def main(ctx, silent):
 
 
 main.add_command(vlmd.vlmd)
-main()
+if __name__ == "__main__":
+    main()
