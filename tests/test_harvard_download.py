@@ -158,12 +158,12 @@ def test_download_from_url(download_dir):
     mock_data = "foo"
 
     with requests_mock.Mocker() as m:
-        # Case 1: Valid Content-Disposition header
+        # get study_id
         mock_zip_file_name = "dataverse_files.zip"
         harvard_url = "https://dataverse.harvard.edu/api/access/:persistentId/?persistentId=harvard_study_01"
         valid_response_headers = {
             "Content-Type": "application/zip",
-            "Content-Disposition": f"attachment; filename={mock_zip_file_name}",
+            "Content-Disposition": f"application; filename={mock_zip_file_name}",
         }
         m.get(
             harvard_url,
@@ -180,22 +180,23 @@ def test_download_from_url(download_dir):
         with open(download_filename, "r") as f:
             assert f.read() == mock_data
 
-        # Case 2: Missing filename in Content-Disposition; fallback to file_id
+        # cannot get downloaded file name from header - fall back to file id
+        response_headers = {
+            "Content-Disposition": "application; ",
+        }
+        m.get(harvard_url, headers=response_headers, content=bytes(mock_data, "utf-8"))
         mock_file_id = "123456"
+        mock_filename = "some_file.pdf"
         harvard_url = (
             f"https://dataverse.harvard.edu/api/access/datafile/{mock_file_id}"
         )
-        fallback_headers = {
-            "Content-Type": "application/pdf",
-            "Content-Disposition": "attachment;",
-        }
-        m.get(harvard_url, headers=fallback_headers, content=bytes(mock_data, "utf-8"))
         download_filename = download_from_url(
             harvard_url=harvard_url,
             headers=request_headers,
             download_path=download_dir,
         )
-        # Fallback to file_id for the filename
+        # filename is from file_id
+        assert download_filename != f"{download_dir}/{mock_filename}"
         assert download_filename == f"{download_dir}/{mock_file_id}"
         assert os.path.exists(download_filename)
         with open(download_filename, "r") as f:
@@ -254,9 +255,11 @@ def test_download_from_url_failures(download_dir):
         Path(download_filename).unlink()
 
 
-def test_get_harvard_dataverse_files(download_dir):
-    test_data = "foo"  # Test data content
-    test_study_id = "some_id"  # Mock study ID
+def test_get_harvard_dataverse_files(wts_hostname, download_dir):
+    test_data = "foo"
+
+    # valid input and successful download
+    test_study_id = "some_id"
     file_metadata_list = [
         {
             "file_retriever": "harvard_dataverse",
@@ -267,16 +270,20 @@ def test_get_harvard_dataverse_files(download_dir):
         test_study_id: DownloadStatus(filename=test_study_id, status="downloaded")
     }
 
-    valid_response_headers = {"Content-Type": "application/pdf"}
-    os.makedirs(download_dir, exist_ok=True)
+    valid_response_headers = {
+        "Content-Disposition": f"attachment; filename={test_study_id}.zip",
+        "Content-Type": "application/zip",
+    }
 
     with requests_mock.Mocker() as m:
+        # Mocking the Harvard Dataverse API endpoint
         m.get(
             f"https://dataverse.harvard.edu/api/access/dataset/:persistentId/?persistentId={test_study_id}",
             headers=valid_response_headers,
             content=bytes(test_data, "utf-8"),
         )
 
+        # Call the function to test
         result = get_harvard_dataverse_files(
             wts_hostname=None,  # Not required for Harvard Dataverse
             auth=None,  # Not required for Harvard Dataverse
@@ -284,9 +291,10 @@ def test_get_harvard_dataverse_files(download_dir):
             download_path=download_dir,
         )
 
+        # Check if the result matches the expected status
         assert result == expected_status
 
         # Verify the file was saved
-        downloaded_file_path = Path(download_dir) / test_study_id
+        downloaded_file_path = Path(download_dir) / f"{test_study_id}.zip"
         assert downloaded_file_path.exists()
         assert downloaded_file_path.read_text() == test_data
