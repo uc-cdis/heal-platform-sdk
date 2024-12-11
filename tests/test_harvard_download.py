@@ -180,6 +180,9 @@ def test_download_from_url(download_dir):
         with open(download_filename, "r") as f:
             assert f.read() == mock_data
 
+        harvard_url = (
+            f"https://dataverse.harvard.edu/api/access/datafile/{mock_file_id}"
+        )
         # cannot get downloaded file name from header - fall back to file id
         response_headers = {
             "Content-Disposition": "application; ",
