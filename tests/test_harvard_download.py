@@ -255,10 +255,8 @@ def test_download_from_url_failures(download_dir):
 
 
 def test_get_harvard_dataverse_files(download_dir):
-    test_data = "foo"
-
-    # valid input and successful download
-    test_study_id = "some_id"
+    test_data = "foo"  # Test data content
+    test_study_id = "some_id"  # Mock study ID
     file_metadata_list = [
         {
             "file_retriever": "harvard_dataverse",
@@ -266,7 +264,9 @@ def test_get_harvard_dataverse_files(download_dir):
         },
     ]
     expected_status = {
-        test_study_id: DownloadStatus(filename=test_study_id, status="downloaded")
+        test_study_id: DownloadStatus(
+            filename=f"{test_study_id}.zip", status="downloaded"
+        )
     }
 
     valid_response_headers = {
@@ -274,15 +274,18 @@ def test_get_harvard_dataverse_files(download_dir):
         "Content-Type": "application/zip",
     }
 
+    # Ensure the directory exists
+    os.makedirs(download_dir, exist_ok=True)
+
     with requests_mock.Mocker() as m:
-        # Mocking the Harvard Dataverse API endpoint
+        # Mock the Harvard Dataverse API endpoint
         m.get(
             f"https://dataverse.harvard.edu/api/access/dataset/:persistentId/?persistentId={test_study_id}",
             headers=valid_response_headers,
             content=bytes(test_data, "utf-8"),
         )
 
-        # Call the function to test
+        # Call the function being tested
         result = get_harvard_dataverse_files(
             wts_hostname=None,  # Not required for Harvard Dataverse
             auth=None,  # Not required for Harvard Dataverse
@@ -290,10 +293,10 @@ def test_get_harvard_dataverse_files(download_dir):
             download_path=download_dir,
         )
 
-        # Check if the result matches the expected status
+        # Assert that the function returned the expected status
         assert result == expected_status
 
         # Verify the file was saved
         downloaded_file_path = Path(download_dir) / f"{test_study_id}.zip"
-        assert downloaded_file_path.exists()
-        assert downloaded_file_path.read_text() == test_data
+        assert downloaded_file_path.exists(), f"File not found: {downloaded_file_path}"
+        assert downloaded_file_path.read_bytes() == bytes(test_data, "utf-8")
