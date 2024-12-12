@@ -260,7 +260,7 @@ def test_download_from_url_failures(download_dir):
         Path(download_filename).unlink()
 
 
-def test_get_harvard_dataverse_files(wts_hostname, download_dir):
+def test_get_harvard_dataverse_files(download_dir):
     test_data = "foo"
 
     # valid input and successful download
