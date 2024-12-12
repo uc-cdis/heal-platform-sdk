@@ -262,8 +262,6 @@ def test_download_from_url_failures(download_dir):
 
 def test_get_harvard_dataverse_files(download_dir):
     test_data = "foo"
-
-    # valid input and successful download
     test_study_id = "some_id"
     file_metadata_list = [
         {
@@ -276,8 +274,7 @@ def test_get_harvard_dataverse_files(download_dir):
     }
 
     valid_response_headers = {
-        "Content-Disposition": f"attachment; filename={test_study_id}.zip",
-        "Content-Type": "application/zip",
+        "Content-Disposition": "attachment; filename=test_file.txt"
     }
 
     with requests_mock.Mocker() as m:
@@ -300,6 +297,6 @@ def test_get_harvard_dataverse_files(download_dir):
         assert result == expected_status
 
         # Verify the file was saved
-        downloaded_file_path = Path(download_dir) / f"{test_study_id}.zip"
+        downloaded_file_path = Path(download_dir) / "test_file.txt"
         assert downloaded_file_path.exists()
         assert downloaded_file_path.read_text() == test_data
