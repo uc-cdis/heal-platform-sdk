@@ -156,11 +156,12 @@ def test_get_filename_from_headers_invalid():
 def test_download_from_url(download_dir):
     request_headers = {"Authorization": "Bearer some-idp-token"}
     mock_data = "foo"
+    mock_filename = "test.zip"
 
     with requests_mock.Mocker() as m:
         # get study_id
         mock_zip_file_name = "dataverse_files.zip"
-        harvard_url = "https://dataverse.harvard.edu/api/access/:persistentId/?persistentId=harvard_study_01"
+        harvard_url = "https://demo.dataverse.org/api/access/:persistentId/?persistentId=harvard_study_01"
         valid_response_headers = {
             "Content-Type": "application/zip",
             "Content-Disposition": f"application; filename={mock_zip_file_name}",
@@ -181,14 +182,18 @@ def test_download_from_url(download_dir):
             assert f.read() == mock_data
 
         # cannot get downloaded file name from header - fall back to file id
+        mock_file_id = "123456"
+        mock_data = "foo"
         response_headers = {
             "Content-Disposition": "application; ",
         }
-        m.get(harvard_url, headers=response_headers, content=bytes(mock_data, "utf-8"))
-        mock_file_id = "123456"
-        mock_filename = "some_file.pdf"
         harvard_url = (
             f"https://dataverse.harvard.edu/api/access/datafile/{mock_file_id}"
+        )
+        m.get(
+            harvard_url,
+            headers=response_headers,
+            content=bytes(mock_data, "utf-8"),
         )
         download_filename = download_from_url(
             harvard_url=harvard_url,
@@ -228,7 +233,7 @@ def test_download_from_url_failures(download_dir):
         }
 
         # bad download path
-        harvard_url = "https://data.qdr.test.edu/api/access/datafiles/some_id"
+        harvard_url = "https://demo.dataverse.org/api/access/datafiles/some_id"
         m.get(
             harvard_url,
             headers=valid_response_headers,
