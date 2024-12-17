@@ -5,6 +5,7 @@
         {
             "section": "Enrollment",
             "name": "participant_id",
+            "description": "Unique identifier for participant",
             "title": "Participant Id",
             "type": "string",
             "constraints": {
