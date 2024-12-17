@@ -1,4 +1,6 @@
+import json
 import os
+from typing import Dict
 
 import charset_normalizer
 import pandas as pd
@@ -52,6 +54,12 @@ def read_delim(file_path, cast_d_type="string"):
     )
 
     return file_encoding
+
+
+def read_data_from_json_file(input_file: str) -> Dict:
+    """Loads the data from a json input file"""
+    data = json.loads(Path(input_file).read_text())
+    return data
 
 
 def get_schema(data_or_path, schema_type: str):
