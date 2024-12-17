@@ -60,7 +60,9 @@ def write_vlmd_dict(dictionary, output_filepath, file_type="auto"):
         file_type = output_filepath.suffix.replace(".", "")
 
     logger.debug(f"Output dictionary type is {file_type}")
-    os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
+    dirname = os.path.dirname(output_filepath)
+    if dirname != "":
+        os.makedirs(dirname, exist_ok=True)
 
     if file_type == "json":
         if not isinstance(dictionary, dict):
