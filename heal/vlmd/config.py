@@ -7,6 +7,7 @@ OUTPUT_FILE_PREFIX = "heal-dd"
 ALLOWED_INPUT_TYPES = ["csv", "tsv", "json"]
 ALLOWED_FILE_TYPES = ["auto"] + ALLOWED_INPUT_TYPES
 ALLOWED_SCHEMA_TYPES = ["auto", "csv", "json", "tsv"]
+ALLOWED_OUTPUT_TYPES = ["csv", "json"]
 
 # schemas
 csv_schema_file = "heal/vlmd/schemas/heal_csv.json"
