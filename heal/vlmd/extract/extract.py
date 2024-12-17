@@ -73,13 +73,15 @@ def vlmd_extract(input_file, file_type="auto", output_dir=".", output_type="json
             f"Unrecognized output_type '{output_type}' - should be 'csv' or 'json'"
         )
 
-    logger.debug("Validating input file")
-    try:
-        vlmd_validate(input_file)
-    except ValidationError as e:
-        logger.error(f"Exception in validating input file {input_file}")
-        logger.error(e)
-        raise e
+    # skip this if input is csv - only do for json
+    if file_type == "json":
+        logger.debug("Validating json input file")
+        try:
+            vlmd_validate(input_file)
+        except ValidationError as e:
+            logger.error(f"Exception in validating input file {input_file}")
+            logger.error(e)
+            raise e
 
     # extract
     logger.debug("Ready to extract to vlmd")
@@ -93,7 +95,7 @@ def vlmd_extract(input_file, file_type="auto", output_dir=".", output_type="json
     except Exception as e:
         logger.error(f"Error in extracting dictionary from {input_file}")
         logger.error(e)
-        raise ExtractionError(f"Error in extracting dictionary from {input_file}")
+        raise ExtractionError(str(e))
 
     logger.debug(f"Got dictionaries with keys {data_dictionaries.keys()}")
 

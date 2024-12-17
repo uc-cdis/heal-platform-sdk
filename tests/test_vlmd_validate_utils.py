@@ -6,9 +6,19 @@ import pytest
 
 from heal.vlmd.validate.utils import (
     detect_file_encoding,
+    read_data_from_json_file,
     read_delim,
     get_schema,
 )
+
+
+def test_read_input_file():
+    test_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+    result = read_data_from_json_file(test_file)
+    assert isinstance(result, dict)
+    assert "title" in result
+    assert "description" in result
+    assert "fields" in result
 
 
 @pytest.mark.parametrize("file_type", ["csv", "json", "tsv"])

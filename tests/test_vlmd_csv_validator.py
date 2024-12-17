@@ -18,13 +18,34 @@ def test_valid_csv_array(valid_array_data):
     assert result == True
 
 
-@pytest.mark.parametrize("test_schema_type", ["auto", "csv"])
-def test_invalid_csv(test_schema_type):
-    test_file = "tests/test_data/vlmd/invalid/vlmd_string_in_maxLength.csv"
-
+@pytest.mark.parametrize(
+    "test_file, expected_message, test_schema_type",
+    [
+        (
+            "tests/test_data/vlmd/invalid/vlmd_string_in_maxLength.csv",
+            "could not convert string to float: 'foo'",
+            "auto",
+        ),
+        (
+            "tests/test_data/vlmd/invalid/vlmd_string_in_maxLength.csv",
+            "could not convert string to float: 'foo'",
+            "csv",
+        ),
+        (
+            "tests/test_data/vlmd/invalid/vlmd_missing_description.csv",
+            "'description' is a required property",
+            "csv",
+        ),
+        (
+            "tests/test_data/vlmd/invalid/vlmd_missing_name.csv",
+            "'name' is a required property",
+            "csv",
+        ),
+    ],
+)
+def test_invalid_csv(test_file, expected_message, test_schema_type):
     with pytest.raises(ValidationError) as e:
         vlmd_validate_csv(test_file, test_schema_type)
-    expected_message = "'foo' is not valid under any of the given schemas"
     assert expected_message in str(e.value)
 
 

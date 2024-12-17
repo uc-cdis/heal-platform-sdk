@@ -28,21 +28,38 @@ def test_extract_valid_input(file_type, output_type, tmp_path):
     assert os.path.isfile(expected_file_name)
 
 
-def test_extract_invalid_input():
-    input_file = "tests/test_data/vlmd/invalid/vlmd_string_in_maxLength.csv"
-
-    with pytest.raises(ValidationError) as e:
+@pytest.mark.parametrize(
+    "input_file, expected_message, error_type",
+    [
+        (
+            "tests/test_data/vlmd/invalid/vlmd_string_in_maxLength.csv",
+            "could not convert string to float: 'foo'",
+            ExtractionError,
+        ),
+        (
+            "tests/test_data/vlmd/invalid/vlmd_missing_description.csv",
+            "'description' is a required property",
+            ValidationError,
+        ),
+        (
+            "tests/test_data/vlmd/invalid/vlmd_missing_name.csv",
+            "'name' is a required property",
+            ValidationError,
+        ),
+    ],
+)
+def test_extract_invalid_input(input_file, expected_message, error_type):
+    with pytest.raises(error_type) as e:
         vlmd_extract(input_file)
-    expected_message = "'foo' is not valid under any of the given schemas"
     assert expected_message in str(e.value)
 
 
 def test_extract_conversion_error():
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
-    fail_message = f"Error in extracting dictionary from {input_file}"
+    fail_message = "Some conversion error"
 
     with patch("heal.vlmd.extract.extract.convert_to_vlmd") as mock_conversion:
-        mock_conversion.side_effect = Exception("some exception")
+        mock_conversion.side_effect = Exception(fail_message)
         with pytest.raises(ExtractionError) as e:
             vlmd_extract(input_file, output_type="json")
         assert fail_message in str(e.value)
