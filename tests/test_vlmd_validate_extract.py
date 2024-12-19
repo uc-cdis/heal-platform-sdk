@@ -1,8 +1,9 @@
+import json
 import os
 from unittest.mock import patch
 import pytest
 
-from jsonschema import ValidationError
+from jsonschema import SchemaError, ValidationError
 from heal.vlmd.config import ALLOWED_OUTPUT_TYPES, OUTPUT_FILE_PREFIX
 from heal.vlmd.validate.validate_extract import ExtractionError, vlmd_validate_extract
 
@@ -27,16 +28,11 @@ def test_extract_valid_input(file_type, output_type, tmp_path):
     )
     assert result
     assert os.path.isfile(expected_file_name)
-    # Maybe check that outfile has correct fields or actually compare with converted test data.
-
-
-@pytest.mark.parametrize("file_type", ["csv", "json", "tsv"])
-def test_valid_vlmd(file_type):
-    test_file = f"tests/test_data/vlmd/valid/vlmd_valid.{file_type}"
-    result = vlmd_validate_extract(input_file=test_file, schema_type="auto")
-    assert result == True
-    result = vlmd_validate_extract(input_file=test_file, schema_type=file_type)
-    assert result == True
+    if output_type == "json":
+        with open(expected_file_name, "r") as f:
+            data = json.load(f)
+        assert "fields" in data.keys()
+        assert "schemaVersion" in data.keys()
 
 
 @pytest.mark.parametrize("file_type", ["csv", "json", "tsv"])
@@ -129,3 +125,25 @@ def test_extract_failed_dict_write():
         with pytest.raises(ExtractionError) as e:
             vlmd_validate_extract(input_file, output_type="csv")
         assert fail_message in str(e.value)
+
+
+def test_invalid_csv_schema(invalid_csv_schema):
+    test_file = f"tests/test_data/vlmd/valid/vlmd_valid.csv"
+
+    with patch("heal.vlmd.validate.validate_extract.get_schema") as mock_get_schema:
+        mock_get_schema.return_value = invalid_csv_schema
+        with pytest.raises(SchemaError) as e:
+            vlmd_validate_extract(input_file=test_file, schema_type="csv")
+        expected_message = "is not valid under any of the given schemas"
+        assert expected_message in str(e.value)
+
+
+def test_invalid_json_schema(invalid_json_schema):
+    test_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+
+    with patch("heal.vlmd.validate.validate_extract.get_schema") as mock_get_schema:
+        mock_get_schema.return_value = invalid_json_schema
+        with pytest.raises(SchemaError) as e:
+            vlmd_validate_extract(input_file=test_file, schema_type="json")
+        expected_message = "5 is not of type 'object'"
+        assert expected_message in str(e.value)
