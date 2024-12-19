@@ -80,6 +80,16 @@ def test_unallowed_input_type(allowed_input_types):
     assert str(e.value) == expected_message
 
 
+@pytest.mark.parametrize("test_schema_type", ["auto", "csv"])
+def test_read_non_delim_data_in_csv(test_schema_type):
+    test_file = "tests/test_data/vlmd/invalid/vlmd_text_data.csv"
+
+    with pytest.raises(ValidationError) as e:
+        vlmd_validate_extract(test_file, test_schema_type)
+    expected_message = "Could not read csv data from input"
+    assert expected_message in str(e.value)
+
+
 def test_incorrent_schema_type(allowed_schema_types):
     test_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
     with pytest.raises(ValueError) as e:

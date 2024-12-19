@@ -95,6 +95,8 @@ def vlmd_validate_extract(
     if file_suffix in ["csv", "tsv"]:
         logger.debug("Getting csv data from file")
         data = read_delim(input_file).to_dict(orient="records")
+        if len(data) == 0:
+            raise ValidationError(f"Could not read csv data from input")
     elif file_suffix == "json":
         logger.debug("Getting json data from file")
         data = read_data_from_json_file(input_file)
