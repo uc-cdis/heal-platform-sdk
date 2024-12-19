@@ -1,4 +1,1 @@
-from heal.vlmd.validate.validate import vlmd_validate
-
-# place 'extract' import after 'validate' import
-from heal.vlmd.extract.extract import vlmd_extract
+from heal.vlmd.validate.validate_extract import vlmd_validate_extract
