@@ -24,25 +24,17 @@ def test_validate_valid_input(file_type, output_type):
         input_file, output_type=output_type, return_converted_output=False
     )
     assert result
+    assert isinstance(result, bool)
 
 
-@pytest.mark.parametrize(
-    "file_type, output_type",
-    [
-        ("csv", "json"),
-        ("json", "json"),
-        # ("tsv", "json"),
-    ],
-)
+@pytest.mark.parametrize("file_type", ["csv", "tsv", "json"])
 def test_validate_with_json_output(
-    file_type, output_type, valid_json_output, valid_converted_csv_to_json_output
+    file_type, valid_json_output, valid_converted_csv_to_json_output
 ):
     input_file = f"tests/test_data/vlmd/valid/vlmd_valid.{file_type}"
-    result = vlmd_validate(
-        input_file, output_type=output_type, return_converted_output=True
-    )
+    result = vlmd_validate(input_file, output_type="json", return_converted_output=True)
     assert isinstance(result, dict)
-    if file_type == "csv":
+    if file_type in ["csv", "tsv"]:
         assert result == valid_converted_csv_to_json_output
     if file_type == "json":
         assert result == valid_json_output
@@ -54,6 +46,14 @@ def test_invalid_missing_required_fields(file_type):
     with pytest.raises(ValidationError) as e:
         vlmd_validate(input_file=test_file, schema_type="auto")
     expected_message = "'description' is a required property"
+    assert expected_message in str(e.value)
+
+
+def test_invalid_has_additional_properties():
+    test_file = f"tests/test_data/vlmd/invalid/vlmd_additional_properties.json"
+    with pytest.raises(ValidationError) as e:
+        vlmd_validate(input_file=test_file, schema_type="auto")
+    expected_message = "Additional properties are not allowed"
     assert expected_message in str(e.value)
 
 
