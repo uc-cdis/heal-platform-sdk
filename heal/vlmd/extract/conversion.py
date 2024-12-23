@@ -6,7 +6,7 @@ from heal.vlmd.config import JSON_SCHEMA, TOP_LEVEL_PROPS
 from heal.vlmd import mappings
 from heal.vlmd.extract.csv_dict_conversion import convert_datadictcsv
 from heal.vlmd.extract.json_dict_conversion import convert_templatejson
-from heal.vlmd.utils import clean_json_fields, remove_empty_props
+from heal.vlmd.utils import clean_json_fields
 
 
 logger = get_logger("vlmd-conversion", log_level="debug")

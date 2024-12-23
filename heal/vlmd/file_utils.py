@@ -49,6 +49,9 @@ def write_vlmd_dict(dictionary, output_filepath, file_type="auto"):
       file_type (str): type of file to write - "auto", "csv", "json".
           "auto" will get the type from the output_filepath suffix.
           The default is "auto".
+    Returns:
+      True for successful write of csv or json.
+      None for unrecognized output type.
     """
     if not output_filepath:
         logger.error("Empty output_filepath in write_vlmd_dict")

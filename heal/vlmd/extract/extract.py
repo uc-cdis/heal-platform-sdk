@@ -1,8 +1,6 @@
 from os.path import isfile
 from pathlib import Path
 
-from jsonschema import ValidationError
-
 from cdislogging import get_logger
 from heal.vlmd.config import (
     ALLOWED_INPUT_TYPES,
@@ -37,8 +35,7 @@ def vlmd_extract(
 
     Returns:
         True if the input is valid and is successfully converted and written.
-        Raises ValidationError if input VLMD or converted VLMD is not valid.
-        Raises ExtractionError for any other errors.
+        Raises ExtractionError in input VLMD is not valid or could not be converted.
     """
 
     logger.info(f"Extracting VLMD file '{input_file}' with file_type '{file_type}'")

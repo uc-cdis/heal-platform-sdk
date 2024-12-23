@@ -89,6 +89,15 @@ def test_unallowed_input_type(allowed_input_types):
     assert str(e.value) == expected_message
 
 
+def test_extract_unallowed_output():
+    input_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+    unallowed_output = "txt"
+    with pytest.raises(ValueError) as e:
+        vlmd_validate(input_file, schema_type="json", output_type=unallowed_output)
+    expected_message = f"Unrecognized output_type '{unallowed_output}' - should be in {ALLOWED_OUTPUT_TYPES}"
+    assert expected_message in str(e.value)
+
+
 @pytest.mark.parametrize("test_schema_type", ["auto", "csv"])
 def test_read_non_delim_data_in_csv(test_schema_type):
     test_file = "tests/test_data/vlmd/invalid/vlmd_text_data.csv"

@@ -11,10 +11,7 @@ from heal.vlmd.config import (
     ALLOWED_OUTPUT_TYPES,
 )
 from heal.vlmd.extract.conversion import convert_to_vlmd
-from heal.vlmd.file_utils import get_output_filepath, write_vlmd_dict
 from heal.vlmd.utils import add_types_to_props
-from heal.vlmd.validate.csv_validator import vlmd_validate_csv
-from heal.vlmd.validate.json_validator import vlmd_validate_json
 from heal.vlmd.validate.utils import get_schema, read_data_from_json_file, read_delim
 
 
@@ -76,6 +73,12 @@ def vlmd_validate(
     if schema == None:
         raise ValueError(f"Could not get schema for type = {schema_type}")
 
+    output_type = output_type if output_type else "json"
+    if output_type not in ALLOWED_OUTPUT_TYPES:
+        raise ValueError(
+            f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
+        )
+
     # TODO: We need this for csv - see if we can add this to get_schema
     if file_suffix in ["csv", "tsv"]:
         schema = add_types_to_props(schema)
@@ -120,9 +123,6 @@ def vlmd_validate(
         logger.error(f"Error in converting dictionary from {input_file}")
         logger.error(e)
         raise ExtractionError(str(e))
-
-    output_type = output_type if output_type else "json"
-
     if output_type == "json":
         converted_dictionary = data_dictionaries["templatejson"]
     elif output_type == "csv":
