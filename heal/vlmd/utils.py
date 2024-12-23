@@ -1,4 +1,4 @@
-def add_missing_type(prop_name: str, prop, schema: dict):
+def add_missing_type(prop_name: str, prop, schema: dict) -> dict:
     """
     Add types to properties.
 
@@ -51,10 +51,10 @@ def add_types_to_props(schema: dict) -> dict:
     return schema
 
 
-def remove_empty_props(props):
+def remove_empty_props(props: dict) -> dict:
     """
-    Remove any fields with emtpy values.
-    Can be used for json dictionaries that have been extracted from csv dictionaries.
+    Remove items with empty values from a dict, ie,
+    from a 'field' dict in a json dictionary.
     """
     if isinstance(props, dict):
         new_dict = {}
@@ -64,3 +64,15 @@ def remove_empty_props(props):
                 new_dict[k] = cleaned_value
         return new_dict
     return props
+
+
+def clean_json_fields(fields: list) -> list:
+    """
+    Remove any 'fields' with emtpy values.
+    Can be used for json dictionaries that have been extracted from csv dictionaries.
+    """
+    cleaned_fields = []
+    for field in fields:
+        new_field = remove_empty_props(field)
+        cleaned_fields.append(new_field)
+    return cleaned_fields

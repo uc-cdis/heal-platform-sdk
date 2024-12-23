@@ -6,7 +6,7 @@ from heal.vlmd.config import JSON_SCHEMA, TOP_LEVEL_PROPS
 from heal.vlmd import mappings
 from heal.vlmd.extract.csv_dict_conversion import convert_datadictcsv
 from heal.vlmd.extract.json_dict_conversion import convert_templatejson
-from heal.vlmd.utils import remove_empty_props
+from heal.vlmd.utils import clean_json_fields, remove_empty_props
 
 
 logger = get_logger("vlmd-conversion", log_level="debug")
@@ -34,7 +34,7 @@ def convert_to_vlmd(
     input_filepath,
     input_type=None,
     data_dictionary_props=None,
-):
+) -> dict:
     """
     Converts a data dictionary to HEAL compliant json or csv format.
 
@@ -80,13 +80,10 @@ def convert_to_vlmd(
     for field in package["templatecsv"]["fields"]:
         field.update({"schemaVersion": JSON_SCHEMA["version"], **field})
 
-    # remove empty json fields add schema version (in TOP_LEVEL_PROPS)
-    cleaned_fields = []
-    for field in package["templatejson"]["fields"]:
-        new_field = remove_empty_props(field)
-        cleaned_fields.append(new_field)
-    package["templatejson"]["fields"] = cleaned_fields
-
+    # remove empty json fields, add schema version (in TOP_LEVEL_PROPS)
+    package["templatejson"]["fields"] = clean_json_fields(
+        package["templatejson"]["fields"]
+    )
     package["templatejson"] = {**TOP_LEVEL_PROPS, **dict(package["templatejson"])}
 
     return package

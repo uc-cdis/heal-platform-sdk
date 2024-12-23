@@ -17,6 +17,7 @@ from heal.vlmd.validate.csv_validator import vlmd_validate_csv
 from heal.vlmd.validate.json_validator import vlmd_validate_json
 from heal.vlmd.validate.utils import get_schema, read_data_from_json_file, read_delim
 
+
 logger = get_logger("vlmd-validate-extract", log_level="debug")
 
 
@@ -31,9 +32,12 @@ file_type_to_fxn_map = {
 }
 
 
-def vlmd_validate_extract(
-    input_file: str, schema_type="auto", output_dir=".", output_type="json"
-) -> bool:
+def vlmd_validate(
+    input_file: str,
+    schema_type="auto",
+    output_type="json",
+    return_converted_output=False,
+):
     """
     Validates the input file against a VLMD schema.
 
@@ -43,13 +47,14 @@ def vlmd_validate_extract(
         schema_type (str): the type of the schema to be validated against.
             Allowed values for now are “csv”, “tsv”, “json” and “auto”.
             Defaults to “auto” which will use the suffix of the input file.
-        output_dir (str): the directory of where the extracted VLMD file will
-            be written. Defaults to “.”
         output_type (str): format of the converted dictionary: "csv" or "json.
             The default is "json".
+        return_converted_output (bool): set to True to get converted output, else
+            get a boolean for valid/invalid input.
 
     Returns:
-        True if input is valid.
+        True if input is valid and return_converted_output=False.
+        Returns a converted dictionary if input is valid and return_converted_output=True.
         Raises ValidationError if the input VLMD is not valid.
         Raises ValueError for unallowed input file types or unallowed schema types.
         Raises SchemaError if the schema is invalid.
@@ -64,7 +69,6 @@ def vlmd_validate_extract(
         raise ValueError(f"Input file must be one of {ALLOWED_INPUT_TYPES}")
     if not isfile(input_file):
         raise IOError(f"Input file does not exist: {input_file}")
-    from_file = True
 
     if schema_type not in ALLOWED_SCHEMA_TYPES:
         raise ValueError(f"Schema type must be in {ALLOWED_SCHEMA_TYPES}")
@@ -72,19 +76,6 @@ def vlmd_validate_extract(
     if schema == None:
         raise ValueError(f"Could not get schema for type = {schema_type}")
 
-    if file_suffix is not None and file_suffix not in ALLOWED_INPUT_TYPES:
-        raise ValueError(f"Input file must be one of {ALLOWED_INPUT_TYPES}")
-    if not isfile(input_file):
-        raise IOError(f"Input file does not exist: {input_file}")
-
-    if output_type not in ALLOWED_OUTPUT_TYPES:
-        raise ValueError(
-            f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
-        )
-
-    schema = get_schema(input_file, schema_type)
-    if schema == None:
-        raise ValueError(f"Could not get schema for type = {schema_type}")
     # TODO: We need this for csv - see if we can add this to get_schema
     if file_suffix in ["csv", "tsv"]:
         schema = add_types_to_props(schema)
@@ -157,15 +148,7 @@ def vlmd_validate_extract(
         logger.error("Error in validating converted dictionary")
         raise e
 
-    output_filepath = get_output_filepath(
-        output_dir, input_file, output_type=output_type
-    )
-    logger.info(f"Writing converted dictionary to {output_filepath}")
-    try:
-        write_vlmd_dict(converted_dictionary, output_filepath, file_type=output_type)
-    except Exception as e:
-        logger.error("Error in writing converted dictionary")
-        logger.error(e)
-        raise ExtractionError("Error in writing converted dictionary")
-
-    return True
+    if return_converted_output:
+        return converted_dictionary
+    else:
+        return True
