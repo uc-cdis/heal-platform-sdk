@@ -13,7 +13,7 @@ def convert_templatejson(
     jsontemplate,
     data_dictionary_props: dict = None,
     fields_name: str = "fields",
-):
+) -> dict:
     """
     Converts a JSON file or dictionary conforming to HEAL specifications
     into a HEAL-specified data dictionary in both csv format and json format.
