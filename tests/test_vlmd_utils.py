@@ -3,8 +3,43 @@ import pytest
 from heal.vlmd.utils import (
     add_missing_type,
     add_types_to_props,
+    clean_json_fields,
     remove_empty_props,
 )
+
+input_prop_with_empties = {
+    "section": "Enrollment",
+    "name": "participant_id",
+    "title": "Participant Id",
+    "description": "Unique identifier for participant",
+    "type": "string",
+    "format": "",
+    "constraints": {
+        "maxLength": 5,
+        "enum": "",
+        "pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
+        "maximum": 10.0,
+        "minimum": "",
+    },
+    "empty_constraints": {"maxLength": ""},
+    "empty_enum": [],
+    "missingValues": "",
+    "trueValues": "",
+    "falseValues": "",
+}
+
+expected_prop = {
+    "section": "Enrollment",
+    "name": "participant_id",
+    "title": "Participant Id",
+    "description": "Unique identifier for participant",
+    "type": "string",
+    "constraints": {
+        "maxLength": 5,
+        "pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
+        "maximum": 10.0,
+    },
+}
 
 
 def test_add_missing_type():
@@ -105,43 +140,14 @@ def test_add_missing_type():
 )
 def test_add_types_to_props(input_schema, expected_schema):
     # Propeties get wrapped in 'anyOf' or 'allOf'
-    result = add_types_to_props(input_schema)
-    assert result == expected_schema
+    assert add_types_to_props(input_schema) == expected_schema
 
 
 def test_remove_empty_props():
-    input_prop = {
-        "section": "Enrollment",
-        "name": "participant_id",
-        "title": "Participant Id",
-        "description": "Unique identifier for participant",
-        "type": "string",
-        "format": "",
-        "constraints": {
-            "maxLength": 5,
-            "enum": "",
-            "pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
-            "maximum": 10.0,
-            "minimum": "",
-        },
-        "empty_constraints": {"maxLength": ""},
-        "empty_enum": [],
-        "missingValues": "",
-        "trueValues": "",
-        "falseValues": "",
-    }
-    expected_prop = {
-        "section": "Enrollment",
-        "name": "participant_id",
-        "title": "Participant Id",
-        "description": "Unique identifier for participant",
-        "type": "string",
-        "constraints": {
-            "maxLength": 5,
-            "pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
-            "maximum": 10.0,
-        },
-    }
+    assert remove_empty_props(input_prop_with_empties) == expected_prop
 
-    result = remove_empty_props(input_prop)
-    assert result == expected_prop
+
+def test_clean_json_fields():
+    fields = [input_prop_with_empties, input_prop_with_empties]
+    expected_fields = [expected_prop, expected_prop]
+    assert clean_json_fields(fields) == expected_fields

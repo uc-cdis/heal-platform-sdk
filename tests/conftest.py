@@ -6,7 +6,9 @@ from heal.vlmd.config import (
     ALLOWED_SCHEMA_TYPES,
     CSV_SCHEMA,
     JSON_SCHEMA,
+    JSON_SCHEMA_VERSION,
 )
+from heal.vlmd.utils import clean_json_fields
 
 
 @pytest.fixture()
@@ -35,7 +37,7 @@ def invalid_csv_schema():
     return {
         "type": "array",
         "items": {
-            "version": "0.3.2",
+            "version": JSON_SCHEMA_VERSION,
             "properties": {
                 "title": 5,
                 "items": {
@@ -117,7 +119,7 @@ def valid_json_data():
 
 @pytest.fixture()
 def valid_json_output():
-    header = {"schemaVersion": "0.3.2"}
+    header = {"schemaVersion": JSON_SCHEMA_VERSION}
     with open("tests/test_data/vlmd/valid/vlmd_valid.json", "r") as f:
         data = json.load(f)
     header.update(data)
@@ -136,3 +138,13 @@ def valid_csv_output():
     with open("tests/test_data/vlmd/valid/vlmd_csv_to_csv.json", "r") as f:
         data = json.load(f)
     return data
+
+
+@pytest.fixture()
+def valid_converted_csv_to_json_output():
+    with open("tests/test_data/vlmd/valid/vlmd_csv_to_json.json", "r") as f:
+        data = json.load(f)
+    data["fields"] = clean_json_fields(data["fields"])
+    header = {"schemaVersion": JSON_SCHEMA_VERSION, "title": "HEAL Data Dictionary"}
+    header.update(data)
+    return header

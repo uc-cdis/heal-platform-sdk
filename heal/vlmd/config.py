@@ -19,7 +19,8 @@ with open(json_schema_file, "r") as f:
     JSON_SCHEMA = json.load(f)
 
 # schema
+JSON_SCHEMA_VERSION = JSON_SCHEMA.get("version", "0.3.2")
 TOP_LEVEL_PROPS = {
-    "schemaVersion": JSON_SCHEMA.get("version", "0.3.2"),
+    "schemaVersion": JSON_SCHEMA_VERSION,
     "title": "HEAL Data Dictionary",
 }
