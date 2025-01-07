@@ -9,7 +9,7 @@ def _flatten(map):
     return {sourcename: item["target"] for item in map for sourcename in item["source"]}
 
 
-typemap = [
+type_map = [
     {"target": "integer", "source": ["int"]},
     {
         "target": "string",
@@ -26,8 +26,11 @@ typemap = [
     {"target": "number", "source": ["num", "float", "decimal", "numeric"]},
     {"target": "boolean", "source": ["bool"]},
 ]
-requiredmap = [
+required_map = [
     {"target": True, "source": ["true", "1", "yes", "y", "required"]},
     {"target": False, "source": ["false", "0", "no", "not required", "n"]},
 ]
-recodemap = {"type": _flatten(typemap), "constraints.required": _flatten(requiredmap)}
+recode_map = {
+    "type": _flatten(type_map),
+    "constraints.required": _flatten(required_map),
+}

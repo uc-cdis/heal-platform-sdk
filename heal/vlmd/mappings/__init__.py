@@ -7,5 +7,5 @@ names must now conform to json path but in prior versions this was not the case.
 
 """
 
-from .names import renamemap
-from .values import recodemap
+from .names import rename_map
+from .values import recode_map

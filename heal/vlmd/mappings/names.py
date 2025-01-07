@@ -1,4 +1,4 @@
-condensed_renamemap = {
+condensed_rename_map = {
     "type": [
         "data-type",
         "data-types",
@@ -46,8 +46,8 @@ condensed_renamemap = {
     ],
 }
 
-renamemap = {
+rename_map = {
     source: target
-    for target, sourcelist in condensed_renamemap.items()
-    for source in sourcelist
+    for target, source_list in condensed_rename_map.items()
+    for source in source_list
 }

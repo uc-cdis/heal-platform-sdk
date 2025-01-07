@@ -47,17 +47,17 @@ def convert_templatejson(
         )
 
     if data_dictionary_props:
-        for propname, prop in data_dictionary_props.items():
+        for prop_name, prop in data_dictionary_props.items():
             # determine if you should write or overwrite the root level data dictionary props
-            if not jsontemplate_dict.get(propname):
+            if not jsontemplate_dict.get(prop_name):
                 write_prop = True
-            elif prop and prop != jsontemplate_dict.get(propname):
+            elif prop and prop != jsontemplate_dict.get(prop_name):
                 write_prop = True
             else:
                 write_prop = False
 
             if write_prop:
-                jsontemplate_dict[propname] = prop
+                jsontemplate_dict[prop_name] = prop
 
     fields_json = jsontemplate_dict.pop(fields_name)
     data_dictionary_props = jsontemplate_dict

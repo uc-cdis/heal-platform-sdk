@@ -78,24 +78,24 @@ field_mappings = [
 ]
 
 
-root_renamemap = {
-    sourcename: item["target"]
+root_rename_map = {
+    source_name: item["target"]
     for item in root_mappings
-    for sourcename in item["source"]
-    if item["target"] and sourcename
+    for source_name in item["source"]
+    if item["target"] and source_name
 }
 root_addmap = {"schemaVersion": JSON_SCHEMA["version"]}
-fields_recodemap = {}
-fields_renamemap = {
-    sourcename: item["target"]
+fields_recode_map = {}
+fields_rename_map = {
+    source_name: item["target"]
     for item in field_mappings
-    for sourcename in item["source"]
-    if item["target"] and sourcename
+    for source_name in item["source"]
+    if item["target"] and source_name
 }
-fields_droplist = [
-    sourcename
+fields_drop_list = [
+    source_name
     for item in field_mappings
-    for sourcename in item["source"]
-    if not item["target"] and sourcename
+    for source_name in item["source"]
+    if not item["target"] and source_name
 ]
 fields_addmap = {"schemaVersion": JSON_SCHEMA["version"]}

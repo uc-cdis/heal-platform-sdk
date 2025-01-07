@@ -7,7 +7,7 @@ import pandas as pd
 from pandas.api.types import is_object_dtype
 
 
-def _get_propnames_to_rearrange(propnames, schema):
+def _get_prop_names_to_rearrange(prop_names, schema):
     """
     get data dictionary props to search for refactoring or embedding
 
@@ -23,8 +23,8 @@ def _get_propnames_to_rearrange(propnames, schema):
         set(root_names).intersection(field_names).difference(annotation_names)
     )
 
-    propnames_exp = "|".join("^" + name + "$" for name in props_to_rearrange)
-    names_to_rearrange = [name for name in propnames if re.match(propnames_exp, name)]
+    prop_names_exp = "|".join("^" + name + "$" for name in props_to_rearrange)
+    names_to_rearrange = [name for name in prop_names if re.match(prop_names_exp, name)]
 
     return list(names_to_rearrange)
 
@@ -46,15 +46,15 @@ def embed_data_dictionary_props(flat_fields, flat_root, schema):
         pd.DataFrame with the flat fields with the embedded root properties
     """
     flat_fields = pd.DataFrame(flat_fields)
-    propnames = _get_propnames_to_rearrange(list(flat_root.keys()), schema)
-    flat_root = pd.Series(flat_root).loc[propnames]  # take out annotation props
+    prop_names = _get_prop_names_to_rearrange(list(flat_root.keys()), schema)
+    flat_root = pd.Series(flat_root).loc[prop_names]  # take out annotation props
     if len(flat_root) > 0:
-        for propname in propnames:
-            if propname in flat_root:
-                if not propname in flat_fields:
-                    flat_fields.insert(0, propname, flat_root[propname])
+        for prop_name in prop_names:
+            if prop_name in flat_root:
+                if not prop_name in flat_fields:
+                    flat_fields.insert(0, prop_name, flat_root[prop_name])
                 else:
-                    flat_fields[propname].fillna(flat_root[propname], inplace=True)
+                    flat_fields[prop_name].fillna(flat_root[prop_name], inplace=True)
 
     return flat_fields
 
@@ -64,14 +64,11 @@ def refactor_field_props(flat_fields, schema):
     Given a flattened array of dicts corresponding to the unflattened schema,
     move up (ie `refactor`) flattened properties that are both in the root
     (ie table level; level up from field records) and in the fields.
-
     """
     flat_fields_df = pd.DataFrame(flat_fields)
-    propnames = set(
-        _get_propnames_to_rearrange(flat_fields_df.columns.tolist(), schema)
-    )
+    props = set(_get_prop_names_to_rearrange(flat_fields_df.columns.tolist(), schema))
     flat_record = pd.Series(dtype="object")
-    for name in propnames:
+    for name in props:
         in_df = name in flat_fields_df
         if in_df:
             # need to handle if some values are pandas series
@@ -91,19 +88,18 @@ def refactor_field_props(flat_fields, schema):
 
 
 # individual cell utilities
-def parse_dictionary_str(string, item_sep, keyval_sep):
+def parse_dictionary_str(string, item_sep, key_val_sep):
     """
     Parses a stringified dictionary into a dictionary
     based on item separator
-
     """
     if string != "" and string != None:
-        stritems = string.strip().split(item_sep)
+        str_items = string.strip().split(item_sep)
         items = {}
 
-        for stritem in stritems:
-            if stritem:
-                item = stritem.split(keyval_sep, 1)
+        for str_item in str_items:
+            if str_item:
+                item = str_item.split(key_val_sep, 1)
                 items[item[0].strip()] = item[1].strip()
 
         return items
@@ -267,7 +263,7 @@ def flatten_properties(properties, parentkey="", sep=".", itemsep="\[\d+\]"):
     return properties_flattened
 
 
-def find_propname(colname, properties):
+def find_prop_name(column_name, properties):
     """
     given a dictionary of json schema object properties OR a list of property names, return the
     matching property name.
@@ -276,18 +272,18 @@ def find_propname(colname, properties):
     and converted into a regular expression for list (array) indices.
 
     """
-    propmatch = []
+    prop_match = []
     for name in list(properties):
-        if re.match("^" + name + "$", colname):
-            propmatch.append(name)
+        if re.match("^" + name + "$", column_name):
+            prop_match.append(name)
 
-    if len(propmatch) == 1:
-        return propmatch[0]
-    elif len(propmatch) > 1:
+    if len(prop_match) == 1:
+        return prop_match[0]
+    elif len(prop_match) > 1:
         raise Exception(
-            f"Multiple matching properties found for {colname}. Can only have one match"
+            f"Multiple matching properties found for {column_name}. Can only have one match"
         )
-    elif len(propmatch) == 0:
+    elif len(prop_match) == 0:
         return None
     else:
-        raise Exception(f"Unknown error when matching properties against {colname}")
+        raise Exception(f"Unknown error when matching properties against {column_name}")

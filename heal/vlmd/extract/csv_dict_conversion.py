@@ -9,14 +9,14 @@ from heal.vlmd.extract import utils
 from heal.vlmd.validate.utils import read_delim
 
 
-def convert_datadictcsv(
-    csvtemplate: str,
+def convert_datadict_csv(
+    csv_template: str,
     data_dictionary_props: dict,
-    renamemap: dict = None,
-    recodemap: dict = None,
-    droplist: dict = None,
+    rename_map: dict = None,
+    recode_map: dict = None,
+    drop_list: dict = None,
     item_sep: str = "|",
-    keyval_sep: str = "=",
+    key_val_sep: str = "=",
 ) -> dict:
     """
     Converts a CSV conforming to HEAL specifications (but see 2 additional notes below)
@@ -30,17 +30,17 @@ def convert_datadictcsv(
 
     Args
 
-        csvtemplate : str or path-like or an object that can be inferred as data by frictionless's Resource class.
+        csv_template : str or path-like or an object that can be inferred as data by frictionless's Resource class.
             Data or path to data with the data being a tabular HEAL-specified data dictionary.
             This input can be any data object or path-like string excepted by a frictionless Resource object.
         data_dictionary_props : dict
             The HEAL-specified data dictionary properties.
-        renamemap: A mapping of source (current) column headers to target (desired -- conforming to CVS HEAL spec)
+        rename_map: A mapping of source (current) column headers to target (desired -- conforming to CVS HEAL spec)
             column headers
-        recodemap: A mapping of values for each column in HEAL spec -- {..."colname":{"oldvalue":"newvalue"...}...}
-        droplist: a list of variables to drop from headers before processing
+        recode_map: A mapping of values for each column in HEAL spec -- {..."column_name":{"old_value":"new_value"...}...}
+        drop_list: a list of variables to drop from headers before processing
         item_sep:str (default:"|") Used to split stringified items (in objects and arrays)
-        keyval_sep:str (default:"=") Used to split stringified each key-value pair
+        key_val_sep:str (default:"=") Used to split stringified each key-value pair
 
     Returns
         A dictionary with two keys:
@@ -84,19 +84,19 @@ def convert_datadictcsv(
 
         return inferred_delim
 
-    if isinstance(csvtemplate, (str, PathLike)):
-        template_tbl = read_delim(str(Path(csvtemplate)))
+    if isinstance(csv_template, (str, PathLike)):
+        template_tbl = read_delim(str(Path(csv_template)))
     else:
-        template_tbl = pd.DataFrame(csvtemplate)
+        template_tbl = pd.DataFrame(csv_template)
 
-    if not renamemap:
-        renamemap = {}
+    if not rename_map:
+        rename_map = {}
 
-    if not recodemap:
-        recodemap = {}
+    if not recode_map:
+        recode_map = {}
 
-    if not droplist:
-        droplist = []
+    if not drop_list:
+        drop_list = []
 
     slugify = lambda s: s.strip().lower().replace("_", "-").replace(" ", "-")
     # flattened properties
@@ -107,98 +107,108 @@ def convert_datadictcsv(
     # init to-be formatted tables
     tbl_csv = template_tbl.copy()
     # transform each column with slugified mappings, harmonizing delims (if array, object)
-    for colname in tbl_csv.columns.tolist():
-        slugified_col = slugify(colname)
-        newcolname = colname
+    for column_name in tbl_csv.columns.tolist():
+        slugified_col = slugify(column_name)
+        new_column_name = column_name
 
         # rename based on slugified names or original col names
-        newcolname = renamemap.get(slugified_col) or renamemap.get(colname)
-        if newcolname:
-            tbl_csv.rename(columns={colname: newcolname}, inplace=True)
+        new_column_name = rename_map.get(slugified_col) or rename_map.get(column_name)
+        if new_column_name:
+            tbl_csv.rename(columns={column_name: new_column_name}, inplace=True)
         else:
-            newcolname = colname
+            new_column_name = column_name
 
         # recode slugified old names to accepted names
-        if newcolname in recodemap.keys():
-            tbl_csv[newcolname] = (
-                tbl_csv[newcolname].apply(slugify).replace(recodemap[newcolname])
+        if new_column_name in recode_map.keys():
+            tbl_csv[new_column_name] = (
+                tbl_csv[new_column_name]
+                .apply(slugify)
+                .replace(recode_map[new_column_name])
             )
 
-        if newcolname in droplist:
-            del tbl_csv[newcolname]
+        if new_column_name in drop_list:
+            del tbl_csv[new_column_name]
 
         # NOTE: the below methodology uses the schema to instruct how to convert to json.
-        fieldpropname = utils.find_propname(newcolname, field_properties)
-        fieldprop = field_properties.get(fieldpropname)
+        field_prop_name = utils.find_prop_name(new_column_name, field_properties)
+        field_prop = field_properties.get(field_prop_name)
         # infer delimiters of stringified lists (note: stringified lists are identified from schema)
 
-        if fieldpropname:
-            if fieldprop["type"] == "integer":
-                tbl_csv[newcolname] = tbl_csv[newcolname].apply(
+        if field_prop_name:
+            if field_prop["type"] == "integer":
+                tbl_csv[new_column_name] = tbl_csv[new_column_name].apply(
                     lambda s: int(float(s)) if s else s
                 )
-            elif fieldprop["type"] == "number":
-                tbl_csv[newcolname] = tbl_csv[newcolname].astype(float)
-            elif fieldprop["type"] == "object":
-                possible_keyval = ["=", ":"]
+            elif field_prop["type"] == "number":
+                tbl_csv[new_column_name] = tbl_csv[new_column_name].astype(float)
+            elif field_prop["type"] == "object":
+                possible_key_val = ["=", ":"]
                 possible_list = [";", "|"]
-                keyval_sep = (
-                    infer_delim(tbl_csv[newcolname], possible_keyval, firstmatch=True)
+                key_val_sep = (
+                    infer_delim(
+                        tbl_csv[new_column_name], possible_key_val, firstmatch=True
+                    )
                     or "="
                 )
                 item_sep = (
-                    infer_delim(tbl_csv[newcolname], possible_list, firstmatch=False)
+                    infer_delim(
+                        tbl_csv[new_column_name], possible_list, firstmatch=False
+                    )
                     or "|"
                 )
 
-                tbl_csv[newcolname] = (
-                    tbl_csv[newcolname]
-                    .str.replace(keyval_sep, "=")
+                tbl_csv[new_column_name] = (
+                    tbl_csv[new_column_name]
+                    .str.replace(key_val_sep, "=")
                     .str.replace(item_sep, "|")
                 )
 
-            elif fieldprop["type"] == "array":
+            elif field_prop["type"] == "array":
                 possible_list = [";", "|"]
                 item_sep = (
-                    infer_delim(tbl_csv[newcolname], possible_list, firstmatch=False)
+                    infer_delim(
+                        tbl_csv[new_column_name], possible_list, firstmatch=False
+                    )
                     or "|"
                 )
-                tbl_csv[newcolname] = tbl_csv[newcolname].replace(item_sep, "|")
+                tbl_csv[new_column_name] = tbl_csv[new_column_name].replace(
+                    item_sep, "|"
+                )
 
     # parse string objects and array to create the dict (json) instance
     tbl_json = tbl_csv.copy()
-    for colname in tbl_json.columns.tolist():
+    for column_name in tbl_json.columns.tolist():
         # NOTE: the below methodology uses the schema to instruct how to convert to json.
-        fieldpropname = utils.find_propname(colname, field_properties)
-        fieldprop = field_properties.get(fieldpropname)
-        if fieldprop:
-            if fieldprop["type"] == "object":
-                tbl_json[colname] = tbl_csv[colname].apply(
-                    utils.parse_dictionary_str, item_sep="|", keyval_sep="="
+        field_prop_name = utils.find_prop_name(column_name, field_properties)
+        field_prop = field_properties.get(field_prop_name)
+        if field_prop:
+            if field_prop["type"] == "object":
+                tbl_json[column_name] = tbl_csv[column_name].apply(
+                    utils.parse_dictionary_str, item_sep="|", key_val_sep="="
                 )
 
-            elif fieldprop["type"] == "array":
-                tbl_json[colname] = tbl_csv[colname].apply(
+            elif field_prop["type"] == "array":
+                tbl_json[column_name] = tbl_csv[column_name].apply(
                     utils.parse_list_str, item_sep="|"
                 )
         # columns not included in schema (custom or other)
         else:
-            if colname.split(".")[0] == "custom":
+            if column_name.split(".")[0] == "custom":
                 if not "custom" in tbl_json:
                     tbl_json["custom"] = [{}] * len(tbl_json)
 
                 for i in range(len(tbl_csv)):
-                    value = tbl_csv[colname].iloc[i]
+                    value = tbl_csv[column_name].iloc[i]
                     if value:
                         custom = {}
-                        parts = colname.split(".")[1:]
+                        parts = column_name.split(".")[1:]
 
                         for key in reversed(parts):
                             result = {key: value}
 
                         tbl_json["custom"].iloc[i].update(result)
             else:
-                tbl_json[colname] = tbl_csv[colname]
+                tbl_json[column_name] = tbl_csv[column_name]
 
     # drop all custom columns (as I have nested already)
     tbl_json.drop(columns=tbl_json.filter(regex="^custom\\.").columns, inplace=True)
