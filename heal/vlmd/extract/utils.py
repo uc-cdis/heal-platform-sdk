@@ -213,52 +213,52 @@ def join_iter(iterable, sep_list="|"):
     return sep_list.join([str(p) for p in iterable])
 
 
-def join_dictitems(dictionary: dict, sep_keyval="=", sep_items="|"):
+def join_dict_items(dictionary: dict, sep_key_val="=", sep_items="|"):
     """joins a mappable collection (ie dictionary) into a string
     representation with specified separators for the key and value
     in addition to items.
 
     All items are coerced to the string representation (eg if key or value
     is None, this will be coerced to "None")
-
-
     """
     dict_list = []
     for key, val in dictionary.items():
-        keystr = str(key)
-        valstr = str(val)
-        dict_list.append(keystr + sep_keyval + valstr)
+        key_str = str(key)
+        val_str = str(val)
+        dict_list.append(key_str + sep_key_val + val_str)
     return sep_items.join(dict_list)
 
 
 # Working with schemas
-def flatten_properties(properties, parentkey="", sep=".", itemsep="\[\d+\]"):
+def flatten_properties(properties, parent_key="", sep=".", item_sep="\[\d+\]"):
     """
     flatten schema properties
     """
     properties_flattened = {}
     for key, item in properties.items():
         # flattened keys
-        if parentkey:
-            flattenedkey = parentkey + "." + key
+        if parent_key:
+            flattened_key = parent_key + "." + key
         else:
-            flattenedkey = key
+            flattened_key = key
 
         if isinstance(item, MutableMapping):
             props = item.get("properties")
             items = item.get("items", {}).get("properties")
             if props:
-                newprops = flatten_properties(props, parentkey=flattenedkey)
-                properties_flattened.update(newprops)
+                new_props = flatten_properties(props, parent_key=flattened_key)
+                properties_flattened.update(new_props)
 
             elif items:
-                newprops = flatten_properties(items, parentkey=flattenedkey + itemsep)
-                properties_flattened.update(newprops)
+                new_props = flatten_properties(
+                    items, parent_key=flattened_key + item_sep
+                )
+                properties_flattened.update(new_props)
             else:
-                properties_flattened[flattenedkey] = item
+                properties_flattened[flattened_key] = item
 
         else:
-            properties_flattened[flattenedkey] = item
+            properties_flattened[flattened_key] = item
 
     return properties_flattened
 

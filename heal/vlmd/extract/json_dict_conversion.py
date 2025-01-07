@@ -76,7 +76,7 @@ def convert_templatejson(
     tbl_csv = (
         flattened_and_embedded.fillna("")
         .map(
-            lambda v: utils.join_dictitems(v)
+            lambda v: utils.join_dict_items(v)
             if isinstance(v, collections.abc.MutableMapping)
             else v
         )
