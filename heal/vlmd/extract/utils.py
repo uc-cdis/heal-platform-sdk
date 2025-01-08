@@ -173,9 +173,14 @@ def unflatten_from_jsonpath(field):
         nested_names_length = len(nested_names)
         for i, prop_name in enumerate(nested_names):
             if "[" in prop_name:
-                array_name, array_index = prop_name.split("[")
+                g = re.match(r"(.+)\[(\d+)\]$", prop_name)
+                if not g:
+                    raise jsonschema.ValidationError(
+                        f"Incorrect array indexing in name {prop_name}"
+                    )
                 try:
-                    array_index = int(array_index[:-1])
+                    array_name = g[1]
+                    array_index = int(g[2])
                 except Exception as e:
                     raise jsonschema.ValidationError(str(e))
                 if array_name not in prop_json:
@@ -227,7 +232,7 @@ def join_dict_items(dictionary: dict, sep_key_val="=", sep_items="|"):
 
 
 # Working with schemas
-def flatten_properties(properties, parent_key="", sep=".", item_sep="\[\d+\]"):
+def flatten_properties(properties, parent_key="", sep=".", item_sep=r"\[\d+\]"):
     """
     flatten schema properties
     """

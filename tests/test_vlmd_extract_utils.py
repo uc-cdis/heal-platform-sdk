@@ -82,19 +82,46 @@ def test_unflatten_from_jsonpath():
     ), "Problem with converting input dictionary to output dictionary"
 
 
-def test_unflatten_from_jsonpath_invalid_input():
-    input = {
-        "module": "Testing",
-        "constraints.enum": "1|2|3|4",
-        "standardsMappings[1].item.url": "http//:helloitem1",
-        "standardsMappings['some_string'].item.url": "http//:helloitem0",
-        "standardsMappings[2].item.url": "http//:helloitem2",
-    }
-
+@pytest.mark.parametrize(
+    "invalid_input, invalid_name",
+    [
+        (
+            {
+                "module": "Testing",
+                "constraints.enum": "1|2|3|4",
+                "standardsMappings[1].item.url": "http//:helloitem1",
+                "standardsMappings['some_string'].item.url": "http//:helloitem0",
+                "standardsMappings[2].item.url": "http//:helloitem2",
+            },
+            "standardsMappings['some_string']",
+        ),
+        (
+            {
+                "module": "Testing",
+                "constraints.enum": "1|2|3|4",
+                "[1].item.url": "http//:helloitem1",
+                "standardsMappings[0].item.url": "http//:helloitem0",
+                "standardsMappings[2].item.url": "http//:helloitem2",
+            },
+            "[1]",
+        ),
+        (
+            {
+                "module": "Testing",
+                "constraints.enum": "1|2|3|4",
+                "standardsMappings[1).item.url": "http//:helloitem1",
+                "standardsMappings[0].item.url": "http//:helloitem0",
+                "standardsMappings[2].item.url": "http//:helloitem2",
+            },
+            "standardsMappings[1)",
+        ),
+    ],
+)
+def test_unflatten_from_jsonpath_invalid_input(invalid_input, invalid_name):
     with pytest.raises(ValidationError) as e:
-        unflatten_from_jsonpath(input)
-    expected_message = "invalid literal for int() with base 10:"
-    assert expected_message in str(e.value)
+        unflatten_from_jsonpath(invalid_input)
+    expected_error_message = f"Incorrect array indexing in name {invalid_name}"
+    assert expected_error_message in str(e.value)
 
 
 def test_embed_data_dictionary_props():
