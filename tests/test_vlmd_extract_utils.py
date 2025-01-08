@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from jsonschema import ValidationError
 import pytest
 
 from heal.vlmd.extract.utils import (
@@ -46,7 +47,7 @@ schema_to_rearrange = {
 }
 
 
-def test_unflatten_jsonpath():
+def test_unflatten_from_jsonpath():
     input = {
         "module": "Testing",
         "constraints.enum": "1|2|3|4",
@@ -79,6 +80,21 @@ def test_unflatten_jsonpath():
     assert (
         field_json == output
     ), "Problem with converting input dictionary to output dictionary"
+
+
+def test_unflatten_from_jsonpath_invalid_input():
+    input = {
+        "module": "Testing",
+        "constraints.enum": "1|2|3|4",
+        "standardsMappings[1].item.url": "http//:helloitem1",
+        "standardsMappings['some_string'].item.url": "http//:helloitem0",
+        "standardsMappings[2].item.url": "http//:helloitem2",
+    }
+
+    with pytest.raises(ValidationError) as e:
+        unflatten_from_jsonpath(input)
+    expected_message = "invalid literal for int() with base 10:"
+    assert expected_message in str(e.value)
 
 
 def test_embed_data_dictionary_props():

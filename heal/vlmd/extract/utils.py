@@ -3,6 +3,7 @@
 from collections.abc import MutableMapping
 import re
 
+import jsonschema
 import pandas as pd
 from pandas.api.types import is_object_dtype
 
@@ -169,10 +170,14 @@ def unflatten_from_jsonpath(field):
         prop_json = field_json
 
         nested_names = prop_path.split(".")
-        for prop_name in nested_names[:-1]:
+        nested_names_length = len(nested_names)
+        for i, prop_name in enumerate(nested_names):
             if "[" in prop_name:
                 array_name, array_index = prop_name.split("[")
-                array_index = int(array_index[:-1])
+                try:
+                    array_index = int(array_index[:-1])
+                except Exception as e:
+                    raise jsonschema.ValidationError(str(e))
                 if array_name not in prop_json:
                     prop_json[array_name] = [{} for _ in range(array_index + 1)]
                 elif len(prop_json[array_name]) <= array_index:
@@ -182,28 +187,20 @@ def unflatten_from_jsonpath(field):
                             for _ in range(array_index - len(prop_json[array_name]) + 1)
                         ]
                     )
-                prop_json = prop_json[array_name][array_index]
+                if i == nested_names_length - 1:
+                    if isinstance(prop_json[array_name][array_index], dict):
+                        prop_json[array_name][array_index].update({array_name: prop})
+                    else:
+                        prop_json[array_name][array_index] = {array_name: prop}
+                else:
+                    prop_json = prop_json[array_name][array_index]
             else:
-                if prop_name not in prop_json:
-                    prop_json[prop_name] = {}
-                prop_json = prop_json[prop_name]
-
-        last_prop_name = nested_names[-1]
-        if "[" in last_prop_name:
-            array_name, array_index = last_prop_name.split("[")
-            array_index = int(array_index[:-1])
-            if array_name not in prop_json:
-                prop_json[array_name] = [{} for _ in range(array_index + 1)]
-            elif len(prop_json[array_name]) <= array_index:
-                prop_json[array_name].extend(
-                    [{} for _ in range(array_index - len(prop_json[array_name]) + 1)]
-                )
-            if isinstance(prop_json[array_name][array_index], dict):
-                prop_json[array_name][array_index].update({array_name: prop})
-            else:
-                prop_json[array_name][array_index] = {array_name: prop}
-        else:
-            prop_json[last_prop_name] = prop
+                if i == nested_names_length - 1:
+                    prop_json[prop_name] = prop
+                else:
+                    if prop_name not in prop_json:
+                        prop_json[prop_name] = {}
+                    prop_json = prop_json[prop_name]
 
     return field_json
 
