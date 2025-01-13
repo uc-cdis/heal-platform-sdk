@@ -4,7 +4,13 @@ from jsonschema import ValidationError
 import pytest
 
 from heal.vlmd.extract.utils import (
+    _get_prop_names_to_rearrange,
     embed_data_dictionary_props,
+    find_prop_name,
+    flatten_properties,
+    flatten_to_jsonpath,
+    join_dict_items,
+    parse_dictionary_str,
     parse_list_str,
     refactor_field_props,
     unflatten_from_jsonpath,
@@ -124,6 +130,87 @@ def test_unflatten_from_jsonpath_invalid_input(invalid_input, invalid_name):
     assert expected_error_message in str(e.value)
 
 
+def test_get_prop_names_to_rearrange():
+    flat_root = {
+        "schemaVersion": "0.2.0",
+        "title": "Example VLMD",
+        "description": "This is an example description",
+        "anotherFieldToEmbed[0].thisone": "helloworld",
+    }
+    prop_names = list(flat_root.keys())
+    expected_prop_names = ["schemaVersion", "anotherFieldToEmbed[0].thisone"]
+    names_to_rearrange = _get_prop_names_to_rearrange(prop_names, schema_to_rearrange)
+    assert names_to_rearrange == expected_prop_names
+
+
+def test_flatten_to_json_path(valid_json_data, VALID_JSON_SCHEMA):
+    # example field item
+    dict_field = {
+        "section": "Enrollment",
+        "name": "participant_id",
+        "constraints": {"pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]"},
+    }
+    expected_flattened_dict = {
+        "section": "Enrollment",
+        "name": "participant_id",
+        "constraints.pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
+    }
+    fields_schema = VALID_JSON_SCHEMA["properties"]["fields"]["items"]
+    flattened_dict = flatten_to_jsonpath(dict_field, fields_schema)
+    assert flattened_dict == expected_flattened_dict
+
+
+def test_flatten_properties():
+    schema_props = schema_to_rearrange["properties"]
+    expected_props = {
+        "title": {"type": "string"},
+        "description": {"type": "string"},
+        "schemaVersion": {"type": "string"},
+        "anotherFieldToEmbed\\[\\d+\\].thisone": {"type": "string"},
+        "fields\\[\\d+\\].type": "object",
+        "fields\\[\\d+\\].some_field": {"type": "string"},
+        "fields\\[\\d+\\].schemaVersion": {"type": "string"},
+        "fields\\[\\d+\\].anotherFieldToEmbed\\[\\d+\\].thisone": {"type": "string"},
+    }
+    assert flatten_properties(schema_props) == expected_props
+
+
+@pytest.mark.parametrize(
+    "name, field_props, expected_name",
+    [
+        (
+            "foo",
+            {
+                "title": "HEAL Variable Level Metadata Fields",
+                "description": "Some description",
+                "foo": "bar",
+            },
+            "foo",
+        ),
+        (
+            "foo",
+            {
+                "title": "HEAL Variable Level Metadata Fields",
+                "description": "Some description",
+                "bar": "foo",
+            },
+            None,
+        ),
+        (
+            "foo",
+            {
+                "title": "HEAL Variable Level Metadata Fields",
+                "description": "Some description",
+                "barfoo": "bar",
+            },
+            None,
+        ),
+    ],
+)
+def test_find_prop_names(name, field_props, expected_name):
+    assert find_prop_name(name, field_props) == expected_name
+
+
 def test_embed_data_dictionary_props():
     flat_root = {
         "schemaVersion": "0.2.0",
@@ -164,6 +251,17 @@ def test_refactor_field_props():
     ]
 
 
+def test_parse_dictionary_str():
+    input_string = "title=Example VLMD|description=This is an example description|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+    expected_dict = {
+        "title": "Example VLMD",
+        "description": "This is an example description",
+        "fields": "[{'section': 'Enrollment', 'name': 'participant_id'}]",
+    }
+    output_dict = parse_dictionary_str(input_string, item_sep="|", key_val_sep="=")
+    assert output_dict == expected_dict
+
+
 @pytest.mark.parametrize(
     "input_string, separator, expected_output_list",
     [
@@ -175,3 +273,18 @@ def test_refactor_field_props():
 def test_parse_list_str(input_string, separator, expected_output_list):
     result = parse_list_str(input_string, separator)
     assert result == expected_output_list
+
+
+def test_join_dict_items():
+    dict = {
+        "title": "Example VLMD",
+        "description": "This is an example description",
+        "fields": [
+            {
+                "section": "Enrollment",
+                "name": "participant_id",
+            },
+        ],
+    }
+    expected = "title=Example VLMD|description=This is an example description|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+    assert join_dict_items(dict) == expected
