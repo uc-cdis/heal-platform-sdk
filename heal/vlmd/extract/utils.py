@@ -10,7 +10,7 @@ from pandas.api.types import is_object_dtype
 
 def _get_prop_names_to_rearrange(prop_names, schema):
     """
-    get data dictionary props to search for refactoring or embedding
+    Get data dictionary props to search for refactoring or embedding
 
     Supports patternProperties
     """
@@ -72,6 +72,7 @@ def refactor_field_props(flat_fields, schema):
     for name in props:
         in_df = name in flat_fields_df
         if in_df:
+            is_one_unique = None
             # need to handle if some values are pandas series
             if isinstance(flat_fields_df[name], pd.DataFrame):
                 is_one_unique = (flat_fields_df[name].nunique() == 1).all()
@@ -212,11 +213,12 @@ def unflatten_from_jsonpath(field):
 
 # json to csv utils
 def join_iter(iterable, sep_list="|"):
+    """Joins on iterable"""
     return sep_list.join([str(p) for p in iterable])
 
 
 def join_dict_items(dictionary: dict, sep_key_val="=", sep_items="|"):
-    """joins a mappable collection (ie dictionary) into a string
+    """Joins a mappable collection (ie dictionary) into a string
     representation with specified separators for the key and value
     in addition to items.
 
@@ -233,9 +235,7 @@ def join_dict_items(dictionary: dict, sep_key_val="=", sep_items="|"):
 
 # Working with schemas
 def flatten_properties(properties, parent_key="", sep=".", item_sep=r"\[\d+\]"):
-    """
-    flatten schema properties
-    """
+    """Flatten schema properties"""
     properties_flattened = {}
     for key, item in properties.items():
         # flattened keys
@@ -267,7 +267,7 @@ def flatten_properties(properties, parent_key="", sep=".", item_sep=r"\[\d+\]"):
 
 def find_prop_name(column_name, properties):
     """
-    given a dictionary of json schema object properties OR a list of property names, return the
+    Given a dictionary of json schema object properties OR a list of property names, return the
     matching property name.
 
     This function is needed when a schema is flattened according to a json path
