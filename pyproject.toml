@@ -14,13 +14,9 @@ cdislogging = "^1.1.0"
 gen3 = "^4.22.4"
 requests = "*"
 
-[tool.poetry.dev-dependencies]
-pytest = "^7.0.0"
-pytest-cov = "*"
-requests-mock = "*"
-
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
+pytest-cov = "*"
 requests-mock = "^1.12.1"
 
 [build-system]
@@ -28,7 +24,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-minversion = "7.0"
+minversion = "8.0"
 addopts = "-vv"
 pythonpath = "heal"
 testpaths = [
