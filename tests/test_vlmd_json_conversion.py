@@ -37,6 +37,6 @@ def test_json_conversion_unallowed_input(unallowed_input):
         convert_templatejson(unallowed_input)
 
     expected_message = (
-        "jsontemplate needs to be either dictionary-like or a path to a json"
+        "json_template needs to be either dictionary-like or a path to a json"
     )
     assert expected_message in str(e.value)

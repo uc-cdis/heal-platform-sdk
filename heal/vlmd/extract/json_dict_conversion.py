@@ -10,7 +10,7 @@ from heal.vlmd.extract import utils
 
 
 def convert_templatejson(
-    jsontemplate,
+    json_template,
     data_dictionary_props: dict = None,
     fields_name: str = "fields",
 ) -> dict:
@@ -24,7 +24,7 @@ def convert_templatejson(
     overwritten.
 
     Args
-        jsontemplate : str or path-like or an object that can be inferred as data by frictionless's Resource class.
+        json_template : str or path-like or an object that can be inferred as data by frictionless's Resource class.
             Data or path to data with the data being a tabular HEAL-specified data dictionary.
             This input can be any data object or path-like string excepted by a frictionless Resource object.
         data_dictionary_props : dict
@@ -37,37 +37,37 @@ def convert_templatejson(
 
     """
 
-    if isinstance(jsontemplate, (str, PathLike)):
-        jsontemplate_dict = json.loads(Path(jsontemplate).read_text())
-    elif isinstance(jsontemplate, collections.abc.MutableMapping):
-        jsontemplate_dict = jsontemplate
+    if isinstance(json_template, (str, PathLike)):
+        json_template_dict = json.loads(Path(json_template).read_text())
+    elif isinstance(json_template, collections.abc.MutableMapping):
+        json_template_dict = json_template
     else:
         raise ValueError(
-            "jsontemplate needs to be either dictionary-like or a path to a json"
+            "json_template needs to be either dictionary-like or a path to a json"
         )
 
     if data_dictionary_props:
         for prop_name, prop in data_dictionary_props.items():
             # determine if you should write or overwrite the root level data dictionary props
-            if not jsontemplate_dict.get(prop_name):
+            if not json_template_dict.get(prop_name):
                 write_prop = True
-            elif prop and prop != jsontemplate_dict.get(prop_name):
+            elif prop and prop != json_template_dict.get(prop_name):
                 write_prop = True
             else:
                 write_prop = False
 
             if write_prop:
-                jsontemplate_dict[prop_name] = prop
+                json_template_dict[prop_name] = prop
 
-    fields_json = jsontemplate_dict.pop(fields_name)
-    data_dictionary_props = jsontemplate_dict
+    fields_json = json_template_dict.pop(fields_name)
+    data_dictionary_props = json_template_dict
 
     fields_schema = JSON_SCHEMA["properties"]["fields"]["items"]
     flattened_fields = pd.DataFrame(
-        [utils.flatten_to_jsonpath(f, fields_schema) for f in fields_json]
+        [utils.flatten_to_json_path(f, fields_schema) for f in fields_json]
     )
     flattened_data_dictionary_props = pd.Series(
-        utils.flatten_to_jsonpath(data_dictionary_props, JSON_SCHEMA)
+        utils.flatten_to_json_path(data_dictionary_props, JSON_SCHEMA)
     )
 
     flattened_and_embedded = utils.embed_data_dictionary_props(

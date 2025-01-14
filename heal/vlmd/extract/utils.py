@@ -118,7 +118,7 @@ def parse_list_str(string, item_sep):
 
 
 # dictionary utilities
-def flatten_to_jsonpath(dictionary, schema, parent_key=False, sep="."):
+def flatten_to_json_path(dictionary, schema, parent_key=False, sep="."):
     """
     Turn a nested dictionary into a flattened dictionary (but see schema param)
 
@@ -137,11 +137,11 @@ def flatten_to_jsonpath(dictionary, schema, parent_key=False, sep="."):
         new_key = str(parent_key) + sep + key if parent_key else key
         prop = schema["properties"].get(key, {})
         childprops = prop.get("properties")
-        childitem_props = prop.get("items", {}).get("properties")
+        child_item_props = prop.get("items", {}).get("properties")
 
-        if childitem_props:
+        if child_item_props:
             for i, _value in enumerate(value):
-                item = flatten_to_jsonpath(
+                item = flatten_to_json_path(
                     dictionary=_value,
                     schema=prop,
                     parent_key=new_key,
@@ -149,7 +149,7 @@ def flatten_to_jsonpath(dictionary, schema, parent_key=False, sep="."):
                 )
                 items.extend(item.items())
         elif childprops:
-            item = flatten_to_jsonpath(
+            item = flatten_to_json_path(
                 dictionary=value, schema=prop, parent_key=new_key, sep=sep
             )
             items.extend(item.items())
@@ -160,7 +160,7 @@ def flatten_to_jsonpath(dictionary, schema, parent_key=False, sep="."):
     return dict(items)
 
 
-def unflatten_from_jsonpath(field):
+def unflatten_from_json_path(field):
     """
     Converts a flattened dictionary with key names conforming to
     JSONpath notation to the nested dictionary format.

@@ -222,12 +222,12 @@ def convert_datadict_csv(
     data_dictionary_props_csv = dict(data_dictionary_props)
     data_dictionary_props_json = {
         **data_dictionary_props,
-        **utils.unflatten_from_jsonpath(refactored_props.to_dict()),
+        **utils.unflatten_from_json_path(refactored_props.to_dict()),
     }
 
     # create the data dictionary objects
     fields_json = [
-        utils.unflatten_from_jsonpath(record)
+        utils.unflatten_from_json_path(record)
         for record in tbl_json.to_dict(orient="records")
     ]
     template_json = dict(**data_dictionary_props_json, fields=fields_json)

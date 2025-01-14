@@ -8,12 +8,12 @@ from heal.vlmd.extract.utils import (
     embed_data_dictionary_props,
     find_prop_name,
     flatten_properties,
-    flatten_to_jsonpath,
+    flatten_to_json_path,
     join_dict_items,
     parse_dictionary_str,
     parse_list_str,
     refactor_field_props,
-    unflatten_from_jsonpath,
+    unflatten_from_json_path,
 )
 
 schema_version = {"schemaVersion": {"type": "string"}}
@@ -53,7 +53,7 @@ schema_to_rearrange = {
 }
 
 
-def test_unflatten_from_jsonpath():
+def test_unflatten_from_json_path():
     input = {
         "module": "Testing",
         "constraints.enum": "1|2|3|4",
@@ -82,7 +82,7 @@ def test_unflatten_from_jsonpath():
         ],
         "test1": {"test2": {"test3": [{"test4": "test4_1"}, {"test3": "test3_1"}]}},
     }
-    field_json = unflatten_from_jsonpath(input)
+    field_json = unflatten_from_json_path(input)
     assert (
         field_json == output
     ), "Problem with converting input dictionary to output dictionary"
@@ -123,9 +123,9 @@ def test_unflatten_from_jsonpath():
         ),
     ],
 )
-def test_unflatten_from_jsonpath_invalid_input(invalid_input, invalid_name):
+def test_unflatten_from_json_path_invalid_input(invalid_input, invalid_name):
     with pytest.raises(ValidationError) as e:
-        unflatten_from_jsonpath(invalid_input)
+        unflatten_from_json_path(invalid_input)
     expected_error_message = f"Incorrect array indexing in name {invalid_name}"
     assert expected_error_message in str(e.value)
 
@@ -156,7 +156,7 @@ def test_flatten_to_json_path(valid_json_data, VALID_JSON_SCHEMA):
         "constraints.pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
     }
     fields_schema = VALID_JSON_SCHEMA["properties"]["fields"]["items"]
-    flattened_dict = flatten_to_jsonpath(dict_field, fields_schema)
+    flattened_dict = flatten_to_json_path(dict_field, fields_schema)
     assert flattened_dict == expected_flattened_dict
 
 
