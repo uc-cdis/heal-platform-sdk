@@ -191,23 +191,21 @@ def convert_datadict_csv(
                 tbl_json[column_name] = tbl_csv[column_name].apply(
                     utils.parse_list_str, item_sep="|"
                 )
-        # columns not included in schema (custom or other)
+        # columns not included in schema ('custom' or 'other')
+        # CSV header should have format 'custom.<KEY>'
         else:
-            if column_name.split(".")[0] == "custom":
+            group = re.match(r"^custom\.(.+)$", column_name)
+            if group:
+                # custom.key
+                key = group[1]
                 if not "custom" in tbl_json:
                     tbl_json["custom"] = [{}] * len(tbl_json)
-
                 for i in range(len(tbl_csv)):
                     value = tbl_csv[column_name].iloc[i]
                     if value:
-                        custom = {}
-                        parts = column_name.split(".")[1:]
-
-                        for key in reversed(parts):
-                            result = {key: value}
-
-                        tbl_json["custom"].iloc[i].update(result)
+                        tbl_json.at[i, "custom"] = {key: value}
             else:
+                # May throw an error unless schema has '"additionalProperties": true'
                 tbl_json[column_name] = tbl_csv[column_name]
 
     # drop all custom columns (as I have nested already)

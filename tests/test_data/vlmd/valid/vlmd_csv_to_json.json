@@ -1,7 +1,4 @@
 {
-    "custom": {
-        "notes": "This is a custom note"
-    },
     "fields": [
         {
             "section": "Enrollment",
@@ -21,7 +18,10 @@
             "enumOrdered": "",
             "missingValues": "",
             "trueValues": "",
-            "falseValues": ""
+            "falseValues": "",
+            "custom": {
+                "notes": "This is a note"
+            }
         },
         {
             "section": "Demographics",
@@ -42,7 +42,11 @@
             },
             "enumOrdered": "",
             "missingValues": ["99"],
-            "trueValues": "", "falseValues": ""
+            "trueValues": "",
+            "falseValues": "",
+            "custom": {
+                "notes": "This is a custom note"
+            }
         }
     ]
 }
