@@ -124,9 +124,9 @@ def vlmd_validate(
         logger.error(e)
         raise ExtractionError(str(e))
     if output_type == "json":
-        converted_dictionary = data_dictionaries["templatejson"]
+        converted_dictionary = data_dictionaries["template_json"]
     elif output_type == "csv":
-        converted_dictionary = data_dictionaries["templatecsv"]["fields"]
+        converted_dictionary = data_dictionaries["template_csv"]["fields"]
 
     # get a new schema if the output_type is different than input file_type.
     if output_type != file_suffix and not (

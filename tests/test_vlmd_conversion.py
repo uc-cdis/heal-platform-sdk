@@ -9,15 +9,15 @@ def test_convert_valid_json_input(valid_json_output):
     input_type = "json-template"
     result = convert_to_vlmd(input_file, input_type=input_type)
 
-    assert list(result.keys()) == ["templatejson", "templatecsv"]
-    assert list(result.get("templatejson").keys()) == [
+    assert list(result.keys()) == ["template_json", "template_csv"]
+    assert list(result.get("template_json").keys()) == [
         "schemaVersion",
         "title",
         "description",
         "fields",
     ]
-    assert list(result.get("templatecsv").keys()) == ["title", "description", "fields"]
-    assert result.get("templatejson") == valid_json_output
+    assert list(result.get("template_csv").keys()) == ["title", "description", "fields"]
+    assert result.get("template_json") == valid_json_output
 
 
 @pytest.mark.parametrize(
@@ -46,9 +46,9 @@ def test_convert_valid_csv_input(input_file, expected_json_keys):
     input_type = "csv-data-dict"
     result = convert_to_vlmd(input_file, input_type=input_type)
 
-    assert list(result.keys()) == ["templatejson", "templatecsv"]
-    assert list(result.get("templatejson").keys()) == expected_json_keys
-    assert list(result.get("templatecsv").keys()) == ["fields"]
+    assert list(result.keys()) == ["template_json", "template_csv"]
+    assert list(result.get("template_json").keys()) == expected_json_keys
+    assert list(result.get("template_csv").keys()) == ["fields"]
 
 
 def test_convert_unknown_input_type():

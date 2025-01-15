@@ -5,7 +5,7 @@ from cdislogging import get_logger
 from heal.vlmd.config import JSON_SCHEMA, TOP_LEVEL_PROPS
 from heal.vlmd import mappings
 from heal.vlmd.extract.csv_dict_conversion import convert_datadict_csv
-from heal.vlmd.extract.json_dict_conversion import convert_templatejson
+from heal.vlmd.extract.json_dict_conversion import convert_template_json
 from heal.vlmd.utils import clean_json_fields
 
 
@@ -17,7 +17,7 @@ choice_fxn = {
         rename_map=mappings.rename_map,
         recode_map=mappings.recode_map,
     ),
-    "json-template": convert_templatejson,
+    "json-template": convert_template_json,
 }
 
 ext_map = {
@@ -79,13 +79,13 @@ def convert_to_vlmd(
     package = data_dictionary_package
 
     # add schema version
-    for field in package["templatecsv"]["fields"]:
+    for field in package["template_csv"]["fields"]:
         field.update({"schemaVersion": JSON_SCHEMA["version"], **field})
 
     # remove empty json fields, add schema version (in TOP_LEVEL_PROPS)
-    package["templatejson"]["fields"] = clean_json_fields(
-        package["templatejson"]["fields"]
+    package["template_json"]["fields"] = clean_json_fields(
+        package["template_json"]["fields"]
     )
-    package["templatejson"] = {**TOP_LEVEL_PROPS, **dict(package["templatejson"])}
+    package["template_json"] = {**TOP_LEVEL_PROPS, **dict(package["template_json"])}
 
     return package

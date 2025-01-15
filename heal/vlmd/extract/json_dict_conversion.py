@@ -9,7 +9,7 @@ from heal.vlmd.config import JSON_SCHEMA
 from heal.vlmd.extract import utils
 
 
-def convert_templatejson(
+def convert_template_json(
     json_template,
     data_dictionary_props: dict = None,
     fields_name: str = "fields",
@@ -32,8 +32,8 @@ def convert_templatejson(
 
     Returns
         A dictionary with two keys:
-            - 'templatejson': the HEAL-specified JSON object.
-            - 'templatecsv': the HEAL-specified tabular template.
+            - 'template_json': the HEAL-specified JSON object.
+            - 'template_csv': the HEAL-specified tabular template.
 
     """
 
@@ -91,4 +91,4 @@ def convert_templatejson(
     template_json = {**data_dictionary_props, "fields": fields_json}
     template_csv = {**data_dictionary_props, "fields": fields_csv}
 
-    return {"templatejson": template_json, "templatecsv": template_csv}
+    return {"template_json": template_json, "template_csv": template_csv}

@@ -82,7 +82,7 @@ def vlmd_validate_csv(data_or_path, schema_type: str) -> bool:
             raise jsonschema.ValidationError(str(e))
 
     # now validate the converted dictionary
-    converted_dictionary = data_dictionaries["templatejson"]
+    converted_dictionary = data_dictionaries["template_json"]
     try:
         vlmd_validate_json(converted_dictionary, schema_type="json")
     except jsonschema.ValidationError as e:

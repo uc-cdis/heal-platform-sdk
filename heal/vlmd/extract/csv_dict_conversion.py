@@ -28,12 +28,11 @@ def _parse_string_objects(
                 tbl_json[column_name] = tbl_csv[column_name].apply(
                     utils.parse_list_str, item_sep="|"
                 )
-        # columns not included in schema ('custom' or 'other')
-        # CSV header should have format 'custom.<KEY>'
         else:
+            # columns not included in schema ('custom' or 'other')
+            # CSV header should have format 'custom.<KEY>'
             group = re.match(r"^custom\.(.+)$", column_name)
             if group:
-                # custom.key
                 key = group[1]
                 if not "custom" in tbl_json:
                     tbl_json["custom"] = [{}] * len(tbl_json)
@@ -83,8 +82,8 @@ def convert_datadict_csv(
 
     Returns
         A dictionary with two keys:
-            - 'templatejson': the HEAL-specified JSON object.
-            - 'templatecsv': the HEAL-specified tabular template.
+            - 'template_json': the HEAL-specified JSON object.
+            - 'template_csv': the HEAL-specified tabular template.
 
     """
 
@@ -214,11 +213,7 @@ def convert_datadict_csv(
                     item_sep, "|"
                 )
 
-    # parse string objects and array to create the dict (json) instance
-    print(f"tbl_csv {tbl_csv}")
-    print(f"tbl_csv {tbl_csv.to_dict()}")
     tbl_json = _parse_string_objects(tbl_csv, field_properties)
-    print(f"tbl_json {tbl_json.to_dict()}")
 
     # drop all custom columns (as I have nested already)
     tbl_json.drop(columns=tbl_json.filter(regex="^custom\\.").columns, inplace=True)
@@ -245,4 +240,4 @@ def convert_datadict_csv(
     fields_csv = tbl_csv.to_dict(orient="records")
     template_csv = dict(**data_dictionary_props_csv, fields=fields_csv)
 
-    return {"templatejson": template_json, "templatecsv": template_csv}
+    return {"template_json": template_json, "template_csv": template_csv}
