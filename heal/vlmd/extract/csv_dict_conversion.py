@@ -9,6 +9,45 @@ from heal.vlmd.extract import utils
 from heal.vlmd.validate.utils import read_delim
 
 
+def _parse_string_objects(
+    tbl_csv: pd.DataFrame, field_properties: dict
+) -> pd.DataFrame:
+    """Parse string objects and array to create the dict (json) instance"""
+    tbl_json = tbl_csv.copy()
+    for column_name in tbl_json.columns.tolist():
+        # NOTE: the below methodology uses the schema to instruct how to convert to json.
+        field_prop_name = utils.find_prop_name(column_name, field_properties)
+        field_prop = field_properties.get(field_prop_name)
+        if field_prop:
+            if field_prop["type"] == "object":
+                tbl_json[column_name] = tbl_csv[column_name].apply(
+                    utils.parse_dictionary_str, item_sep="|", key_val_sep="="
+                )
+
+            elif field_prop["type"] == "array":
+                tbl_json[column_name] = tbl_csv[column_name].apply(
+                    utils.parse_list_str, item_sep="|"
+                )
+        # columns not included in schema ('custom' or 'other')
+        # CSV header should have format 'custom.<KEY>'
+        else:
+            group = re.match(r"^custom\.(.+)$", column_name)
+            if group:
+                # custom.key
+                key = group[1]
+                if not "custom" in tbl_json:
+                    tbl_json["custom"] = [{}] * len(tbl_json)
+                for i in range(len(tbl_csv)):
+                    value = tbl_csv[column_name].iloc[i]
+                    if value:
+                        tbl_json.at[i, "custom"] = {key: value}
+            else:
+                # May throw an error unless schema has '"additionalProperties": true'
+                tbl_json[column_name] = tbl_csv[column_name]
+
+    return tbl_json
+
+
 def convert_datadict_csv(
     csv_template: str,
     data_dictionary_props: dict,
@@ -176,37 +215,10 @@ def convert_datadict_csv(
                 )
 
     # parse string objects and array to create the dict (json) instance
-    tbl_json = tbl_csv.copy()
-    for column_name in tbl_json.columns.tolist():
-        # NOTE: the below methodology uses the schema to instruct how to convert to json.
-        field_prop_name = utils.find_prop_name(column_name, field_properties)
-        field_prop = field_properties.get(field_prop_name)
-        if field_prop:
-            if field_prop["type"] == "object":
-                tbl_json[column_name] = tbl_csv[column_name].apply(
-                    utils.parse_dictionary_str, item_sep="|", key_val_sep="="
-                )
-
-            elif field_prop["type"] == "array":
-                tbl_json[column_name] = tbl_csv[column_name].apply(
-                    utils.parse_list_str, item_sep="|"
-                )
-        # columns not included in schema ('custom' or 'other')
-        # CSV header should have format 'custom.<KEY>'
-        else:
-            group = re.match(r"^custom\.(.+)$", column_name)
-            if group:
-                # custom.key
-                key = group[1]
-                if not "custom" in tbl_json:
-                    tbl_json["custom"] = [{}] * len(tbl_json)
-                for i in range(len(tbl_csv)):
-                    value = tbl_csv[column_name].iloc[i]
-                    if value:
-                        tbl_json.at[i, "custom"] = {key: value}
-            else:
-                # May throw an error unless schema has '"additionalProperties": true'
-                tbl_json[column_name] = tbl_csv[column_name]
+    print(f"tbl_csv {tbl_csv}")
+    print(f"tbl_csv {tbl_csv.to_dict()}")
+    tbl_json = _parse_string_objects(tbl_csv, field_properties)
+    print(f"tbl_json {tbl_json.to_dict()}")
 
     # drop all custom columns (as I have nested already)
     tbl_json.drop(columns=tbl_json.filter(regex="^custom\\.").columns, inplace=True)
