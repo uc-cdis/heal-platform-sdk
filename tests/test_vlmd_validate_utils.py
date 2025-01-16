@@ -6,9 +6,9 @@ import pytest
 
 from heal.vlmd.validate.utils import (
     detect_file_encoding,
+    get_schema,
     read_data_from_json_file,
     read_delim,
-    get_schema,
 )
 
 

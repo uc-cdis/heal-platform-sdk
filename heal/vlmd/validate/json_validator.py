@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Dict
 
 import jsonschema
-
 from cdislogging import get_logger
+
 from heal.vlmd.config import ALLOWED_SCHEMA_TYPES
 from heal.vlmd.validate.utils import get_schema
 

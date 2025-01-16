@@ -1,7 +1,7 @@
 """Extract utilities/helper functions"""
 
-from collections.abc import MutableMapping
 import re
+from collections.abc import MutableMapping
 
 import jsonschema
 import pandas as pd

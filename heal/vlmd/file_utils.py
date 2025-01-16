@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 
 import pandas as pd
-
 from cdislogging import get_logger
+
 from heal.vlmd.config import OUTPUT_FILE_PREFIX
 
 logger = get_logger("vlmd-file-utils", log_level="debug")

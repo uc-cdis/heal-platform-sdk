@@ -2,14 +2,14 @@ from os.path import isfile
 from pathlib import Path
 
 from cdislogging import get_logger
+
+from heal.vlmd import ExtractionError, vlmd_validate
 from heal.vlmd.config import (
-    ALLOWED_INPUT_TYPES,
     ALLOWED_FILE_TYPES,
+    ALLOWED_INPUT_TYPES,
     ALLOWED_OUTPUT_TYPES,
 )
 from heal.vlmd.file_utils import get_output_filepath, write_vlmd_dict
-from heal.vlmd import vlmd_validate, ExtractionError
-
 
 logger = get_logger("extract", log_level="debug")
 

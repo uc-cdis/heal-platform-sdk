@@ -1,12 +1,12 @@
 import json
 import os
+from pathlib import Path
 from typing import Dict
 
 import charset_normalizer
 import pandas as pd
-from pathlib import Path
-
 from cdislogging import get_logger
+
 from heal.vlmd.config import CSV_SCHEMA, JSON_SCHEMA
 
 logger = get_logger("validate-utils", log_level="debug")

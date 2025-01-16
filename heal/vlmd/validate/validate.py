@@ -1,19 +1,18 @@
 from os.path import isfile
 from pathlib import Path
 
+import jsonschema
+from cdislogging import get_logger
 from jsonschema import ValidationError
 
-from cdislogging import get_logger
-import jsonschema
 from heal.vlmd.config import (
     ALLOWED_INPUT_TYPES,
-    ALLOWED_SCHEMA_TYPES,
     ALLOWED_OUTPUT_TYPES,
+    ALLOWED_SCHEMA_TYPES,
 )
 from heal.vlmd.extract.conversion import convert_to_vlmd
 from heal.vlmd.utils import add_types_to_props
 from heal.vlmd.validate.utils import get_schema, read_data_from_json_file, read_delim
-
 
 logger = get_logger("vlmd-validate-extract", log_level="debug")
 

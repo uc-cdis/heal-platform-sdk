@@ -1,4 +1,3 @@
-from jsonschema import ValidationError
 import pytest
 
 from heal.vlmd.extract.conversion import convert_to_vlmd

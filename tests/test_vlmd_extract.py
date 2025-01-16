@@ -2,11 +2,10 @@ import json
 import os
 from unittest.mock import patch
 
-from jsonschema import ValidationError
 import pytest
 
 from heal.vlmd.config import ALLOWED_OUTPUT_TYPES, OUTPUT_FILE_PREFIX
-from heal.vlmd.extract.extract import vlmd_extract, ExtractionError
+from heal.vlmd.extract.extract import ExtractionError, vlmd_extract
 
 
 @pytest.mark.parametrize(

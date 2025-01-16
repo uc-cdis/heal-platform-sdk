@@ -1,10 +1,10 @@
 from unittest.mock import patch
-import pytest
 
 from jsonschema import SchemaError, ValidationError
-from heal.vlmd.config import ALLOWED_OUTPUT_TYPES, OUTPUT_FILE_PREFIX
-from heal.vlmd import vlmd_validate, ExtractionError
-from tests.conftest import invalid_json_schema
+import pytest
+
+from heal.vlmd import ExtractionError, vlmd_validate
+from heal.vlmd.config import ALLOWED_OUTPUT_TYPES
 
 
 @pytest.mark.parametrize(

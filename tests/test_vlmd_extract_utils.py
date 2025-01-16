@@ -1,6 +1,5 @@
-import json
-from pathlib import Path
 from jsonschema import ValidationError
+
 import pytest
 
 from heal.vlmd.extract.utils import (
