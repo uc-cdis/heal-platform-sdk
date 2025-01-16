@@ -44,7 +44,7 @@ def vlmd_validate_json(data_or_path, schema_type: str) -> bool:
         data = data_or_path
 
     schema = get_schema(data_or_path, schema_type)
-    if schema == None:
+    if schema is None:
         raise ValueError(f"Could not get schema for type = {schema_type}")
     logger.debug("Checking schema")
     jsonschema.validators.Draft7Validator.check_schema(schema)

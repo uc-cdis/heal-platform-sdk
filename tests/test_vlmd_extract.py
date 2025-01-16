@@ -60,7 +60,7 @@ def test_extract_invalid_input(input_file, expected_message, error_type):
 
 
 def test_extract_unallowed_input_type():
-    input_file = f"tests/test_data/vlmd/invalid/vlmd_invalid.txt"
+    input_file = "tests/test_data/vlmd/invalid/vlmd_invalid.txt"
     with pytest.raises(ExtractionError) as e:
         vlmd_extract(input_file)
     expected_message = "Input file must be one of"
@@ -68,7 +68,7 @@ def test_extract_unallowed_input_type():
 
 
 def test_extract_unallowed_file_type():
-    input_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+    input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     with pytest.raises(ExtractionError) as e:
         vlmd_extract(input_file, file_type="txt")
     expected_message = "File type must be one of"
@@ -84,7 +84,7 @@ def test_extract_input_does_not_exist(tmp_path):
 
 
 def test_extract_unallowed_output():
-    input_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+    input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     unallowed_output = "txt"
     with pytest.raises(ExtractionError) as e:
         vlmd_extract(input_file, file_type="json", output_type=unallowed_output)
@@ -93,7 +93,7 @@ def test_extract_unallowed_output():
 
 
 def test_extract_failed_dict_write():
-    input_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+    input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     fail_message = "Error in writing converted dictionary"
     with patch("heal.vlmd.extract.extract.write_vlmd_dict") as mock_write:
         mock_write.side_effect = Exception("some exception")
@@ -114,7 +114,7 @@ def test_extract_invalid_converted_data():
         assert fail_message in str(e.value)
 
     # convert json to invalid csv
-    input_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+    input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
         mock_validate.side_effect = ExtractionError(fail_message)
         with pytest.raises(ExtractionError) as e:

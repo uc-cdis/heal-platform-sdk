@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from jsonschema import SchemaError, ValidationError
 import pytest
+from jsonschema import SchemaError, ValidationError
 
 from heal.vlmd import ExtractionError, vlmd_validate
 from heal.vlmd.config import ALLOWED_OUTPUT_TYPES
@@ -50,7 +50,7 @@ def test_invalid_missing_required_fields(file_type):
 
 
 def test_invalid_has_additional_properties():
-    test_file = f"tests/test_data/vlmd/invalid/vlmd_additional_properties.json"
+    test_file = "tests/test_data/vlmd/invalid/vlmd_additional_properties.json"
     with pytest.raises(ValidationError) as e:
         vlmd_validate(input_file=test_file, schema_type="auto")
     expected_message = "Additional properties are not allowed"
@@ -90,7 +90,7 @@ def test_unallowed_input_type(allowed_input_types):
 
 
 def test_extract_unallowed_output():
-    input_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+    input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     unallowed_output = "txt"
     with pytest.raises(ValueError) as e:
         vlmd_validate(input_file, schema_type="json", output_type=unallowed_output)
@@ -109,7 +109,7 @@ def test_read_non_delim_data_in_csv(test_schema_type):
 
 
 def test_incorrent_schema_type(allowed_schema_types):
-    test_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+    test_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     with pytest.raises(ValueError) as e:
         vlmd_validate(input_file=test_file, schema_type="txt")
 
@@ -140,7 +140,7 @@ def test_extract_conversion_error():
 
 
 def test_invalid_csv_schema(invalid_csv_schema):
-    test_file = f"tests/test_data/vlmd/valid/vlmd_valid.csv"
+    test_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
 
     with patch("heal.vlmd.validate.validate.get_schema") as mock_get_schema:
         mock_get_schema.return_value = invalid_csv_schema

@@ -74,8 +74,8 @@ def vlmd_extract(
     try:
         write_vlmd_dict(converted_dictionary, output_filepath, file_type=output_type)
     except Exception as e:
-        logger.error(f"Error in writing converted dictionary")
+        logger.error("Error in writing converted dictionary")
         logger.error(e)
-        raise ExtractionError(f"Error in writing converted dictionary")
+        raise ExtractionError("Error in writing converted dictionary")
 
     return True

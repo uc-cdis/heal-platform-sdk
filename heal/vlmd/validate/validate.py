@@ -69,7 +69,7 @@ def vlmd_validate(
     if schema_type not in ALLOWED_SCHEMA_TYPES:
         raise ValueError(f"Schema type must be in {ALLOWED_SCHEMA_TYPES}")
     schema = get_schema(input_file, schema_type)
-    if schema == None:
+    if schema is None:
         raise ValueError(f"Could not get schema for type = {schema_type}")
 
     output_type = output_type if output_type else "json"
@@ -89,7 +89,7 @@ def vlmd_validate(
         logger.debug("Getting csv data from file")
         data = read_delim(input_file).to_dict(orient="records")
         if len(data) == 0:
-            raise ValidationError(f"Could not read csv data from input")
+            raise ValidationError("Could not read csv data from input")
     elif file_suffix == "json":
         logger.debug("Getting json data from file")
         data = read_data_from_json_file(input_file)
@@ -138,7 +138,7 @@ def vlmd_validate(
         if output_type == "csv":
             # TODO: see if we can add this to get_schema
             schema = add_types_to_props(schema)
-        if schema == None:
+        if schema is None:
             raise ValueError(f"Could not get schema for type = {schema_type}")
 
     try:

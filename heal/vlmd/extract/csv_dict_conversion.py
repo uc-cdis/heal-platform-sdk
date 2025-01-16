@@ -34,7 +34,7 @@ def _parse_string_objects(
             group = re.match(r"^custom\.(.+)$", column_name)
             if group:
                 key = group[1]
-                if not "custom" in tbl_json:
+                if "custom" not in tbl_json:
                     tbl_json["custom"] = [{}] * len(tbl_json)
                 for i in range(len(tbl_csv)):
                     value = tbl_csv[column_name].iloc[i]

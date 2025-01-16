@@ -4,7 +4,7 @@ field names (headers, properties) and the current name
 in addition to these field name values or value mappings.
 
 """
-from heal.vlmd.config import CSV_SCHEMA, JSON_SCHEMA
+from heal.vlmd.config import JSON_SCHEMA
 
 VERSION = ["0", "3"]
 

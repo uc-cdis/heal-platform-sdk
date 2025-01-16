@@ -13,7 +13,7 @@ from heal.vlmd.validate.utils import (
 
 
 def test_read_input_file():
-    test_file = f"tests/test_data/vlmd/valid/vlmd_valid.json"
+    test_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     result = read_data_from_json_file(test_file)
     assert isinstance(result, dict)
     assert "title" in result
@@ -138,7 +138,7 @@ def test_get_schema_json_invalid_object(invalid_data, VALID_JSON_SCHEMA):
 def test_get_schema_for_string_without_suffix():
     data = "Some string"
     result = get_schema(data_or_path=data, schema_type="auto")
-    assert result == None
+    assert result is None
 
 
 def test_get_schema_unknown_type(allowed_schema_types):
@@ -146,4 +146,4 @@ def test_get_schema_unknown_type(allowed_schema_types):
     unallowed_schema_type = "foo"
     assert unallowed_schema_type not in allowed_schema_types
     result = get_schema(test_file, unallowed_schema_type)
-    assert result == None
+    assert result is None

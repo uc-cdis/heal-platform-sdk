@@ -1,6 +1,5 @@
-from jsonschema import ValidationError
-
 import pytest
+from jsonschema import ValidationError
 
 from heal.vlmd.extract.utils import (
     _get_prop_names_to_rearrange,

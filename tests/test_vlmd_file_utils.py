@@ -56,8 +56,7 @@ def test_get_output_filepath():
 def test_write_vlmd_unallowed():
     dictionary = "some text"
     output_filepath = "tmp/foo/unallowed_suffix.txt"
-    input_filename = "data/valid/unallowed_suffix.txt"
     result = write_vlmd_dict(
         dictionary, output_filepath=output_filepath, file_type="auto"
     )
-    assert result == None
+    assert result is None

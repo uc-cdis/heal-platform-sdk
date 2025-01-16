@@ -52,7 +52,7 @@ def embed_data_dictionary_props(flat_fields, flat_root, schema):
     if len(flat_root) > 0:
         for prop_name in prop_names:
             if prop_name in flat_root:
-                if not prop_name in flat_fields:
+                if prop_name not in flat_fields:
                     flat_fields.insert(0, prop_name, flat_root[prop_name])
                 else:
                     flat_fields[prop_name].fillna(flat_root[prop_name], inplace=True)
@@ -95,7 +95,7 @@ def parse_dictionary_str(string, item_sep, key_val_sep):
     Parses a stringified dictionary into a dictionary
     based on item separator
     """
-    if string != "" and string != None:
+    if string != "" and string is not None:
         str_items = string.strip().split(item_sep)
         items = {}
 
@@ -111,7 +111,7 @@ def parse_dictionary_str(string, item_sep, key_val_sep):
 
 def parse_list_str(string, item_sep):
     """Split a string into list using 'item_sep'"""
-    if string != "" and string != None:
+    if string != "" and string is not None:
         return string.strip().split(item_sep)
     else:
         return string
