@@ -10,6 +10,7 @@ logging = get_logger("__name__")
 @click.option(
     "--input_file",
     "input_file",
+    required=True,
     help="name of file to extract HEAL-compliant VLMD file",
     type=click.Path(writable=True),
 )
@@ -29,5 +30,5 @@ def extract(input_file, output_dir):
     try:
         vlmd_extract(input_file, output_dir=output_dir)
     except Exception as e:
-        logging.warning(str(e))
+        logging.error(str(e))
         raise e

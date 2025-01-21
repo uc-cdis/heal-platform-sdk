@@ -10,6 +10,7 @@ logging = get_logger("__name__")
 @click.option(
     "--input_file",
     "input_file",
+    required=True,
     help="name of file to validate",
     type=click.Path(writable=True),
 )
@@ -21,6 +22,6 @@ def validate(input_file):
     try:
         vlmd_validate(input_file)
     except Exception as e:
-        logging.warning(str(e))
+        logging.error(str(e))
         raise e
     logging.info("Valid")
