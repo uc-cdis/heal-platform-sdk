@@ -11,7 +11,7 @@ The `vlmd_extract()` method raises a `jsonschema.ValidationError` for an invalid
 
 Example extraction code:
 
-```
+```python
 from jsonschema import ValidationError
 
 from healsdk.vlmd import vlmd_extract
@@ -36,7 +36,7 @@ will raise an `ExtractionError` if the input_file cannot be converted
 
 Example validation code:
 
-```
+```python
 from jsonschema import ValidationError
 
 from heal.vlmd import vlmd_validate, ExtractionError
@@ -64,7 +64,7 @@ and raises an `ExtractionError` for any other type of error.
 
 Example extraction code:
 
-```
+```python
 from jsonschema import ValidationError
 
 from heal.vlmd import vlmd_extract, ExtractionError
