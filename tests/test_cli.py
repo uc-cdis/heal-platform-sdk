@@ -55,13 +55,23 @@ def test_extract(tmp_path):
     expected_output_file = file_utils.get_output_filepath(
         tmp_path, input_file, output_type="json"
     )
-    print(f"Expected output file {expected_output_file}")
     result = runner.invoke(
         cli_module.main,
         ["vlmd", "extract", "--input_file", input_file, "--output_dir", tmp_path],
     )
     assert result.exit_code == 0
     assert os.path.isfile(expected_output_file)
+
+
+def test_extract_missing_input_file(tmp_path):
+    """Test the cli extract"""
+    runner = CliRunner()
+    input_file = None
+    result = runner.invoke(
+        cli_module.main,
+        ["vlmd", "extract", "--input_file", input_file, "--output_dir", tmp_path],
+    )
+    assert result.exit_code != 0
 
 
 def test_validate_help():
@@ -86,3 +96,13 @@ def test_validate(tmp_path):
         cli_module.main, ["vlmd", "validate", "--input_file", input_file]
     )
     assert result.exit_code == 0
+
+
+def test_validate_missing_input_file(tmp_path):
+    """Test the cli validation"""
+    runner = CliRunner()
+    input_file = None
+    result = runner.invoke(
+        cli_module.main, ["vlmd", "validate", "--input_file", input_file]
+    )
+    assert result.exit_code != 0
