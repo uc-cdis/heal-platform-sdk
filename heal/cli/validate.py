@@ -21,7 +21,7 @@ def validate(input_file):
 
     try:
         vlmd_validate(input_file)
+        logging.info("Valid")
     except Exception as e:
         logging.error(f"Validation error {str(e)}")
-
-    logging.info("Valid")
+        logging.error("Invalid file")
