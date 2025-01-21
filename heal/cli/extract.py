@@ -30,5 +30,4 @@ def extract(input_file, output_dir):
     try:
         vlmd_extract(input_file, output_dir=output_dir)
     except Exception as e:
-        logging.error(str(e))
-        raise e
+        logging.error(f"Extraction error {str(e)}")
