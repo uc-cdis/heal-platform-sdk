@@ -17,7 +17,9 @@ These notebooks perform optimally within a HEAL Gen3 Workspace and the notebooks
 
 ### VLMD extraction and validation
 
-The [VLMD documentation](heal/vlmd/README.md) describe how to use the SDK for extracting and validating VLMD dictionaries.
+
+The [VLMD docs](heal/vlmd/README.md) describe how to use the SDK for extracting and validating VLMD dictionaries.
+
 
 ### Run tests
 

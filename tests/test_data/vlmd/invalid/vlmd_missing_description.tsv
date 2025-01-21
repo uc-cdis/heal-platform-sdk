@@ -1,0 +1,3 @@
+section	name	title	type	format	constraints.maxLength	constraints.enum	constraints.pattern	constraints.maximum	constraints.minimum	enumLabels	enumOrdered	missingValues	trueValues	falseValues	custom.notes
+Enrollment	participant_id	Participant Id	string				[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]								This is a note
+Demographics	race	Race	integer			1|2|3|4|5|6|7|8				1=White|2=Black or African American|3=American Indian or Alaska Native|4=Native| 5=Hawaiian or Other Pacific Islander|6=Asian|7=Some other race|8=Multiracial|99=Not reported		99			This is a custom note

@@ -5,11 +5,12 @@
         {
             "section": "Enrollment",
             "name": "participant_id",
-            "description": "Unique identifier for participant",
             "title": "Participant Id",
+            "description": "Unique identifier for participant",
             "type": "string",
+            "encoding": "this is not in the schema",
             "constraints": {
-                "maxLength": "foo"
+                "pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]"
             }
         }
     ]
