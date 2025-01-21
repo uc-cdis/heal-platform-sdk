@@ -1,0 +1,15 @@
+{
+    "title": "Example VLMD",
+    "description": "This is an example description",
+    "fields": [
+        {
+            "section": "Enrollment",
+            "title": "Participant Id",
+            "description": "Unique identifier for participant",
+            "type": "string",
+            "constraints": {
+                "pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]"
+            }
+        }
+    ]
+}
