@@ -1,13 +1,13 @@
 import os
 
 from click.testing import CliRunner
-import pytest
 
-import heal.vlmd.file_utils as file_utils
 import heal.cli.heal_cli as cli_module
+import heal.vlmd.file_utils as file_utils
 
 
 def test_help():
+    """Test the help menu"""
     runner = CliRunner()
     expected_text = "HEAL-Platform SDK Command Line Interface"
     expected_commands = ["vlmd  Commands for VLMD"]
@@ -19,6 +19,7 @@ def test_help():
 
 
 def test_vlmd_help():
+    """Test the VLMD submenu"""
     runner = CliRunner()
     expected_text = "Commands for VLMD"
     expected_commands = [
@@ -33,6 +34,7 @@ def test_vlmd_help():
 
 
 def test_extract_help():
+    """Test the extract submenu"""
     runner = CliRunner()
     expected_text = "Extract HEAL-compliant VLMD file from input file"
     expected_commands = [
@@ -47,6 +49,7 @@ def test_extract_help():
 
 
 def test_extract(tmp_path):
+    """Test the cli extract"""
     runner = CliRunner()
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
     expected_output_file = file_utils.get_output_filepath(
@@ -62,6 +65,7 @@ def test_extract(tmp_path):
 
 
 def test_validate_help():
+    """Test the validate submenu"""
     runner = CliRunner()
     expected_text = "Validate VLMD input file"
     expected_commands = [
@@ -75,6 +79,7 @@ def test_validate_help():
 
 
 def test_validate(tmp_path):
+    """Test the cli validation"""
     runner = CliRunner()
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     result = runner.invoke(

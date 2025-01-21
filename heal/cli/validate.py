@@ -1,5 +1,4 @@
 import click
-
 from cdislogging import get_logger
 
 from heal.vlmd.validate.validate import vlmd_validate

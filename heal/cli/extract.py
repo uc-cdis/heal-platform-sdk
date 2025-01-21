@@ -1,5 +1,4 @@
 import click
-
 from cdislogging import get_logger
 
 from heal.vlmd.extract.extract import vlmd_extract

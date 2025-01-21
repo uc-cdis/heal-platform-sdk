@@ -1,7 +1,8 @@
-import click
 import logging
 
 import cdislogging
+import click
+
 import heal.cli.vlmd as vlmd
 
 
