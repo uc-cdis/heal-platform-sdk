@@ -42,19 +42,25 @@ def vlmd_extract(
 
     file_suffix = Path(input_file).suffix.replace(".", "")
     if file_suffix not in ALLOWED_INPUT_TYPES:
-        raise ExtractionError(f"Input file must be one of {ALLOWED_INPUT_TYPES}")
+        message = f"Input file must be one of {ALLOWED_INPUT_TYPES}"
+        logger.error(message)
+        raise ExtractionError(message)
     if not isfile(input_file):
-        raise ExtractionError(f"Input file does not exist: {input_file}")
+        message = f"Input file does not exist: {input_file}"
+        logger.error(message)
+        raise ExtractionError(message)
 
     if file_type not in ALLOWED_FILE_TYPES:
-        raise ExtractionError(f"File type must be one of {ALLOWED_FILE_TYPES}")
+        message = f"File type must be one of {ALLOWED_FILE_TYPES}"
+        logger.error(message)
+        raise ExtractionError(message)
     if file_type == "auto":
         file_type = file_suffix
 
     if output_type not in ALLOWED_OUTPUT_TYPES:
-        raise ExtractionError(
-            f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
-        )
+        message = f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
+        logger.error(message)
+        raise ExtractionError(message)
 
     # validate
     try:
