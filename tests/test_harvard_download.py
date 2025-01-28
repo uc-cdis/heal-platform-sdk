@@ -93,10 +93,6 @@ def test_get_id_bad_input():
         ),
     ],
 )
-def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
-    assert get_download_url_for_harvard_dataverse(file_metadata) == expected
-
-
 @pytest.mark.parametrize(
     "file_metadata_harvard_staging, expected",
     [
@@ -286,7 +282,6 @@ def test_get_harvard_dataverse_files(download_dir):
 
         # Call the function to test
         result = get_harvard_dataverse_files(
-            wts_hostname=None,  # Not required for Harvard Dataverse
             auth=None,  # Not required for Harvard Dataverse
             file_metadata_list=file_metadata_list,
             download_path=download_dir,

@@ -244,7 +244,7 @@ def test_download_from_url(download_dir):
             qdr_url, headers=valid_response_headers, content=bytes(mock_data, "utf-8")
         )
         download_filename = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path=download_dir,
         )
@@ -266,7 +266,7 @@ def test_download_from_url(download_dir):
         )
 
         download_filename = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path=download_dir,
         )
@@ -283,7 +283,7 @@ def test_download_from_url(download_dir):
         m.get(qdr_url, headers=response_headers, content=bytes(mock_data, "utf-8"))
 
         download_filename = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path=download_dir,
         )
@@ -326,7 +326,7 @@ def test_download_from_url_failures(download_dir):
         )
 
         download_file = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path="/path/does/not/exist",
         )
@@ -336,7 +336,7 @@ def test_download_from_url_failures(download_dir):
         # zero size response
         m.get(qdr_url, headers=valid_response_headers, content=bytes())
         download_file = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path=download_dir,
         )
