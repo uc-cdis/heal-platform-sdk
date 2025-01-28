@@ -13,10 +13,9 @@ from heal.harvard_downloads import (
     is_valid_harvard_file_metadata,
     get_id,
     get_download_url_for_harvard_dataverse,
-    download_from_url,
     get_harvard_dataverse_files,
 )
-from heal.utils import get_filename_from_headers
+from heal.utils import get_filename_from_headers, download_from_url
 
 
 @pytest.fixture(scope="session")
@@ -172,7 +171,7 @@ def test_download_from_url(download_dir):
             content=bytes(mock_data, "utf-8"),
         )
         download_filename = download_from_url(
-            harvard_url=harvard_url,
+            api_url=harvard_url,
             headers=request_headers,
             download_path=download_dir,
         )
@@ -196,7 +195,7 @@ def test_download_from_url(download_dir):
             content=bytes(mock_data, "utf-8"),
         )
         download_filename = download_from_url(
-            harvard_url=harvard_url,
+            api_url=harvard_url,
             headers=request_headers,
             download_path=download_dir,
         )
@@ -219,7 +218,7 @@ def test_download_from_url_failures(download_dir):
 
     # bad url
     downloaded_file = download_from_url(
-        harvard_url="https://bad_url",
+        api_url="https://bad_url",
         headers=request_headers,
         download_path=download_dir,
     )
@@ -241,7 +240,7 @@ def test_download_from_url_failures(download_dir):
         )
 
         download_file = download_from_url(
-            harvard_url=harvard_url,
+            api_url=harvard_url,
             headers=request_headers,
             download_path="/path/does/not/exist",
         )
@@ -251,7 +250,7 @@ def test_download_from_url_failures(download_dir):
         # zero size response
         m.get(harvard_url, headers=valid_response_headers, content=bytes())
         download_file = download_from_url(
-            harvard_url=harvard_url,
+            api_url=harvard_url,
             headers=request_headers,
             download_path=download_dir,
         )

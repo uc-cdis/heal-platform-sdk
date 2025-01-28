@@ -10,7 +10,6 @@ from unittest.mock import MagicMock
 
 from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
 from heal.qdr_downloads import (
-    download_from_url,
     get_download_url_for_qdr,
     get_id,
     get_idp_access_token,
@@ -18,7 +17,7 @@ from heal.qdr_downloads import (
     get_syracuse_qdr_files,
     is_valid_qdr_file_metadata,
 )
-from heal.utils import get_filename_from_headers
+from heal.utils import get_filename_from_headers, download_from_url
 
 
 @pytest.fixture(scope="session")
