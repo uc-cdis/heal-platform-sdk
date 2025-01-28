@@ -13,10 +13,10 @@ from heal.harvard_downloads import (
     is_valid_harvard_file_metadata,
     get_id,
     get_download_url_for_harvard_dataverse,
-    get_filename_from_headers,
     download_from_url,
     get_harvard_dataverse_files,
 )
+from heal.utils import get_filename_from_headers
 
 
 @pytest.fixture(scope="session")

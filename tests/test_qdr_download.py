@@ -12,13 +12,13 @@ from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
 from heal.qdr_downloads import (
     download_from_url,
     get_download_url_for_qdr,
-    get_filename_from_headers,
     get_id,
     get_idp_access_token,
     get_request_headers,
     get_syracuse_qdr_files,
     is_valid_qdr_file_metadata,
 )
+from heal.utils import get_filename_from_headers
 
 
 @pytest.fixture(scope="session")
