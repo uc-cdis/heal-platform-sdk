@@ -10,6 +10,56 @@ from gen3.tools.download.drs_download import wts_get_token
 logger = get_logger("__name__", log_level="debug")
 
 
+def get_filename_from_headers(headers: Dict) -> str:
+    """
+    Parse and decode downloaded file name from response headers
+
+    Args:
+        headers (dict): response headers
+
+    Returns:
+        file name as string
+    """
+    try:
+        file_name = None
+        content_response = headers.get("Content-Disposition").split(";")
+        for part in content_response:
+            # look for UTF-8 encoded file name
+            if part.strip().startswith("filename*="):
+                file_name = part.split("=", 1)[1].strip()
+                if file_name.lower().startswith("utf-8''"):
+                    file_name = file_name[7:]
+                    file_name = unquote(file_name)
+                    break
+            elif part.strip().startswith("filename="):
+                file_name = part.split("=", 1)[1].strip().strip('"')
+                break
+        if file_name is None:
+            logger.info("Could not parse file name from headers")
+
+    except Exception as e:
+        logger.warning("Could not get file name from headers")
+
+    return file_name
+
+
+def get_idp_access_token(wts_hostname: str, auth: Gen3Auth, file_metadata: Dict) -> str:
+    """Get an access token for QDR using a Gen3 commons WTS"""
+    try:
+        logger.debug("Ready to get auth token")
+        wts_access_token = auth.get_access_token()
+        logger.debug("Ready to get idp token")
+        idp = file_metadata.get("external_oidc_idp")
+        idp_access_token = wts_get_token(
+            hostname=wts_hostname, idp=idp, access_token=wts_access_token
+        )
+    except Exception as e:
+        logger.critical(f"Could not get token: {e}")
+        return None
+
+    return idp_access_token
+
+
 def unpackage_object(filepath: str):
     """Unpackage the downloaded zip file"""
     with zipfile.ZipFile(filepath, "r") as package:
@@ -98,53 +148,3 @@ def download_from_url(
     logger.debug(f"Download size = {total_downloaded}")
 
     return download_filename
-
-
-def get_filename_from_headers(headers: Dict) -> str:
-    """
-    Parse and decode downloaded file name from response headers
-
-    Args:
-        headers (dict): response headers
-
-    Returns:
-        file name as string
-    """
-    try:
-        file_name = None
-        content_response = headers.get("Content-Disposition").split(";")
-        for part in content_response:
-            # look for UTF-8 encoded file name
-            if part.strip().startswith("filename*="):
-                file_name = part.split("=", 1)[1].strip()
-                if file_name.lower().startswith("utf-8''"):
-                    file_name = file_name[7:]
-                    file_name = unquote(file_name)
-                    break
-            elif part.strip().startswith("filename="):
-                file_name = part.split("=", 1)[1].strip().strip('"')
-                break
-        if file_name is None:
-            logger.info("Could not parse file name from headers")
-
-    except Exception as e:
-        logger.warning("Could not get file name from headers")
-
-    return file_name
-
-
-def get_idp_access_token(wts_hostname: str, auth: Gen3Auth, file_metadata: Dict) -> str:
-    """Get an access token for QDR using a Gen3 commons WTS"""
-    try:
-        logger.debug("Ready to get auth token")
-        wts_access_token = auth.get_access_token()
-        logger.debug("Ready to get idp token")
-        idp = file_metadata.get("external_oidc_idp")
-        idp_access_token = wts_get_token(
-            hostname=wts_hostname, idp=idp, access_token=wts_access_token
-        )
-    except Exception as e:
-        logger.critical(f"Could not get token: {e}")
-        return None
-
-    return idp_access_token

@@ -2,21 +2,11 @@
 This module includes an external file retriever function intended to be called
 by the external_files_download module in the Gen3-SDK.
 
-The retriever function sends requests to the Syracu for downloading studies or files.
+The retriever function sends requests to the Harvard Dataverse for downloading studies or files.
 
-The QDR documentation describes how to download studies
+The Dataverse documentation describes how to download studies
 https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dataset
 
-and how to download files
-https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-file-access
-
-In order to get an API token from the WTS server, users should have already
-sent a request to
-<WTS-SERVER>/oauth2/authorization_url?idp=externaldata-keycloak
-and logged in to QDR after the redirect.
-
-The WTS-SERVER is a Gen3 commons that has been configured to return
-tokens for the 'idp' specified in the external_file_metadata.
 """
 
 from pathlib import Path
@@ -33,7 +23,7 @@ def get_harvard_dataverse_files(
     file_metadata_list: List, download_path: str = "."
 ) -> Dict:
     """
-    Retrieves external data from the Syracuse QDR.
+    Retrieves external data from the Harvard Dataverse.
 
     Args:
         file_metadata_list (List of Dict): list of studies or files
@@ -97,7 +87,7 @@ def get_harvard_dataverse_files(
 
 def get_download_url_for_harvard_dataverse(file_metadata: Dict) -> str:
     """
-    Get the download url for Syracuse QDR.
+    Get the download url for Harvard Dataverse.
 
     Args:
         file_metadata (Dict)
