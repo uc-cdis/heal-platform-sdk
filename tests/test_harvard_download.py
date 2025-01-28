@@ -82,6 +82,44 @@ def test_get_id_bad_input():
     assert get_id(file_metadata) == None
 
 
+@pytest.mark.parametrize(
+    "file_metadata, expected",
+    [
+        (
+            {
+                "study_id": "harvard_study_01",
+            },
+            "https://dataverse.harvard.edu/api/access/dataset/:persistentId/?persistentId=harvard_study_01",
+        ),
+    ],
+)
+def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
+    assert get_download_url_for_harvard_dataverse(file_metadata) == expected
+
+
+@pytest.mark.parametrize(
+    "file_metadata_harvard_staging, expected",
+    [
+        (
+            {
+                "external_oidc_idp": "test-external-idp",
+                "file_retriever": "harvard",
+                "study_id": "harvard_study_01",
+                "use_harvard_staging": True,
+            },
+            "https://demo.dataverse.org/api/access/dataset/:persistentId/?persistentId=harvard_study_01",
+        )
+    ],
+)
+def test_get_download_url_for_harvard_staging(
+    file_metadata_harvard_staging: Dict, expected: str
+):
+    assert (
+        get_download_url_for_harvard_dataverse(file_metadata_harvard_staging)
+        == expected
+    )
+
+
 def test_get_download_url_for_harvard_failed():
     # missing file_ids or study_id
     file_metadata = {}
