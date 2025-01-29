@@ -306,7 +306,7 @@ def test_download_from_url_failures(download_dir):
 
     # bad url
     downloaded_file = download_from_url(
-        qdr_url="https://bad_url",
+        api_url="https://bad_url",
         headers=request_headers,
         download_path=download_dir,
     )

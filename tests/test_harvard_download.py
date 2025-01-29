@@ -286,7 +286,6 @@ def test_get_harvard_dataverse_files(download_dir):
 
         # Call the function to test
         result = get_harvard_dataverse_files(
-            auth=None,  # Not required for Harvard Dataverse
             file_metadata_list=file_metadata_list,
             download_path=download_dir,
         )
