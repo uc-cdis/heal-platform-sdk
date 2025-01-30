@@ -1,4 +1,5 @@
 import json
+
 import pytest
 
 from heal.vlmd.config import (

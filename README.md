@@ -17,11 +17,13 @@ These notebooks perform optimally within a HEAL Gen3 Workspace and the notebooks
 
 ### VLMD extraction and validation
 
-The [VLMD docs](heal/vlmd/README.md) describe how to use the SDK for extracting and validating VLMD dictionaries.
+
+The [VLMD documentation](heal/vlmd/README.md) describes how to use the SDK for extracting and validating VLMD dictionaries.
+
 
 ### Run tests
 
-```
+```bash
 poetry run pytest -vv tests
 ```
 
@@ -33,19 +35,38 @@ reference the git repo.
 As an example, `pip install` can be called from the command line for getting
 the master branch of the `heal-platform-sdk`,
 
-```
+```bash
 pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git#egg=heal
 ```
 
 or a particular branch, eg,
 
-```
+```bash
 pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git@my-branch#egg=heal
 ```
 
 The specification can also be listed in requirements.txt file
 (with, say, a tag specification of 0.1.0)
 
-```
+```bash
 pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git@0.1.0#egg=heal
 ```
+
+### CLI
+
+The SDK exposes a Command Line Interface (CLI) for some functions.
+
+The CLI can be invoked as follows
+
+`heal [OPTIONS] COMMAND [ARGS]`
+
+For a list of commands and options run
+
+`heal --help`
+
+For example, the following can validate a VLMD file in csv format:
+
+`heal vlmd validate --input_file "vlmd_for_validation.csv"`
+
+The [VLMD documentation](heal/vlmd/README.md) provides information on
+using the VLMD functions, such as `extract` and `validate`.

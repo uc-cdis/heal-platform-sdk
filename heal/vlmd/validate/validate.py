@@ -62,21 +62,29 @@ def vlmd_validate(
     )
     file_suffix = Path(input_file).suffix.replace(".", "")
     if file_suffix not in ALLOWED_INPUT_TYPES:
-        raise ValueError(f"Input file must be one of {ALLOWED_INPUT_TYPES}")
+        message = f"Input file must be one of {ALLOWED_INPUT_TYPES}"
+        logger.error(message)
+        raise ValueError(message)
     if not isfile(input_file):
-        raise IOError(f"Input file does not exist: {input_file}")
+        message = f"Input file does not exist: {input_file}"
+        logger.error(message)
+        raise IOError(message)
 
     if schema_type not in ALLOWED_SCHEMA_TYPES:
-        raise ValueError(f"Schema type must be in {ALLOWED_SCHEMA_TYPES}")
+        message = f"Schema type must be in {ALLOWED_SCHEMA_TYPES}"
+        logger.error(message)
+        raise ValueError(message)
     schema = get_schema(input_file, schema_type)
     if schema is None:
-        raise ValueError(f"Could not get schema for type = {schema_type}")
+        message = f"Could not get schema for type = {schema_type}"
+        logger.error(message)
+        raise ValueError(message)
 
     output_type = output_type if output_type else "json"
     if output_type not in ALLOWED_OUTPUT_TYPES:
-        raise ValueError(
-            f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
-        )
+        message = f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
+        logger.error(message)
+        raise ValueError(message)
 
     # TODO: We need this for csv - see if we can add this to get_schema
     if file_suffix in ["csv", "tsv"]:
@@ -89,7 +97,9 @@ def vlmd_validate(
         logger.debug("Getting csv data from file")
         data = read_delim(input_file).to_dict(orient="records")
         if len(data) == 0:
-            raise ValidationError("Could not read csv data from input")
+            message = "Could not read csv data from input"
+            logger.error(message)
+            raise ValidationError(message)
     elif file_suffix == "json":
         logger.debug("Getting json data from file")
         data = read_data_from_json_file(input_file)
@@ -106,9 +116,9 @@ def vlmd_validate(
     # convert
     input_type = file_type_to_fxn_map.get(file_suffix)
     if not input_type:
-        raise ExtractionError(
-            f"Could not get conversion function from file_suffix '{file_suffix}'"
-        )
+        message = f"Could not get conversion function from file_suffix '{file_suffix}'"
+        logger.error(message)
+        raise ExtractionError(message)
     data_dictionaries = {}
     logger.debug(f"Verifying vlmd can be converted using input_type '{input_type}'")
     data_dictionary_props = {}
@@ -139,7 +149,9 @@ def vlmd_validate(
             # TODO: see if we can add this to get_schema
             schema = add_types_to_props(schema)
         if schema is None:
-            raise ValueError(f"Could not get schema for type = {schema_type}")
+            message = f"Could not get schema for type = {schema_type}"
+            logger.error(message)
+            raise ValueError(message)
 
     try:
         jsonschema.validate(instance=converted_dictionary, schema=schema)
