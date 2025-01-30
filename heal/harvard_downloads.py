@@ -3,7 +3,7 @@ This module includes an external file retriever function intended to be called
 by the external_files_download module in the Gen3-SDK.
 
 The retriever function sends requests to the Harvard Dataverse for downloading studies or files.
-
+TODO: QDR and Harvard Dataverse use the same Dataverse API, however, we do NOT need to use WTS token to access with Harvard
 The Dataverse documentation describes how to download studies
 https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dataset
 
