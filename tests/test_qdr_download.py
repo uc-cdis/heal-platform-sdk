@@ -10,15 +10,14 @@ from unittest.mock import MagicMock
 
 from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
 from heal.qdr_downloads import (
-    download_from_url,
     get_download_url_for_qdr,
-    get_filename_from_headers,
     get_id,
     get_idp_access_token,
     get_request_headers,
     get_syracuse_qdr_files,
     is_valid_qdr_file_metadata,
 )
+from heal.utils import get_filename_from_headers, download_from_url
 
 
 @pytest.fixture(scope="session")
@@ -245,7 +244,7 @@ def test_download_from_url(download_dir):
             qdr_url, headers=valid_response_headers, content=bytes(mock_data, "utf-8")
         )
         download_filename = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path=download_dir,
         )
@@ -267,7 +266,7 @@ def test_download_from_url(download_dir):
         )
 
         download_filename = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path=download_dir,
         )
@@ -284,7 +283,7 @@ def test_download_from_url(download_dir):
         m.get(qdr_url, headers=response_headers, content=bytes(mock_data, "utf-8"))
 
         download_filename = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path=download_dir,
         )
@@ -307,7 +306,7 @@ def test_download_from_url_failures(download_dir):
 
     # bad url
     downloaded_file = download_from_url(
-        qdr_url="https://bad_url",
+        api_url="https://bad_url",
         headers=request_headers,
         download_path=download_dir,
     )
@@ -327,7 +326,7 @@ def test_download_from_url_failures(download_dir):
         )
 
         download_file = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path="/path/does/not/exist",
         )
@@ -337,7 +336,7 @@ def test_download_from_url_failures(download_dir):
         # zero size response
         m.get(qdr_url, headers=valid_response_headers, content=bytes())
         download_file = download_from_url(
-            qdr_url=qdr_url,
+            api_url=qdr_url,
             headers=request_headers,
             download_path=download_dir,
         )
