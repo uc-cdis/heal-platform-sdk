@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "heal"
+name = "heal-sdk"
 version = "0.1.3"
 description = "HEAL Platform SDK"
 authors = ["Center for Translational Data Science at the University of Chicago <support@gen3.org>"]
