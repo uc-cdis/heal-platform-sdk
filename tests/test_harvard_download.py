@@ -283,9 +283,13 @@ def test_get_harvard_dataverse_files(download_dir):
             headers=valid_response_headers,
             content=bytes(test_data, "utf-8"),
         )
+        mock_auth = MagicMock()
+        mock_auth.get_access_token.return_value = "some_token"
 
         # Call the function to test
         result = get_harvard_dataverse_files(
+            wts_hostname="",
+            auth=mock_auth,
             file_metadata_list=file_metadata_list,
             download_path=download_dir,
         )

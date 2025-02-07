@@ -26,6 +26,8 @@ def get_harvard_dataverse_files(
     Retrieves external data from the Harvard Dataverse.
 
     Args:
+        wts_hostname (str): hostname for commons with wts (not being used at this moment)
+        auth (Gen3Auth): auth for commons with wts (not being used at this moment)
         file_metadata_list (List of Dict): list of studies or files
         download_path (str): path to download files and unpack
 
