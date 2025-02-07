@@ -11,7 +11,7 @@ https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dat
 
 from pathlib import Path
 from typing import Dict, List
-from utils import unpackage_object, get_id, download_from_url
+from heal.utils import unpackage_object, get_id, download_from_url
 
 from cdislogging import get_logger
 from gen3.tools.download.drs_download import DownloadStatus
