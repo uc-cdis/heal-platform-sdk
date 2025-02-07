@@ -20,7 +20,7 @@ logger = get_logger("__name__", log_level="debug")
 
 
 def get_harvard_dataverse_files(
-    file_metadata_list: List, download_path: str = "."
+    wts_hostname: str, auth, file_metadata_list: List, download_path: str = "."
 ) -> Dict:
     """
     Retrieves external data from the Harvard Dataverse.
