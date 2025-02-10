@@ -104,6 +104,8 @@ def get_download_url_for_harvard_dataverse(file_metadata: Dict) -> str:
         base_url = "https://demo.dataverse.org/api/access"
     if "study_id" in file_metadata:
         url = f"{base_url}/dataset/:persistentId/?persistentId={file_metadata.get('study_id')}"
+    elif "file_id" in file_metadata:
+        url = f"{base_url}/datafile/{file_metadata.get('file_id')}"
     else:
         url = None
 
