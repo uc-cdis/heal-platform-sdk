@@ -30,8 +30,14 @@ def download_dir(tmpdir_factory):
         (
             {
                 "external_oidc_idp": "test-external-idp",
-                "file_retriever": "harvard",
+                "file_retriever": "Dataverse",
                 "study_id": "harvard_study_01",
+            }
+        ),
+        (
+            {
+                "file_retriever": "Dataverse",
+                "file_id": "harvard_file_01",
             }
         ),
     ],
@@ -45,7 +51,7 @@ def test_is_valid_harvard_file_metadata_failed():
     file_metadata = (
         {
             "external_oidc_idp": "test-external-idp",
-            "file_retriever": "harvard",
+            "file_retriever": "Dataverse",
             "description": "missing study_id or file_id",
         },
     )
@@ -62,7 +68,7 @@ def test_is_valid_harvard_file_metadata_failed():
         (
             {
                 "external_oidc_idp": "test-external-idp",
-                "file_retriever": "harvard",
+                "file_retriever": "Dataverse",
                 "study_id": "harvard_study_01",
             },
             "harvard_study_01",
@@ -77,7 +83,7 @@ def test_get_id_bad_input():
     # missing study_id
     file_metadata = {
         "external_oidc_idp": "test-external-idp",
-        "file_retriever": "harvard",
+        "file_retriever": "Dataverse",
     }
     assert get_id(file_metadata) == None
 
@@ -91,6 +97,12 @@ def test_get_id_bad_input():
             },
             "https://dataverse.harvard.edu/api/access/dataset/:persistentId/?persistentId=harvard_study_01",
         ),
+        (
+            {
+                "file_id": "harvard_file_01",
+            },
+            "https://dataverse.harvard.edu/api/access/datafile/harvard_file_01",
+        ),
     ],
 )
 def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
@@ -103,7 +115,7 @@ def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
         (
             {
                 "external_oidc_idp": "test-external-idp",
-                "file_retriever": "harvard",
+                "file_retriever": "Dataverse",
                 "study_id": "harvard_study_01",
                 "use_harvard_staging": True,
             },
