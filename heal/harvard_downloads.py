@@ -126,7 +126,7 @@ def is_valid_harvard_file_metadata(file_metadata: Dict) -> bool:
     if not isinstance(file_metadata, dict):
         logger.critical(f"Invalid metadata - item is not a dict: {file_metadata}")
         return False
-    if "study_id" not in file_metadata:
+    if "study_id" not in file_metadata and "file_id" not in file_metadata:
         logger.critical(
             f"Invalid metadata - missing required Harvard Dataverse keys {file_metadata}"
         )
