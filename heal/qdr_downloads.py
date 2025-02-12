@@ -22,7 +22,7 @@ tokens for the 'idp' specified in the external_file_metadata.
 
 from pathlib import Path
 from typing import Dict, List
-from utils import unpackage_object, get_id, download_from_url, get_idp_access_token
+from heal.utils import unpackage_object, get_id, download_from_url, get_idp_access_token
 
 from cdislogging import get_logger
 from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
