@@ -39,6 +39,8 @@ def read_delim(file_path, cast_d_type="string"):
 
     defaults to not casting values (ie all columns are string dtypes)
     and not parsing strings into NA values (eg "" is kept as "")
+
+    Returns a pandas dataframe
     """
     ext = Path(file_path).suffix
     if ext == ".csv":

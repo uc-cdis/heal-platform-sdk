@@ -90,6 +90,14 @@ def refactor_field_props(flat_fields, schema):
 
 
 # individual cell utilities
+def strip_html(html_string):
+    """Strip out html from string"""
+    if html_string:
+        return re.sub(r"<[^>]+>", "", html_string)
+    else:
+        return html_string
+
+
 def parse_dictionary_str(string, item_sep, key_val_sep):
     """
     Parses a stringified dictionary into a dictionary
