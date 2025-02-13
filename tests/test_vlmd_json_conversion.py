@@ -5,7 +5,6 @@ from heal.vlmd.extract.json_dict_conversion import convert_template_json
 
 def test_json_conversion_valid_file(valid_json_output):
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
-    input_type = "json-template"
     valid_json_output.pop("schemaVersion", None)
 
     result = convert_template_json(input_file)
