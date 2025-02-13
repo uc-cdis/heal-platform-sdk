@@ -1,3 +1,6 @@
+from heal.vlmd.mappings.redcap_csv_headers import redcap_required_fields
+
+
 def add_missing_type(prop_name: str, prop, schema: dict) -> dict:
     """
     Add types to properties.
@@ -76,3 +79,10 @@ def clean_json_fields(fields: list) -> list:
         new_field = remove_empty_props(field)
         cleaned_fields.append(new_field)
     return cleaned_fields
+
+
+def has_redcap_headers(column_names: list) -> bool:
+    """
+    Check if all required REDCap headers are present in the in column_names
+    """
+    return set(redcap_required_fields).issubset(column_names)
