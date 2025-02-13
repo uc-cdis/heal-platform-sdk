@@ -70,7 +70,7 @@ from jsonschema import ValidationError
 from heal.vlmd import vlmd_extract, ExtractionError
 
 try:
-  vlmd_extract("vlmd_for_extraction.csv", output_dir="./output")
+  vlmd_extract("vlmd_for_extraction.csv", "the dictionary title", output_dir="./output")
 
 except ValidationError as v_err:
   # handle validation error
@@ -115,4 +115,4 @@ For example, the following can validate a VLMD file in csv format:
 The following would extract a json format VLMD file from a csv format input file and
 write a json file in the directory `output`:
 
-`heal vlmd extract --input_file "vlmd_for_extraction.csv" --output_dir "./output"`
+`heal vlmd extract --input_file "vlmd_for_extraction.csv" --title "The dictionary title" --output_dir "./output"`
