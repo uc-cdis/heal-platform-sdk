@@ -15,6 +15,13 @@ logging = get_logger("__name__")
     type=click.Path(writable=True),
 )
 @click.option(
+    "--title",
+    "title",
+    required=True,
+    help="Root level title for the dictionary",
+    type=str,
+)
+@click.option(
     "--output_dir",
     "output_dir",
     help="directory to write converted dictionary'",
@@ -22,12 +29,16 @@ logging = get_logger("__name__")
     type=click.Path(writable=True),
     show_default=True,
 )
-def extract(input_file, output_dir):
+def extract(input_file, title, output_dir):
     """Extract HEAL-compliant VLMD file from input file"""
 
     logging.info(f"Extracting VLMD from {input_file}")
 
     try:
-        vlmd_extract(input_file, output_dir=output_dir)
+        vlmd_extract(
+            input_file,
+            title,
+            output_dir=output_dir,
+        )
     except Exception as e:
         logging.error(f"Extraction error {str(e)}")

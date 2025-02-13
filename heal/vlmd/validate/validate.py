@@ -6,6 +6,7 @@ from cdislogging import get_logger
 from jsonschema import ValidationError
 
 from heal.vlmd.config import (
+    ALLOWED_FILE_TYPES,
     ALLOWED_INPUT_TYPES,
     ALLOWED_OUTPUT_TYPES,
     ALLOWED_SCHEMA_TYPES,
@@ -25,11 +26,13 @@ file_type_to_fxn_map = {
     "csv": "csv-data-dict",
     "json": "json-template",
     "tsv": "csv-data-dict",
+    "redcap": "redcap-csv-dict",
 }
 
 
 def vlmd_validate(
     input_file: str,
+    file_type="auto",
     schema_type="auto",
     output_type="json",
     return_converted_output=False,
@@ -40,6 +43,10 @@ def vlmd_validate(
     Args:
 
         input_file (str): the path of the input HEAL VLMD file.
+        file_type (str): the type of input file.
+            Allowed values for now are “csv”, “tsv”, “json”, "redcap", and “auto”.
+            Defaults to “auto” which will use the suffix of the input file.
+            Using "auto" or "csv" will auto-detect if the file is a REDCap dictionary export.
         schema_type (str): the type of the schema to be validated against.
             Allowed values for now are “csv”, “tsv”, “json” and “auto”.
             Defaults to “auto” which will use the suffix of the input file.
@@ -56,10 +63,19 @@ def vlmd_validate(
         Raises SchemaError if the schema is invalid.
         Raises ExctractionError if the input cannot be converted to VLMD dictionary.
     """
+    logger.debug("In vlmd validate")
 
     logger.info(
         f"Validating VLMD file '{input_file}' against schema type '{schema_type}'"
     )
+    logger.debug(f"File_type = {file_type}")
+
+    if file_type not in ALLOWED_FILE_TYPES:
+        message = f"File type must be one of {ALLOWED_FILE_TYPES}"
+        logger.error(message)
+        raise ValueError(message)
+
+    # TODO: review this logic below to also include checks on file_type
     file_suffix = Path(input_file).suffix.replace(".", "")
     if file_suffix not in ALLOWED_INPUT_TYPES:
         message = f"Input file must be one of {ALLOWED_INPUT_TYPES}"
@@ -114,18 +130,24 @@ def vlmd_validate(
             raise e
 
     # convert
-    input_type = file_type_to_fxn_map.get(file_suffix)
-    if not input_type:
+    if file_type == "auto":
+        logger.debug(f"Using file_suffix for file_type {file_suffix}")
+        file_convert_function = file_type_to_fxn_map.get(file_suffix)
+    else:
+        file_convert_function = file_type_to_fxn_map.get(file_type)
+    if not file_convert_function:
         message = f"Could not get conversion function from file_suffix '{file_suffix}'"
         logger.error(message)
         raise ExtractionError(message)
     data_dictionaries = {}
-    logger.debug(f"Verifying vlmd can be converted using input_type '{input_type}'")
+    logger.debug(
+        f"Verifying vlmd can be converted using file conversion function '{file_convert_function}'"
+    )
     data_dictionary_props = {}
     try:
         data_dictionaries = convert_to_vlmd(
             input_filepath=input_file,
-            input_type=input_type,
+            input_type=file_convert_function,
             data_dictionary_props=data_dictionary_props,
         )
     except Exception as e:

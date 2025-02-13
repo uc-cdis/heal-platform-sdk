@@ -15,7 +15,7 @@ logger = get_logger("extract", log_level="debug")
 
 
 def vlmd_extract(
-    input_file, file_type="auto", output_dir=".", output_type="json"
+    input_file, title, file_type="auto", output_dir=".", output_type="json"
 ) -> bool:
     """
     Extract a HEAL compliant csv and json format VLMD data dictionary
@@ -24,9 +24,11 @@ def vlmd_extract(
     Args:
         input_file (str): the path of the input HEAL VLMD file to be extracted
             into HEAL-compliant VLMD file(s).
+        title (str): the root level title of the dictionary.
         file_type (str): the type of the input file that will be extracted into a
             HEAL-compliant VLMD file.
-            Allowed values are "auto", “csv”, "json", "tsv".
+            Allowed values are "auto", “csv”, "json", "tsv", and "redcap"
+            where "redcap" is a csv file of a REDCap dictionary export.
             Defaults to “auto”.
         output_dir (str): the directory of where the extracted VLMD file will
             be written. Defaults to “.”
@@ -38,7 +40,9 @@ def vlmd_extract(
         Raises ExtractionError in input VLMD is not valid or could not be converted.
     """
 
-    logger.info(f"Extracting VLMD file '{input_file}' with file_type '{file_type}'")
+    logger.info(
+        f"Extracting VLMD file '{input_file}' with input file_type '{file_type}'"
+    )
 
     file_suffix = Path(input_file).suffix.replace(".", "")
     if file_suffix not in ALLOWED_INPUT_TYPES:
@@ -62,10 +66,14 @@ def vlmd_extract(
         logger.error(message)
         raise ExtractionError(message)
 
+    logger.debug(f"File type is set to '{file_type}'")
     # validate
     try:
         converted_dictionary = vlmd_validate(
-            input_file, output_type=output_type, return_converted_output=True
+            input_file,
+            file_type=file_type,
+            output_type=output_type,
+            return_converted_output=True,
         )
     except Exception as e:
         logger.error(f"Error in validating and extracting dictionary from {input_file}")
@@ -78,10 +86,13 @@ def vlmd_extract(
     )
     logger.info(f"Writing converted dictionary to {output_filepath}")
     try:
+        if output_type == "json":
+            logger.debug(f"JSON dictionary setting user-defined title '{title}'")
+            converted_dictionary["title"] = title
         write_vlmd_dict(converted_dictionary, output_filepath, file_type=output_type)
-    except Exception as e:
+    except Exception as err:
         logger.error("Error in writing converted dictionary")
-        logger.error(e)
+        logger.error(err)
         raise ExtractionError("Error in writing converted dictionary")
 
     return True

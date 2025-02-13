@@ -39,6 +39,7 @@ def test_extract_help():
     expected_text = "Extract HEAL-compliant VLMD file from input file"
     expected_commands = [
         "--input_file PATH  name of file to extract HEAL-compliant VLMD file",
+        "--title TEXT       Root level title for the dictionary  [required]",
         "--output_dir PATH  directory to write converted dictionary'  [default: .]",
     ]
     result = runner.invoke(cli_module.main, ["vlmd", "extract", "--help"])
@@ -52,12 +53,22 @@ def test_extract(tmp_path):
     """Test the cli extract"""
     runner = CliRunner()
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
+    title = "Test dictionary"
     expected_output_file = file_utils.get_output_filepath(
         tmp_path, input_file, output_type="json"
     )
     result = runner.invoke(
         cli_module.main,
-        ["vlmd", "extract", "--input_file", input_file, "--output_dir", tmp_path],
+        [
+            "vlmd",
+            "extract",
+            "--input_file",
+            input_file,
+            "--title",
+            title,
+            "--output_dir",
+            tmp_path,
+        ],
     )
     assert result.exit_code == 0
     assert os.path.isfile(expected_output_file)

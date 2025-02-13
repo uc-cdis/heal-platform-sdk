@@ -6,7 +6,7 @@ OUTPUT_FILE_PREFIX = "heal-dd"
 
 # file suffixes
 ALLOWED_INPUT_TYPES = ["csv", "tsv", "json"]
-ALLOWED_FILE_TYPES = ["auto"] + ALLOWED_INPUT_TYPES
+ALLOWED_FILE_TYPES = ["auto", "csv", "tsv", "json", "redcap"]
 ALLOWED_SCHEMA_TYPES = ["auto", "csv", "json", "tsv"]
 ALLOWED_OUTPUT_TYPES = ["csv", "json"]
 
@@ -23,6 +23,8 @@ with open(json_schema_path, "r") as schema_file:
 
 # schema
 JSON_SCHEMA_VERSION = JSON_SCHEMA.get("version", "0.3.2")
+# The title is a default title used in the validation process.
+# It will get overwritten by a user-specified title in the extraction process.
 TOP_LEVEL_PROPS = {
     "schemaVersion": JSON_SCHEMA_VERSION,
     "title": "HEAL Data Dictionary",
