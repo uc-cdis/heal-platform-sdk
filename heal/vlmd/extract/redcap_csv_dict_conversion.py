@@ -127,7 +127,7 @@ def gather(source_fields: list[dict]) -> list[dict]:
     return target_fields
 
 
-def convert_redcapcsv(data_or_path, data_dictionary_props={}) -> dict[str, any]:
+def convert_redcap_csv(data_or_path, data_dictionary_props={}) -> dict[str, any]:
     """
     Takes in an exported Redcap Data Dictionary csv,
     and translates each field into a HEAL specified

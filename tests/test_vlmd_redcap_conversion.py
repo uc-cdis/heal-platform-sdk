@@ -1,6 +1,6 @@
 import pytest
 from heal.vlmd.extract.redcap_csv_dict_conversion import (
-    convert_redcapcsv,
+    convert_redcap_csv,
     gather,
     read_from_file,
     rename_and_fill,
@@ -137,11 +137,11 @@ def test_gather():
     pass
 
 
-def test_convert_redcapcsv_bad_input():
+def test_convert_redcap_csv_bad_input():
     """Test the converter with input that is not path or dataframe"""
     unallowed_input = ["some", "random", "list"]
     with pytest.raises(ValueError) as err:
-        convert_redcapcsv(unallowed_input)
+        convert_redcap_csv(unallowed_input)
 
     expected_message = (
         "Input should be either dataframe or path to REDCap dictionary csv export"

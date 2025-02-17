@@ -7,7 +7,7 @@ from heal.vlmd import mappings
 from heal.vlmd.config import JSON_SCHEMA, TOP_LEVEL_PROPS
 from heal.vlmd.extract.csv_dict_conversion import convert_datadict_csv
 from heal.vlmd.extract.json_dict_conversion import convert_template_json
-from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcapcsv
+from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv
 from heal.vlmd.utils import clean_json_fields
 
 logger = get_logger("vlmd-conversion", log_level="debug")
@@ -19,7 +19,7 @@ choice_fxn = {
         recode_map=mappings.recode_map,
     ),
     "json-template": convert_template_json,
-    "redcap-csv-dict": convert_redcapcsv,
+    "redcap-csv-dict": convert_redcap_csv,
 }
 
 ext_map = {

@@ -7,7 +7,7 @@ import pandas as pd
 
 from heal.vlmd.config import JSON_SCHEMA
 from heal.vlmd.extract import utils
-from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcapcsv
+from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv
 from heal.vlmd.utils import has_redcap_headers
 from heal.vlmd.validate.utils import read_delim
 
@@ -139,7 +139,7 @@ def convert_datadict_csv(
     column_names = template_tbl.columns
     if has_redcap_headers(column_names):
         logger.debug("File appears to have REDCap headers. Ready to convert.")
-        converted_dict = convert_redcapcsv(template_tbl)
+        converted_dict = convert_redcap_csv(template_tbl)
         return converted_dict
     else:
         logger.debug("File is CSV dictionary, not REDCap dictionary.")

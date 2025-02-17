@@ -2,7 +2,7 @@
 Functions for each REDCap field type that uses REDCap field info to determine
 various pieces of field metadata.
 
-Input assumes a dictionary with {"REDCap fieldname": "REDCap value"}
+Input assumes a dictionary with {"REDCap field_name": "REDCap value"}
 
 REDCap dictionary fields:
 
@@ -23,10 +23,10 @@ import re
 
 from heal.vlmd.extract import utils
 from heal.vlmd.mappings.redcap_csv_headers import (
-    choices_fieldname,
-    slider_fieldname,
-    calc_fieldname,
-    text_valid_fieldname,
+    choices_field_name,
+    slider_field_name,
+    calc_field_name,
+    text_valid_field_name,
 )
 
 
@@ -71,10 +71,10 @@ def map_text(field):
     TEXT - single-line text box (for text and numbers)
 
     Looks at the text validation field, defined by
-    'text_valid_fieldname' in 'redcap_csv_headers.py'
+    'text_valid_field_name' in 'redcap_csv_headers.py'
     """
-    if field.get(text_valid_fieldname):
-        text_validation = field[text_valid_fieldname].lower()
+    if field.get(text_valid_field_name):
+        text_validation = field[text_valid_field_name].lower()
     else:
         text_validation = ""
     field_format = None
@@ -154,7 +154,7 @@ def map_dropdown(field):
 
     Determined by "options" (ie Choices, Calculations, OR Slider Labels)
     """
-    encodings_string = field[choices_fieldname]
+    encodings_string = field[choices_field_name]
     # TODO: if None then raise error here as from dropdown
     return _parse_field_properties_from_encodings(encodings_string)
 
@@ -167,7 +167,7 @@ def map_radio(field):
 
     """
     # parse enum/encodings
-    encodings_string = field[choices_fieldname]
+    encodings_string = field[choices_field_name]
     # TODO: if None then raise error here as from radio
     return _parse_field_properties_from_encodings(encodings_string)
 
@@ -209,7 +209,7 @@ def map_checkbox(field):
     """
     checkbox_name = field["name"]
     choices = utils.parse_dictionary_str(
-        field[choices_fieldname], item_sep="|", key_val_sep=","
+        field[choices_field_name], item_sep="|", key_val_sep=","
     )
     field_type = "boolean"
     field_enums = ["0", "1"]
@@ -238,7 +238,7 @@ def map_file(field):
 
 
 def map_calc(field):
-    return {"description": f"[calculation: {field[calc_fieldname]}]", "type": "number"}
+    return {"description": f"[calculation: {field[calc_field_name]}]", "type": "number"}
 
 
 def map_sql(field):
@@ -263,7 +263,7 @@ def map_true_false(field):
 
 def map_slider(field):
     vallist = ["0", "50", "100"]
-    lbllist = utils.parse_list_str(field[slider_fieldname], "|")
+    lbllist = utils.parse_list_str(field[slider_field_name], "|")
     field_encodings = {vallist[i]: lbl for i, lbl in enumerate(lbllist)}
     return {
         "type": "integer",
