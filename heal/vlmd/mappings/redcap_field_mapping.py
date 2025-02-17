@@ -92,8 +92,10 @@ def map_text(field):
         field_format = "email"
     elif text_validation == "integer":
         field_type = "integer"
-        constraints_min = int(field.get("text_valid_min"))
-        constraints_max = int(field.get("text_valid_max"))
+        if field.get("text_valid_min"):
+            constraints_min = int(field.get("text_valid_min"))
+        if field.get("text_valid_max"):
+            constraints_max = int(field.get("text_valid_max"))
     elif text_validation == "alpha_only":
         field_type = "string"
         field_pattern = "^[a-zA-Z]+$"
@@ -101,8 +103,10 @@ def map_text(field):
         field_type = "number"
         if "comma_decimal" in text_validation:
             fielddecimal_char = ","
-        constraints_min = float(field.get("text_valid_min"))
-        constraints_max = float(field.get("text_valid_max"))
+        if field.get("text_valid_min"):
+            constraints_min = float(field.get("text_valid_min"))
+        if field.get("text_valid_max"):
+            constraints_max = float(field.get("text_valid_max"))
     elif text_validation == "phone":
         field_type = "string"
         field_pattern = "^[0-9]{3}-[0-9]{3}-[0-9]{4}$"
