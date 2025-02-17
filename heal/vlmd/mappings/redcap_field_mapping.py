@@ -79,6 +79,8 @@ def map_text(field):
         text_validation = ""
     field_format = None
     field_pattern = None
+    constraints_min = None
+    constraints_max = None
     if "datetime" in text_validation:
         field_type = "datetime"
         field_format = "any"
@@ -90,6 +92,8 @@ def map_text(field):
         field_format = "email"
     elif text_validation == "integer":
         field_type = "integer"
+        constraints_min = int(field.get("text_valid_min"))
+        constraints_max = int(field.get("text_valid_max"))
     elif text_validation == "alpha_only":
         field_type = "string"
         field_pattern = "^[a-zA-Z]+$"
@@ -97,6 +101,8 @@ def map_text(field):
         field_type = "number"
         if "comma_decimal" in text_validation:
             fielddecimal_char = ","
+        constraints_min = float(field.get("text_valid_min"))
+        constraints_max = float(field.get("text_valid_max"))
     elif text_validation == "phone":
         field_type = "string"
         field_pattern = "^[0-9]{3}-[0-9]{3}-[0-9]{4}$"
@@ -118,15 +124,21 @@ def map_text(field):
     elif text_validation == "zipcode":
         field_type = "string"
         field_pattern = "^[0-9]{5}$"
-    # TODO: handle text_validation_min and text_validation_max
     else:
         field_type = "string"
 
-    # TODO: add the constraints min and max in here
     props = dict(
         zip(
             ["type", "format", "constraints"],
-            [field_type, field_format, {"pattern": field_pattern}],
+            [
+                field_type,
+                field_format,
+                {
+                    "pattern": field_pattern,
+                    "min": constraints_min,
+                    "max": constraints_max,
+                },
+            ],
         )
     )
 
@@ -134,8 +146,7 @@ def map_text(field):
     for prop_name in ["type", "format"]:
         if props[prop_name] == None:
             del props[prop_name]
-    if props["constraints"]["pattern"] == None:
-        del props["constraints"]
+    # constraints will be cleaned later
 
     return props
 

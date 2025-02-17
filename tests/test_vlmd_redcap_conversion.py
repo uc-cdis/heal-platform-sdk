@@ -54,7 +54,7 @@ valid_redcap_source_fields = [
         "text_valid_slider_num": "email",
         "text_valid_min": "",
         "text_valid_max": "",
-        "identifier": "y",
+        "identifier": "",
         "skip_logic": "",
         "required": "",
         "align": "",
@@ -74,7 +74,25 @@ valid_redcap_source_fields = [
         "text_valid_max": "",
         "identifier": "",
         "skip_logic": "",
-        "required": "y",
+        "required": "",
+        "align": "",
+        "question_num": "",
+        "matrix_group": "",
+    },
+    {
+        "name": "height",
+        "form": "demographics",
+        "section": "Demographic Characteristics",
+        "type": "number",
+        "label": "Gender",
+        "choice_calc_lbls": "0, Female | 1, Male",
+        "note": "",
+        "text_valid_slider_num": "",
+        "text_valid_min": "130",
+        "text_valid_max": "215",
+        "identifier": "",
+        "skip_logic": "",
+        "required": "",
         "align": "",
         "question_num": "",
         "matrix_group": "",
@@ -114,7 +132,14 @@ def test_rename_and_fill():
 def test_gather():
     """Test gather"""
 
-    expected_target_fields = ["name", "type", "description", "title", "section"]
+    expected_target_fields = [
+        "name",
+        "type",
+        "description",
+        "title",
+        "section",
+        "constraints",
+    ]
 
     target_fields = gather(valid_redcap_source_fields)
     # check keys
@@ -134,6 +159,9 @@ def test_gather():
             assert record["type"] == "integer"
             assert record["enumLabels"] == {"0": "Female", "1": "Male"}
             assert record["constraints"] == {"enum": ["0", "1"]}
+        if record["name"] == "height":
+            assert record["type"] == "number"
+            assert record["constraints"] == {"min": 130.0, "max": 215.0}
     pass
 
 

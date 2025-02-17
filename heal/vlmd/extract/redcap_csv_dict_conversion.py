@@ -155,11 +155,9 @@ def convert_redcap_csv(data_or_path, data_dictionary_props={}) -> dict[str, any]
             - 'template_csv': the HEAL-specified tabular template.
     """
 
-    # TODO: check if input if file_path or dataframe object
     if isinstance(data_or_path, (str, PathLike)):
         source_fields = read_from_file(data_or_path)
     elif not isinstance(data_or_path, pd.DataFrame):
-        # TODO: log error
         raise ValueError(
             "Input should be either dataframe or path to REDCap dictionary csv export"
         )

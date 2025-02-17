@@ -26,26 +26,70 @@ def test_parse_field_properties():
                 "text_valid_slider_num": "date",
                 "text_valid_min": "",
             },
-            {"type": "date", "format": "any"},
+            {
+                "type": "date",
+                "format": "any",
+                "constraints": {"pattern": None, "min": None, "max": None},
+            },
         ),
-        ({"name": "some_field_name", "text_valid_slider_num": ""}, {"type": "string"}),
-        ({"text_valid_slider_num": "email"}, {"type": "string", "format": "email"}),
-        ({"text_valid_slider_num": "integer"}, {"type": "integer"}),
+        (
+            {"name": "some_field_name", "text_valid_slider_num": ""},
+            {
+                "type": "string",
+                "constraints": {"pattern": None, "min": None, "max": None},
+            },
+        ),
+        (
+            {"text_valid_slider_num": "email"},
+            {
+                "type": "string",
+                "format": "email",
+                "constraints": {"pattern": None, "min": None, "max": None},
+            },
+        ),
+        (
+            {
+                "text_valid_slider_num": "integer",
+                "text_valid_min": "0",
+                "text_valid_max": "9",
+            },
+            {"type": "integer", "constraints": {"pattern": None, "min": 0, "max": 9}},
+        ),
         (
             {"text_valid_slider_num": "alpha_only"},
-            {"type": "string", "constraints": {"pattern": "^[a-zA-Z]+$"}},
+            {
+                "type": "string",
+                "constraints": {"pattern": "^[a-zA-Z]+$", "min": None, "max": None},
+            },
         ),
-        ({"text_valid_slider_num": "number"}, {"type": "number"}),
+        (
+            {
+                "text_valid_slider_num": "number",
+                "text_valid_min": "1.1",
+                "text_valid_max": "2.2",
+            },
+            {
+                "type": "number",
+                "constraints": {"pattern": None, "min": 1.1, "max": 2.2},
+            },
+        ),
         (
             {"text_valid_slider_num": "phone"},
             {
                 "type": "string",
-                "constraints": {"pattern": "^[0-9]{3}-[0-9]{3}-[0-9]{4}$"},
+                "constraints": {
+                    "pattern": "^[0-9]{3}-[0-9]{3}-[0-9]{4}$",
+                    "min": None,
+                    "max": None,
+                },
             },
         ),
         (
             {"text_valid_slider_num": "zipcode"},
-            {"type": "string", "constraints": {"pattern": "^[0-9]{5}$"}},
+            {
+                "type": "string",
+                "constraints": {"pattern": "^[0-9]{5}$", "min": None, "max": None},
+            },
         ),
     ],
 )
