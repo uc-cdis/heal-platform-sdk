@@ -23,9 +23,10 @@ import re
 
 from heal.vlmd.extract import utils
 from heal.vlmd.mappings.redcap_csv_headers import (
-    choices_field_name,
-    slider_field_name,
     calc_field_name,
+    choices_field_name,
+    choices_label_input,
+    slider_field_name,
     text_valid_field_name,
 )
 
@@ -170,7 +171,13 @@ def map_dropdown(field):
     Determined by "options" (ie Choices, Calculations, OR Slider Labels)
     """
     encodings_string = field[choices_field_name]
-    # TODO: if None then raise error here as from dropdown
+    if not encodings_string:
+        error_message = (
+            "Missing value in dropdown field '"
+            f"{field.get('name')}"
+            f"' in column '{choices_label_input}'."
+        )
+        raise ValueError(error_message)
     return _parse_field_properties_from_encodings(encodings_string)
 
 
@@ -181,9 +188,14 @@ def map_radio(field):
     Determined by "options" (ie Choices, Calculations, OR Slider Labels)
 
     """
-    # parse enum/encodings
     encodings_string = field[choices_field_name]
-    # TODO: if None then raise error here as from radio
+    if not encodings_string:
+        error_message = (
+            "Missing value in radio field '"
+            f"{field.get('name')}"
+            f"' in column '{choices_label_input}'."
+        )
+        raise ValueError(error_message)
     return _parse_field_properties_from_encodings(encodings_string)
 
 

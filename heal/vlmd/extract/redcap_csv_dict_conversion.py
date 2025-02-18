@@ -12,12 +12,15 @@ from os import PathLike
 
 import numpy as np
 import pandas as pd
+from cdislogging import get_logger
 
 import heal.vlmd.mappings.redcap_csv_headers as headers
 from heal.vlmd.extract import utils
 from heal.vlmd.extract.json_dict_conversion import convert_template_json
 from heal.vlmd.mappings.redcap_field_mapping import type_mappings
 from heal.vlmd.validate.utils import read_delim
+
+logger = get_logger("redcap-conversion", log_level="debug")
 
 
 def read_from_file(file_path):
@@ -55,10 +58,7 @@ def rename_and_fill(source_dataframe) -> list[dict]:
 
 
 def gather(source_fields: list[dict]) -> list[dict]:
-    """
-    maps and translates fields based on redcap field type
-    to heal json
-    """
+    """Maps and translates fields from redcap to heal json"""
 
     def __add_description(source_field, target_field):
         if source_field.get("label"):
@@ -109,20 +109,26 @@ def gather(source_fields: list[dict]) -> list[dict]:
 
     target_fields = []
     for source_field in source_data_fields:
-        source_fieldtype = source_field["type"]
-        target_field = type_mappings[source_fieldtype](source_field)
-        # NOTE if one source_field generates more than 1 target field (ie checkbox) need to iterate through
-        # if list (and hence not one to one mapping with source_field), assumes mandatory fields
-        if isinstance(target_field, list):
-            for _target_field in target_field:
-                assert "name" in _target_field and "type" in _target_field
-                _add_metadata(source_field, _target_field)
-                target_fields.append(_target_field)
-        else:
-            _add_metadata(source_field, target_field)
-            target_field_with_name = {"name": source_field["name"]}
-            target_field_with_name.update(target_field)
-            target_fields.append(target_field_with_name)
+        try:
+            source_fieldtype = source_field["type"]
+            target_field = type_mappings[source_fieldtype](source_field)
+            # NOTE if one source_field generates more than 1 target field (ie checkbox) need to iterate through
+            # if list (and hence not one to one mapping with source_field), assumes mandatory fields
+            if isinstance(target_field, list):
+                for _target_field in target_field:
+                    assert "name" in _target_field and "type" in _target_field
+                    _add_metadata(source_field, _target_field)
+                    target_fields.append(_target_field)
+            else:
+                _add_metadata(source_field, target_field)
+                target_field_with_name = {"name": source_field["name"]}
+                target_field_with_name.update(target_field)
+                target_fields.append(target_field_with_name)
+        except Exception as err:
+            logger.error(
+                "REDCap conversion error for field '" f"{source_field['name']}" "'"
+            )
+            raise ValueError(str(err))
 
     return target_fields
 
