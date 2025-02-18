@@ -10,15 +10,15 @@ logging = get_logger("__name__")
 @click.option(
     "--input_file",
     "input_file",
-    required=True,
     help="name of file to extract HEAL-compliant VLMD file",
+    required=True,
     type=click.Path(writable=True),
 )
 @click.option(
     "--title",
     "title",
-    required=True,
-    help="Root level title for the dictionary",
+    help="Root level title for the dictionary (required if extracting from csv to json)",
+    default=None,
     type=str,
 )
 @click.option(

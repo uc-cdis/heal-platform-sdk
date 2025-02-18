@@ -15,7 +15,7 @@ logger = get_logger("extract", log_level="debug")
 
 
 def vlmd_extract(
-    input_file, title, file_type="auto", output_dir=".", output_type="json"
+    input_file, title=None, file_type="auto", output_dir=".", output_type="json"
 ) -> bool:
     """
     Extract a HEAL compliant csv and json format VLMD data dictionary
@@ -24,7 +24,7 @@ def vlmd_extract(
     Args:
         input_file (str): the path of the input HEAL VLMD file to be extracted
             into HEAL-compliant VLMD file(s).
-        title (str): the root level title of the dictionary.
+        title (str): the root level title of the dictionary (required if extracting from csv to json)
         file_type (str): the type of the input file that will be extracted into a
             HEAL-compliant VLMD file.
             Allowed values are "auto", “csv”, "json", "tsv", and "redcap"
@@ -63,6 +63,11 @@ def vlmd_extract(
 
     if output_type not in ALLOWED_OUTPUT_TYPES:
         message = f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
+        logger.error(message)
+        raise ExtractionError(message)
+
+    if file_type != "json" and output_type == "json" and title is None:
+        message = f"Title must be supplied when extracting from non-json to json"
         logger.error(message)
         raise ExtractionError(message)
 

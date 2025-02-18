@@ -57,7 +57,8 @@ except ExtractionError as e_err:
 
 The extract module implements extraction and conversion of dictionaries into different formats.
 
-The current formats are csv, json, and tsv.
+The current formats are csv, json, and tsv. A `title=<TITLE>` paramater should be supplied when
+converting from non-json to json format.
 
 The `vlmd_extract()` method raises a `jsonschema.ValidationError` for an invalid input files
 and raises an `ExtractionError` for any other type of error.
@@ -70,7 +71,7 @@ from jsonschema import ValidationError
 from heal.vlmd import vlmd_extract, ExtractionError
 
 try:
-  vlmd_extract("vlmd_for_extraction.csv", "the dictionary title", output_dir="./output")
+  vlmd_extract("vlmd_for_extraction.csv", title="the dictionary title", output_dir="./output")
 
 except ValidationError as v_err:
   # handle validation error
@@ -116,3 +117,5 @@ The following would extract a json format VLMD file from a csv format input file
 write a json file in the directory `output`:
 
 `heal vlmd extract --input_file "vlmd_for_extraction.csv" --title "The dictionary title" --output_dir "./output"`
+
+The `--title` option is required when extracting from `csv` to `json`.

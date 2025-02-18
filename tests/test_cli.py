@@ -37,9 +37,10 @@ def test_extract_help():
     """Test the extract submenu"""
     runner = CliRunner()
     expected_text = "Extract HEAL-compliant VLMD file from input file"
+    # truncated to avoid wrapped lines
     expected_commands = [
         "--input_file PATH  name of file to extract HEAL-compliant VLMD file",
-        "--title TEXT       Root level title for the dictionary  [required]",
+        "--title TEXT       Root level title for the dictionary (required if",
         "--output_dir PATH  directory to write converted dictionary'  [default: .]",
     ]
     result = runner.invoke(cli_module.main, ["vlmd", "extract", "--help"])
