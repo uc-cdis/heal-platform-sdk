@@ -2,9 +2,9 @@ import re
 from os import PathLike
 from pathlib import Path
 
-from cdislogging import get_logger
 import pandas as pd
 
+from cdislogging import get_logger
 from heal.vlmd.config import JSON_SCHEMA
 from heal.vlmd.extract import utils
 from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv

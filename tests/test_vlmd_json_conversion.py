@@ -4,6 +4,7 @@ from heal.vlmd.extract.json_dict_conversion import convert_template_json
 
 
 def test_json_conversion_valid_file(valid_json_output):
+    """Test conversion of a valid json input file"""
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     valid_json_output.pop("schemaVersion", None)
 
@@ -19,6 +20,7 @@ def test_json_conversion_valid_file(valid_json_output):
 
 
 def test_json_conversion_valid_data(valid_json_data, valid_json_output):
+    """Test the conversion of array data (like csv data)"""
     valid_json_output.pop("schemaVersion", None)
     result = convert_template_json(valid_json_data)
     assert list(result.keys()) == ["template_json", "template_csv"]
@@ -33,6 +35,7 @@ def test_json_conversion_valid_data(valid_json_data, valid_json_output):
 
 @pytest.mark.parametrize("unallowed_input", [(["some", "list"], ("some", "set"), 5)])
 def test_json_conversion_unallowed_input(unallowed_input):
+    """Test that unallowed input triggers error"""
     with pytest.raises(ValueError) as e:
         convert_template_json(unallowed_input)
 

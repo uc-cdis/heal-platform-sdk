@@ -193,7 +193,7 @@ def map_text(field):
 
     # delete props without values (ie None)
     for prop_name in ["type", "format"]:
-        if props[prop_name] == None:
+        if props[prop_name] is None:
             del props[prop_name]
     # constraints will be cleaned later
 
@@ -245,20 +245,26 @@ def map_checkbox(field):
     """
     CHECKBOX	- checkboxes to allow selection of more than one option
 
-    ## Are data from checkbox (choose all that apply) field types handled differently from other field types when imported or exported?
-    Yes. When your data are exported, each option from a checkbox field becomes a separate variable coded 1 or 0 to reflect whether it is checked or unchecked. By default, each option is pre-coded 0, so even if you have not yet collected any data, you will see 0's for each checkbox option. The variable names will be the name of the field followed by the option number. So, for example, if you have a field coded as follows:
+    ## Are data from checkbox (choose all that apply) field types handled
+    differently from other field types when imported or exported?
+    Yes. When your data are exported, each option from a checkbox field
+    becomes a separate variable coded 1 or 0 to reflect whether it is checked
+    or unchecked. By default, each option is pre-coded 0, so even if you have
+    not yet collected any data, you will see 0's for each checkbox option.
+    The variable names will be the name of the field followed by the option number.
+    So, for example, if you have a field coded as follows:
 
     Race
 
     1, Caucasian
-
     2, African American
-
     3, Asian
-
     4, Other
 
-    In your exported dataset, you will have four variables representing the field Race that will be set as 0 by default, coded 1 if the option was checked for a record. The variable names will consist of the field name. three underscores, and the choice value:
+    In your exported dataset, you will have four variables representing the field
+    Race that will be set as 0 by default, coded 1 if the option was checked for
+    a record. The variable names will consist of the field name, three underscores,
+    and the choice value:
 
     race___1
     race___2
@@ -268,12 +274,20 @@ def map_checkbox(field):
     Notes:
 
     when you import data into a checkbox field, you must code it based on the same model
-    negative values can be used as the raw coded values for checkbox fields. Due to certain limitations, negative values will not work when importing values using the Data Import Tool, API and cause problems when exporting data into a statistical analysis package. The workaround is that negative signs are replaced by an underscore in the export/import-specific version of the variable name (e.g., for a checkbox named "race", its choices "2" and "-2" would export as the fields
-    race___2
+    negative values can be used as the raw coded values for checkbox fields. Due to certain
+    limitations, negative values will not work when importing values using the
+    Data Import Tool, API and cause problems when exporting data into a statistical
+    analysis package. The workaround is that negative signs are replaced by an underscore
+    in the export/import-specific version of the variable name (e.g., for a checkbox
+    named "race", its choices "2" and "-2" would export as the fields
 
+    race___2
     race____2
 
-    A checkbox field can be thought of as a series of yes/no questions in one field. Therefore, a yes (check) is coded as 1 and a no (uncheck) is coded a 0. An unchecked response on a checkbox field is still regarded as an answer and is not considered missing.
+    A checkbox field can be thought of as a series of yes/no questions in one field.
+    Therefore, a yes (check) is coded as 1 and a no (uncheck) is coded a 0.
+    An unchecked response on a checkbox field is still regarded as an answer and
+    is not considered missing.
     """
     checkbox_name = field["name"]
     choices = utils.parse_dictionary_str(

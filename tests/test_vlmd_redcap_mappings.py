@@ -1,4 +1,5 @@
 import pytest
+
 from heal.vlmd.mappings.redcap_csv_headers import (
     choices_field_name,
     choices_label_input,
@@ -154,6 +155,7 @@ def test_map_text(input_string, expected_output_dict):
     ],
 )
 def test_map_integer_skip_calc(input_dict, expected_output_dict):
+    """Test that non-numeric (eg, calculated) min/max get skipped"""
     assert map_text(input_dict) == expected_output_dict
 
 

@@ -12,9 +12,9 @@ from os import PathLike
 
 import numpy as np
 import pandas as pd
-from cdislogging import get_logger
 
 import heal.vlmd.mappings.redcap_csv_headers as headers
+from cdislogging import get_logger
 from heal.vlmd.extract import utils
 from heal.vlmd.extract.json_dict_conversion import convert_template_json
 from heal.vlmd.mappings.redcap_field_mapping import type_mappings
