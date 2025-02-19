@@ -21,6 +21,8 @@ TRUEFALSE - radio buttons with true and false options; coded as 1, True | 0, Fal
 
 import re
 
+from cdislogging import get_logger
+
 from heal.vlmd.extract import utils
 from heal.vlmd.mappings.redcap_csv_headers import (
     calc_field_name,
@@ -29,6 +31,8 @@ from heal.vlmd.mappings.redcap_csv_headers import (
     slider_field_name,
     text_valid_field_name,
 )
+
+logger = get_logger("redcap-mapping", log_level="warning")
 
 
 def _parse_field_properties_from_encodings(encodings_string):
@@ -74,6 +78,8 @@ def map_text(field):
     Looks at the text validation field, defined by
     'text_valid_field_name' in 'redcap_csv_headers.py'
     """
+    integer_pattern = r"^-?\s*\d+\s*$"
+    number_pattern = r"^-?\s*\d+(\.\d+)?([eE][-+]?\d+)?\s*$"
     if field.get(text_valid_field_name):
         text_validation = field[text_valid_field_name].lower()
     else:
@@ -93,21 +99,59 @@ def map_text(field):
         field_format = "email"
     elif text_validation == "integer":
         field_type = "integer"
-        if field.get("text_valid_min"):
-            constraints_min = int(field.get("text_valid_min"))
-        if field.get("text_valid_max"):
-            constraints_max = int(field.get("text_valid_max"))
+        min_value = field.get("text_valid_min")
+        if min_value:
+            if re.match(integer_pattern, min_value):
+                constraints_min = int(min_value)
+            else:
+                warning_message = (
+                    f"Skipping conversion of min value '{min_value}' for field '"
+                    f"{field.get('name')}"
+                    "'"
+                )
+                logger.warning(warning_message)
+        max_value = field.get("text_valid_max")
+        if max_value:
+            if re.match(integer_pattern, max_value):
+                constraints_max = int(max_value)
+            else:
+                warning_message = (
+                    f"Skipping conversion of max value '{max_value}' for field '"
+                    f"{field.get('name')}"
+                    "'"
+                )
+                logger.warning(warning_message)
     elif text_validation == "alpha_only":
         field_type = "string"
         field_pattern = "^[a-zA-Z]+$"
     elif "number" in text_validation:
         field_type = "number"
-        if "comma_decimal" in text_validation:
-            fielddecimal_char = ","
-        if field.get("text_valid_min"):
-            constraints_min = float(field.get("text_valid_min"))
-        if field.get("text_valid_max"):
-            constraints_max = float(field.get("text_valid_max"))
+        min_value = field.get("text_valid_min")
+        if min_value:
+            if "comma_decimal" in text_validation:
+                min_value.replace(",", ".")
+            if re.match(number_pattern, min_value):
+                constraints_min = float(min_value)
+            else:
+                warning_message = (
+                    f"Skipping conversion of min value '{min_value}' for field '"
+                    f"{field.get('name')}"
+                    "'"
+                )
+                logger.warning(warning_message)
+        max_value = field.get("text_valid_max")
+        if max_value:
+            if "comma_decimal" in text_validation:
+                max_value = max_value.replace(",", ".")
+            if re.match(number_pattern, max_value):
+                constraints_max = float(max_value)
+            else:
+                warning_message = (
+                    f"Skipping conversion of max value '{max_value}' for field '"
+                    f"{field.get('name')}"
+                    "'"
+                )
+                logger.warning(warning_message)
     elif text_validation == "phone":
         field_type = "string"
         field_pattern = "^[0-9]{3}-[0-9]{3}-[0-9]{4}$"

@@ -104,6 +104,48 @@ def test_map_text(input_string, expected_output_dict):
     assert map_text(input_string) == expected_output_dict
 
 
+@pytest.mark.parametrize(
+    "input_dict, expected_output_dict",
+    [
+        (
+            {
+                "text_valid_slider_num": "integer",
+                "text_valid_min": "0",
+                "text_valid_max": "[calculated_value]",
+            },
+            {
+                "type": "integer",
+                "constraints": {"pattern": None, "min": 0, "max": None},
+            },
+        ),
+        (
+            {
+                "text_valid_slider_num": "number",
+                "text_valid_min": "[calculated_value]",
+                "text_valid_max": "2.2",
+            },
+            {
+                "type": "number",
+                "constraints": {"pattern": None, "min": None, "max": 2.2},
+            },
+        ),
+        (
+            {
+                "text_valid_slider_num": "number, comma_decimal",
+                "text_valid_min": "[calculated_value]",
+                "text_valid_max": "2,2",
+            },
+            {
+                "type": "number",
+                "constraints": {"pattern": None, "min": None, "max": 2.2},
+            },
+        ),
+    ],
+)
+def test_map_integer_skip_calc(input_dict, expected_output_dict):
+    assert map_text(input_dict) == expected_output_dict
+
+
 def test_map_dropdown_with_error():
     """Test that map_dropdown raises error with empty Choices field"""
     input_row = {

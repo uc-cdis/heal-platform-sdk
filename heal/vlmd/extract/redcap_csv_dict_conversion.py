@@ -57,51 +57,55 @@ def rename_and_fill(source_dataframe) -> list[dict]:
     return source_dataframe.to_dict(orient="records")
 
 
+def _add_description(source_field, target_field):
+    if source_field.get("label"):
+        field_label = source_field["label"].strip()
+    else:
+        field_label = ""
+
+    if source_field.get("section"):
+        field_section = source_field["section"].strip() + ": "
+    else:
+        field_section = ""
+
+    if target_field.get("description"):
+        field_description = target_field["description"].strip()
+    else:
+        field_description = ""
+
+    field_description = utils.strip_html(
+        (field_section + field_label + field_description).strip()
+    )
+    if field_description:
+        return field_description
+    else:
+        return "No field label for this variable"
+
+
+def _add_title(source_field, target_field):
+    target_title = target_field.get("title", "")
+
+    if target_title:
+        return target_title
+    elif source_field.get("label"):
+        return target_title + utils.strip_html(source_field["label"].strip())
+    else:
+        return "No field label for this variable"
+
+
+def _add_section(source_field):
+    if source_field.get("form"):
+        return source_field["form"]
+
+
+def _add_metadata(source_field, target_field):
+    target_field["description"] = _add_description(source_field, target_field)
+    target_field["title"] = _add_title(source_field, target_field)
+    target_field["section"] = _add_section(source_field)
+
+
 def gather(source_fields: list[dict]) -> list[dict]:
     """Maps and translates fields from redcap to heal json"""
-
-    def __add_description(source_field, target_field):
-        if source_field.get("label"):
-            field_label = source_field["label"].strip()
-        else:
-            field_label = ""
-
-        if source_field.get("section"):
-            field_section = source_field["section"].strip() + ": "
-        else:
-            field_section = ""
-
-        if target_field.get("description"):
-            field_description = target_field["description"].strip()
-        else:
-            field_description = ""
-
-        field_description = utils.strip_html(
-            (field_section + field_label + field_description).strip()
-        )
-        if field_description:
-            return field_description
-        else:
-            return "No field label for this variable"
-
-    def __add_title(source_field, target_field):
-        target_title = target_field.get("title", "")
-
-        if target_title:
-            return target_title
-        elif source_field.get("label"):
-            return target_title + utils.strip_html(source_field["label"].strip())
-        else:
-            return "No field label for this variable"
-
-    def __add_section(source_field):
-        if source_field.get("form"):
-            return source_field["form"]
-
-    def _add_metadata(source_field, target_field):
-        target_field["description"] = __add_description(source_field, target_field)
-        target_field["title"] = __add_title(source_field, target_field)
-        target_field["section"] = __add_section(source_field)
 
     source_data_fields = [
         field for field in source_fields if field["type"] in list(type_mappings)

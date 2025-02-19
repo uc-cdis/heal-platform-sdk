@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import pytest
 from heal.vlmd.extract.redcap_csv_dict_conversion import (
     convert_redcap_csv,
@@ -175,3 +176,18 @@ def test_convert_redcap_csv_bad_input():
         "Input should be either dataframe or path to REDCap dictionary csv export"
     )
     assert expected_message in str(err.value)
+
+
+def test_convert_failed_mapping():
+    """Test that converted raises a value error on failed mapping"""
+    expected_message = "some mapping exception"
+    with patch(
+        "heal.vlmd.extract.redcap_csv_dict_conversion._add_metadata"
+    ) as mock_mappings:
+        mock_mappings.side_effect = Exception("some mapping exception")
+        with pytest.raises(ValueError) as err:
+            result = gather(valid_redcap_source_fields)
+            print(f"Result {result}")
+
+        mock_mappings.assert_called()
+        assert expected_message in str(err.value)
