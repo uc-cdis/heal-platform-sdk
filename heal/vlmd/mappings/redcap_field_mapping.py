@@ -184,8 +184,8 @@ def map_text(field):
                 field_format,
                 {
                     "pattern": field_pattern,
-                    "min": constraints_min,
-                    "max": constraints_max,
+                    "minimum": constraints_min,
+                    "maximum": constraints_max,
                 },
             ],
         )
@@ -201,16 +201,15 @@ def map_text(field):
 
 
 def map_notes(field):
-    """NOTES
-    large text box for lots of text
+    """
+    NOTES - large text box for lots of text
     """
     return {"type": "string"}
 
 
 def map_dropdown(field):
     """
-    DROPDOWN
-    dropdown menu with options
+    DROPDOWN - dropdown menu with options
 
     Determined by "options" (ie Choices, Calculations, OR Slider Labels)
     """
@@ -227,10 +226,9 @@ def map_dropdown(field):
 
 def map_radio(field):
     """
-    RADIO	- radio buttons with options
+    RADIO - radio buttons with options
 
     Determined by "options" (ie Choices, Calculations, OR Slider Labels)
-
     """
     encodings_string = field[choices_field_name]
     if not encodings_string:
@@ -246,7 +244,6 @@ def map_radio(field):
 def map_checkbox(field):
     """
     CHECKBOX	- checkboxes to allow selection of more than one option
-
 
     ## Are data from checkbox (choose all that apply) field types handled differently from other field types when imported or exported?
     Yes. When your data are exported, each option from a checkbox field becomes a separate variable coded 1 or 0 to reflect whether it is checked or unchecked. By default, each option is pre-coded 0, so even if you have not yet collected any data, you will see 0's for each checkbox option. The variable names will be the name of the field followed by the option number. So, for example, if you have a field coded as follows:

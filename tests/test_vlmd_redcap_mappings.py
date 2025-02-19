@@ -35,14 +35,14 @@ def test_parse_field_properties():
             {
                 "type": "date",
                 "format": "any",
-                "constraints": {"pattern": None, "min": None, "max": None},
+                "constraints": {"pattern": None, "minimum": None, "maximum": None},
             },
         ),
         (
             {"name": "some_field_name", "text_valid_slider_num": ""},
             {
                 "type": "string",
-                "constraints": {"pattern": None, "min": None, "max": None},
+                "constraints": {"pattern": None, "minimum": None, "maximum": None},
             },
         ),
         (
@@ -50,7 +50,7 @@ def test_parse_field_properties():
             {
                 "type": "string",
                 "format": "email",
-                "constraints": {"pattern": None, "min": None, "max": None},
+                "constraints": {"pattern": None, "minimum": None, "maximum": None},
             },
         ),
         (
@@ -59,13 +59,20 @@ def test_parse_field_properties():
                 "text_valid_min": "0",
                 "text_valid_max": "9",
             },
-            {"type": "integer", "constraints": {"pattern": None, "min": 0, "max": 9}},
+            {
+                "type": "integer",
+                "constraints": {"pattern": None, "minimum": 0, "maximum": 9},
+            },
         ),
         (
             {"text_valid_slider_num": "alpha_only"},
             {
                 "type": "string",
-                "constraints": {"pattern": "^[a-zA-Z]+$", "min": None, "max": None},
+                "constraints": {
+                    "pattern": "^[a-zA-Z]+$",
+                    "minimum": None,
+                    "maximum": None,
+                },
             },
         ),
         (
@@ -76,7 +83,7 @@ def test_parse_field_properties():
             },
             {
                 "type": "number",
-                "constraints": {"pattern": None, "min": 1.1, "max": 2.2},
+                "constraints": {"pattern": None, "minimum": 1.1, "maximum": 2.2},
             },
         ),
         (
@@ -85,8 +92,8 @@ def test_parse_field_properties():
                 "type": "string",
                 "constraints": {
                     "pattern": "^[0-9]{3}-[0-9]{3}-[0-9]{4}$",
-                    "min": None,
-                    "max": None,
+                    "minimum": None,
+                    "maximum": None,
                 },
             },
         ),
@@ -94,7 +101,11 @@ def test_parse_field_properties():
             {"text_valid_slider_num": "zipcode"},
             {
                 "type": "string",
-                "constraints": {"pattern": "^[0-9]{5}$", "min": None, "max": None},
+                "constraints": {
+                    "pattern": "^[0-9]{5}$",
+                    "minimum": None,
+                    "maximum": None,
+                },
             },
         ),
     ],
@@ -115,7 +126,7 @@ def test_map_text(input_string, expected_output_dict):
             },
             {
                 "type": "integer",
-                "constraints": {"pattern": None, "min": 0, "max": None},
+                "constraints": {"pattern": None, "minimum": 0, "maximum": None},
             },
         ),
         (
@@ -126,7 +137,7 @@ def test_map_text(input_string, expected_output_dict):
             },
             {
                 "type": "number",
-                "constraints": {"pattern": None, "min": None, "max": 2.2},
+                "constraints": {"pattern": None, "minimum": None, "maximum": 2.2},
             },
         ),
         (
@@ -137,7 +148,7 @@ def test_map_text(input_string, expected_output_dict):
             },
             {
                 "type": "number",
-                "constraints": {"pattern": None, "min": None, "max": 2.2},
+                "constraints": {"pattern": None, "minimum": None, "maximum": 2.2},
             },
         ),
     ],
