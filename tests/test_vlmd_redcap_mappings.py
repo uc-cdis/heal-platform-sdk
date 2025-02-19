@@ -1,8 +1,8 @@
 import pytest
 
 from heal.vlmd.mappings.redcap_csv_headers import (
-    choices_field_name,
-    choices_label_input,
+    CHOICES_FIELD_NAME,
+    CHOICES_LABEL_INPUT,
 )
 from heal.vlmd.mappings.redcap_field_mapping import (
     _parse_field_properties_from_encodings,
@@ -163,12 +163,12 @@ def test_map_dropdown_with_error():
     """Test that map_dropdown raises error with empty Choices field"""
     input_row = {
         "name": "some_field_name",
-        choices_field_name: "",
+        CHOICES_FIELD_NAME: "",
     }
     expected_message = (
         "Missing value in dropdown field '"
         f"{input_row.get('name')}"
-        f"' in column '{choices_label_input}'."
+        f"' in column '{CHOICES_LABEL_INPUT}'."
     )
     with pytest.raises(ValueError) as err:
         map_dropdown(input_row)
@@ -179,12 +179,12 @@ def test_map_radio_with_error():
     """Test that map_radio raises error with empty Choices field"""
     input_row = {
         "name": "some_field_name",
-        choices_field_name: "",
+        CHOICES_FIELD_NAME: "",
     }
     expected_message = (
         "Missing value in radio field '"
         f"{input_row.get('name')}"
-        f"' in column '{choices_label_input}'."
+        f"' in column '{CHOICES_LABEL_INPUT}'."
     )
     with pytest.raises(ValueError) as err:
         map_radio(input_row)

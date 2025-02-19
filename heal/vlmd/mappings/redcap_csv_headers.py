@@ -17,9 +17,9 @@ mapping = {
     "Matrix Group Name": "matrix_group",
 }
 
-choices_label_input = "Choices, Calculations, OR Slider Labels"
-choices_field_name = slider_field_name = calc_field_name = mapping[choices_label_input]
-text_valid_field_name = mapping["Text Validation Type OR Show Slider Number"]
+CHOICES_LABEL_INPUT = "Choices, Calculations, OR Slider Labels"
+CHOICES_FIELD_NAME = SLIDER_FIELD_NAME = CALC_FIELD_NAME = mapping[CHOICES_LABEL_INPUT]
+TEXT_VALID_FIELD_NAME = mapping["Text Validation Type OR Show Slider Number"]
 
 # This document lists 'Field Label' as required but Google AI excludes it
 # https://ws.engr.illinois.edu/sitemanager/getfile.asp?id=1365

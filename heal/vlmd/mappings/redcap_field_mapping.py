@@ -25,11 +25,11 @@ from cdislogging import get_logger
 
 from heal.vlmd.extract import utils
 from heal.vlmd.mappings.redcap_csv_headers import (
-    calc_field_name,
-    choices_field_name,
-    choices_label_input,
-    slider_field_name,
-    text_valid_field_name,
+    CALC_FIELD_NAME,
+    CHOICES_FIELD_NAME,
+    CHOICES_LABEL_INPUT,
+    SLIDER_FIELD_NAME,
+    TEXT_VALID_FIELD_NAME,
 )
 
 logger = get_logger("redcap-mapping", log_level="warning")
@@ -76,12 +76,12 @@ def map_text(field):
     TEXT - single-line text box (for text and numbers)
 
     Looks at the text validation field, defined by
-    'text_valid_field_name' in 'redcap_csv_headers.py'
+    'TEXT_VALID_FIELD_NAME' in 'redcap_csv_headers.py'
     """
     integer_pattern = r"^-?\s*\d+\s*$"
     number_pattern = r"^-?\s*\d+(\.\d+)?([eE][-+]?\d+)?\s*$"
-    if field.get(text_valid_field_name):
-        text_validation = field[text_valid_field_name].lower()
+    if field.get(TEXT_VALID_FIELD_NAME):
+        text_validation = field[TEXT_VALID_FIELD_NAME].lower()
     else:
         text_validation = ""
     field_format = None
@@ -213,12 +213,12 @@ def map_dropdown(field):
 
     Determined by "options" (ie Choices, Calculations, OR Slider Labels)
     """
-    encodings_string = field[choices_field_name]
+    encodings_string = field[CHOICES_FIELD_NAME]
     if not encodings_string:
         error_message = (
             "Missing value in dropdown field '"
             f"{field.get('name')}"
-            f"' in column '{choices_label_input}'."
+            f"' in column '{CHOICES_LABEL_INPUT}'."
         )
         raise ValueError(error_message)
     return _parse_field_properties_from_encodings(encodings_string)
@@ -230,12 +230,12 @@ def map_radio(field):
 
     Determined by "options" (ie Choices, Calculations, OR Slider Labels)
     """
-    encodings_string = field[choices_field_name]
+    encodings_string = field[CHOICES_FIELD_NAME]
     if not encodings_string:
         error_message = (
             "Missing value in radio field '"
             f"{field.get('name')}"
-            f"' in column '{choices_label_input}'."
+            f"' in column '{CHOICES_LABEL_INPUT}'."
         )
         raise ValueError(error_message)
     return _parse_field_properties_from_encodings(encodings_string)
@@ -291,7 +291,7 @@ def map_checkbox(field):
     """
     checkbox_name = field["name"]
     choices = utils.parse_dictionary_str(
-        field[choices_field_name], item_sep="|", key_val_sep=","
+        field[CHOICES_FIELD_NAME], item_sep="|", key_val_sep=","
     )
     field_type = "boolean"
     field_enums = ["0", "1"]
@@ -320,7 +320,7 @@ def map_file(field):
 
 
 def map_calc(field):
-    return {"description": f"[calculation: {field[calc_field_name]}]", "type": "number"}
+    return {"description": f"[calculation: {field[CALC_FIELD_NAME]}]", "type": "number"}
 
 
 def map_sql(field):
@@ -345,7 +345,7 @@ def map_true_false(field):
 
 def map_slider(field):
     vallist = ["0", "50", "100"]
-    lbllist = utils.parse_list_str(field[slider_field_name], "|")
+    lbllist = utils.parse_list_str(field[SLIDER_FIELD_NAME], "|")
     field_encodings = {vallist[i]: lbl for i, lbl in enumerate(lbllist)}
     return {
         "type": "integer",
