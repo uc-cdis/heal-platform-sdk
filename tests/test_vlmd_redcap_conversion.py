@@ -3,13 +3,15 @@ from unittest.mock import patch
 import pytest
 
 from heal.vlmd.extract.redcap_csv_dict_conversion import (
+    _add_description,
+    _add_title,
     convert_redcap_csv,
     gather,
     read_from_file,
     rename_and_fill,
 )
 
-valid_redcap_source_fields = [
+VALID_REDCAP_SOURCE_FIELDS = [
     {
         "name": "study_id",
         "form": "demographics",
@@ -107,7 +109,7 @@ def test_rename_and_fill():
     """Test rename_and_fill"""
 
     input_path = "tests/test_data/vlmd/valid/vlmd_redcap_dict_small.csv"
-    expected_renamed_columns = valid_redcap_source_fields[0].keys()
+    expected_renamed_columns = VALID_REDCAP_SOURCE_FIELDS[0].keys()
 
     # read the test file
     source_dataframe = read_from_file(input_path)
@@ -144,7 +146,7 @@ def test_gather():
         "constraints",
     ]
 
-    target_fields = gather(valid_redcap_source_fields)
+    target_fields = gather(VALID_REDCAP_SOURCE_FIELDS)
     # check keys
     assert set(target_fields[0].keys()) == set(expected_target_fields)
 
@@ -188,8 +190,65 @@ def test_convert_failed_mapping():
     ) as mock_mappings:
         mock_mappings.side_effect = Exception("some mapping exception")
         with pytest.raises(ValueError) as err:
-            result = gather(valid_redcap_source_fields)
+            result = gather(VALID_REDCAP_SOURCE_FIELDS)
             print(f"Result {result}")
 
         mock_mappings.assert_called()
         assert expected_message in str(err.value)
+
+
+@pytest.mark.parametrize(
+    "source_field, target_field, expected_description",
+    [
+        (
+            {
+                "name": "height",
+                "section": "Demographics",
+                "label": "Source Height (cm)",
+            },
+            {"type": "number", "description": "Subject height"},
+            "Demographics: Source Height (cm)Subject height",
+        ),
+        (
+            {
+                "name": "height",
+                "section": "Demographics",
+                "label": "Source Height (cm)",
+            },
+            {
+                "type": "number",
+            },
+            "Demographics: Source Height (cm)",
+        ),
+        (
+            {"name": "height", "label": "Source Height (cm)"},
+            {"type": "number", "description": "Subject height"},
+            "Source Height (cm)Subject height",
+        ),
+        ({"name": "height"}, {"type": "number"}, "No field label for this variable"),
+    ],
+)
+def test_add_description(source_field, target_field, expected_description):
+    """Test the add_title method"""
+    assert _add_description(source_field, target_field) == expected_description
+
+
+@pytest.mark.parametrize(
+    "source_field, target_field, expected_title",
+    [
+        (
+            {"name": "height", "label": "Source Height (cm)"},
+            {"type": "number"},
+            "Source Height (cm)",
+        ),
+        (
+            {"name": "height", "label": "Height (cm)"},
+            {"type": "number", "title": "Target Height (cm)"},
+            "Target Height (cm)",
+        ),
+        ({"name": "height"}, {"type": "number"}, "No field label for this variable"),
+    ],
+)
+def test_add_title(source_field, target_field, expected_title):
+    """Test the add_title method"""
+    assert _add_title(source_field, target_field) == expected_title
