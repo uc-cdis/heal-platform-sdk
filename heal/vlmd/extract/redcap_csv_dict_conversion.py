@@ -45,15 +45,14 @@ def rename_and_fill(source_dataframe) -> list[dict]:
         .map(utils.strip_html)
     )
 
-    # TODO: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version.
-    # To retain the old behavior, explicitly call `result.infer_objects(copy=False)`.
-    # To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
-
     # downfill section (if blank -- given we read in with petl, blanks are "" but ffill takes in np.nan)
     source_dataframe["section"] = (
         source_dataframe.replace({"": np.nan}).groupby("form")["section"].ffill()
     )
-    source_dataframe.fillna("", inplace=True)
+    # Recover any remaining np.nan (ie, not converted by 'ffill') back to "".
+    # Include the 'infer_objects' method as described here
+    # https://pandas.pydata.org/docs/whatsnew/v2.2.0.html#deprecated-automatic-downcasting
+    source_dataframe = source_dataframe.fillna("").infer_objects(copy=False)
     return source_dataframe.to_dict(orient="records")
 
 
