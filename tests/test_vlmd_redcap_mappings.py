@@ -25,7 +25,7 @@ def test_parse_field_properties():
 
 
 @pytest.mark.parametrize(
-    "input_string, expected_output_dict",
+    "input_dict, expected_output_dict",
     [
         (
             {
@@ -111,9 +111,9 @@ def test_parse_field_properties():
         ),
     ],
 )
-def test_map_text(input_string, expected_output_dict):
+def test_map_text(input_dict, expected_output_dict):
     """Test mapping function map_text"""
-    assert map_text(input_string) == expected_output_dict
+    assert map_text(input_dict) == expected_output_dict
 
 
 @pytest.mark.parametrize(

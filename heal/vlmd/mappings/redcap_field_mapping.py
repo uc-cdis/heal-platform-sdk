@@ -35,7 +35,7 @@ from heal.vlmd.mappings.redcap_csv_headers import (
 logger = get_logger("redcap-mapping", log_level="warning")
 
 
-def _parse_field_properties_from_encodings(encodings_string):
+def _parse_field_properties_from_encodings(encodings_string: str) -> dict:
     """
     Many of the field types have the same logic
     for conversion to data types and just differ
@@ -71,7 +71,7 @@ def _parse_field_properties_from_encodings(encodings_string):
     }
 
 
-def map_text(field):
+def map_text(field: dict) -> dict:
     """
     TEXT - single-line text box (for text and numbers)
 
@@ -200,14 +200,14 @@ def map_text(field):
     return props
 
 
-def map_notes(field):
+def map_notes(field: dict) -> dict:
     """
     NOTES - large text box for lots of text
     """
     return {"type": "string"}
 
 
-def map_dropdown(field):
+def map_dropdown(field: dict) -> dict:
     """
     DROPDOWN - dropdown menu with options
 
@@ -224,7 +224,7 @@ def map_dropdown(field):
     return _parse_field_properties_from_encodings(encodings_string)
 
 
-def map_radio(field):
+def map_radio(field: dict) -> dict:
     """
     RADIO - radio buttons with options
 
@@ -241,7 +241,7 @@ def map_radio(field):
     return _parse_field_properties_from_encodings(encodings_string)
 
 
-def map_checkbox(field):
+def map_checkbox(field: dict) -> dict:
     """
     CHECKBOX	- checkboxes to allow selection of more than one option
 
@@ -315,19 +315,19 @@ def map_checkbox(field):
     return fields_new
 
 
-def map_file(field):
+def map_file(field: dict) -> dict:
     return {"type": "string"}
 
 
-def map_calc(field):
+def map_calc(field: dict) -> dict:
     return {"description": f"[calculation: {field[CALC_FIELD_NAME]}]", "type": "number"}
 
 
-def map_sql(field):
+def map_sql(field: dict):
     return None
 
 
-def map_yes_no(field):
+def map_yes_no(field: dict) -> dict:
     return {
         "type": "boolean",
         "constraints": {"enum": ["0", "1"]},
@@ -335,7 +335,7 @@ def map_yes_no(field):
     }
 
 
-def map_true_false(field):
+def map_true_false(field: dict) -> dict:
     return {
         "type": "boolean",
         "constraints": {"enum": ["0", "1"]},
@@ -343,7 +343,7 @@ def map_true_false(field):
     }
 
 
-def map_slider(field):
+def map_slider(field: dict) -> dict:
     vallist = ["0", "50", "100"]
     lbllist = utils.parse_list_str(field[SLIDER_FIELD_NAME], "|")
     field_encodings = {vallist[i]: lbl for i, lbl in enumerate(lbllist)}
@@ -354,7 +354,7 @@ def map_slider(field):
     }
 
 
-def map_descriptive(field):
+def map_descriptive(field: dict):
     return None
 
 
