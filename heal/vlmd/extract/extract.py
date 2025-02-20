@@ -66,11 +66,6 @@ def vlmd_extract(
         logger.error(message)
         raise ExtractionError(message)
 
-    if file_type != "json" and output_type == "json" and title is None:
-        message = f"Title must be supplied when extracting from non-json to json"
-        logger.error(message)
-        raise ExtractionError(message)
-
     logger.debug(f"File type is set to '{file_type}'")
     # validate
     try:
@@ -85,15 +80,33 @@ def vlmd_extract(
         logger.error(e)
         raise ExtractionError(str(e))
 
+    instrument_title = None
+    if output_type == "json":
+        standards_mappings = converted_dictionary.get("standardsMappings")
+        if standards_mappings and len(standards_mappings) >= 1:
+            instrument_title = standards_mappings[0].get("instrument").get("title")
+
+        # non-json input files should have a title or standardsMapping
+        # when converting to json
+        if file_type != "json" and title is None and instrument_title is None:
+            message = "Title must be supplied when extracting from non-json to json"
+            logger.error(message)
+            raise ExtractionError(message)
+
+        if title:
+            logger.debug(f"JSON dictionary setting user-defined title '{title}'")
+            converted_dictionary["title"] = title
+        else:
+            logger.debug(f"JSON dictionary has instrument title '{instrument_title}'")
+            # remove the default title (from config) introduced by validate
+            del converted_dictionary["title"]
+
     # write to file
     output_filepath = get_output_filepath(
         output_dir, input_file, output_type=output_type
     )
     logger.info(f"Writing converted dictionary to {output_filepath}")
     try:
-        if output_type == "json":
-            logger.debug(f"JSON dictionary setting user-defined title '{title}'")
-            converted_dictionary["title"] = title
         write_vlmd_dict(converted_dictionary, output_filepath, file_type=output_type)
     except Exception as err:
         logger.error("Error in writing converted dictionary")

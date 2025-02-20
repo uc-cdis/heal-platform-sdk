@@ -105,12 +105,43 @@ def test_extract_unallowed_output():
 
 
 def test_extract_missing_title():
-    """Title should be supplied when converting non-json to json"""
+    """
+    Title should be supplied when converting from non-json to json,
+    unless the data contains standardsMappings.instrument.title
+    """
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
-    with pytest.raises(ExtractionError) as err:
-        vlmd_extract(input_file, file_type="csv", output_type="json")
+    with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
+        mock_validate.return_value = {
+            "schemaVersion": "0.3.2",
+            "title": "default title from config - not a user supplied title",
+            "fields": [],
+        }
+        with pytest.raises(ExtractionError) as err:
+            vlmd_extract(input_file, file_type="csv", output_type="json")
     expected_message = "Title must be supplied when extracting from non-json to json"
     assert expected_message in str(err.value)
+
+    # no error from extract for missing title when the json dictionary
+    # has a standardsMapping.instrument.title (like from CDEs)
+    with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate, patch(
+        "heal.vlmd.extract.extract.write_vlmd_dict"
+    ) as mock_write:
+        mock_validate.return_value = {
+            "schemaVersion": "0.3.2",
+            "title": "default title from config - not a user supplied title",
+            "standardsMappings": [
+                {
+                    "instrument": {
+                        "title": "Instrument Test Title",
+                        "id": "1234",
+                        "url": "https://theurl",
+                    }
+                }
+            ],
+            "fields": [],
+        }
+        mock_write.return_value = True
+        vlmd_extract(input_file, file_type="csv", output_type="json")
 
 
 def test_extract_failed_dict_write():
