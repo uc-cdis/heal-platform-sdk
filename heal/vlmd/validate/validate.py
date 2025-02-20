@@ -75,7 +75,6 @@ def vlmd_validate(
         logger.error(message)
         raise ValueError(message)
 
-    # TODO: review this logic below to also include checks on file_type
     file_suffix = Path(input_file).suffix.replace(".", "")
     if file_suffix not in ALLOWED_INPUT_TYPES:
         message = f"Input file must be one of {ALLOWED_INPUT_TYPES}"
@@ -102,7 +101,6 @@ def vlmd_validate(
         logger.error(message)
         raise ValueError(message)
 
-    # TODO: We need this for csv - see if we can add this to get_schema
     if file_suffix in ["csv", "tsv"]:
         schema = add_types_to_props(schema)
     logger.debug("Checking schema")
@@ -168,7 +166,6 @@ def vlmd_validate(
         )
         schema = get_schema(converted_dictionary, schema_type=output_type)
         if output_type == "csv":
-            # TODO: see if we can add this to get_schema
             schema = add_types_to_props(schema)
         if schema is None:
             message = f"Could not get schema for type = {schema_type}"
