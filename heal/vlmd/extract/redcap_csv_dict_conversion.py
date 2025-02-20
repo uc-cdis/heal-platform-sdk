@@ -56,7 +56,7 @@ def rename_and_fill(source_dataframe) -> list[dict]:
     return source_dataframe.to_dict(orient="records")
 
 
-def _add_description(source_field, target_field):
+def _add_description(source_field: dict, target_field: dict) -> str:
     if source_field.get("label"):
         field_label = source_field["label"].strip()
     else:
@@ -81,7 +81,7 @@ def _add_description(source_field, target_field):
         return "No field label for this variable"
 
 
-def _add_title(source_field, target_field):
+def _add_title(source_field: dict, target_field: dict) -> str:
     target_title = target_field.get("title", "")
 
     if target_title:
@@ -92,12 +92,12 @@ def _add_title(source_field, target_field):
         return "No field label for this variable"
 
 
-def _add_section(source_field):
+def _add_section(source_field: dict):
     if source_field.get("form"):
         return source_field["form"]
 
 
-def _add_metadata(source_field, target_field):
+def _add_metadata(source_field: dict, target_field: dict):
     target_field["description"] = _add_description(source_field, target_field)
     target_field["title"] = _add_title(source_field, target_field)
     target_field["section"] = _add_section(source_field)
