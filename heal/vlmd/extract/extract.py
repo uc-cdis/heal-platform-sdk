@@ -97,9 +97,11 @@ def vlmd_extract(
             logger.debug(f"JSON dictionary setting user-defined title '{title}'")
             converted_dictionary["title"] = title
         else:
-            logger.debug(f"JSON dictionary has instrument title '{instrument_title}'")
+            logger.debug(
+                f"JSON dictionary setting title to instrument title '{instrument_title}'"
+            )
             # remove the default title (from config) introduced by validate
-            del converted_dictionary["title"]
+            converted_dictionary["title"] = instrument_title
 
     # write to file
     output_filepath = get_output_filepath(
