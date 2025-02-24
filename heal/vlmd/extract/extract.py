@@ -1,3 +1,4 @@
+import os
 from os.path import isfile
 from pathlib import Path
 
@@ -9,7 +10,10 @@ from heal.vlmd.config import (
     ALLOWED_INPUT_TYPES,
     ALLOWED_OUTPUT_TYPES,
 )
+from heal.vlmd.extract.conversion import convert_to_vlmd
 from heal.vlmd.file_utils import get_output_filepath, write_vlmd_dict
+from heal.vlmd.validate.validate import file_type_to_fxn_map
+
 
 logger = get_logger("extract", log_level="debug")
 
@@ -69,16 +73,51 @@ def vlmd_extract(
     logger.debug(f"File type is set to '{file_type}'")
     # validate
     try:
+        # csv files are converted as part of validate
         converted_dictionary = vlmd_validate(
             input_file,
             file_type=file_type,
             output_type=output_type,
             return_converted_output=True,
         )
+        logger.debug("Converted dict")
     except Exception as e:
         logger.error(f"Error in validating and extracting dictionary from {input_file}")
         logger.error(e)
         raise ExtractionError(str(e))
+
+    # input json file require explicit conversion and post validation steps
+    if file_type == "json":
+        file_convert_function = file_type_to_fxn_map.get(file_type)
+        data_dictionary_props = {}
+        try:
+            logger.debug("Ready to convert json input to VLMD")
+            data_dictionaries = convert_to_vlmd(
+                input_filepath=input_file,
+                input_type=file_convert_function,
+                data_dictionary_props=data_dictionary_props,
+            )
+            if output_type == "json":
+                converted_dictionary = data_dictionaries["template_json"]
+                logger.debug(
+                    f"Ready to validate converted dict with output type '{output_type}'"
+                )
+                logger.debug(
+                    f"Data is pathlike {isinstance(converted_dictionary, (str, os.PathLike))}"
+                )
+                is_valid = vlmd_validate(
+                    converted_dictionary,
+                    file_type=file_type,
+                    output_type=output_type,
+                    return_converted_output=False,
+                )
+                logger.debug(f"Converted dictionary is valid: {is_valid}")
+            else:
+                converted_dictionary = data_dictionaries["template_csv"]["fields"]
+        except Exception as e:
+            logger.error(f"Error in extracting JSON dictionary from {input_file}")
+            logger.error(e)
+            raise ExtractionError(str(e))
 
     instrument_title = None
     if output_type == "json":
@@ -96,11 +135,10 @@ def vlmd_extract(
         if title:
             logger.debug(f"JSON dictionary setting user-defined title '{title}'")
             converted_dictionary["title"] = title
-        else:
+        elif file_type != "json" and instrument_title is not None:
             logger.debug(
                 f"JSON dictionary setting title to instrument title '{instrument_title}'"
             )
-            # remove the default title (from config) introduced by validate
             converted_dictionary["title"] = instrument_title
 
     # write to file

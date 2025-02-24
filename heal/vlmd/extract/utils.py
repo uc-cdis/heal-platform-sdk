@@ -143,12 +143,23 @@ def flatten_to_json_path(dictionary, schema, parent_key=False, sep="."):
     items = []
     for key, value in dictionary.items():
         new_key = str(parent_key) + sep + key if parent_key else key
+        try:
+            prop = schema["properties"]
+        except:
+            message = f"Missing key: 'properties' in prop {prop}"
+            raise KeyError(message)
         prop = schema["properties"].get(key, {})
         childprops = prop.get("properties")
         child_item_props = prop.get("items", {}).get("properties")
 
         if child_item_props:
             for i, _value in enumerate(value):
+                # check that child prop has properties
+                try:
+                    prop["properties"]
+                except:
+                    message = f"Missing key 'properties' in child prop: {_value}"
+                    raise KeyError(message)
                 item = flatten_to_json_path(
                     dictionary=_value,
                     schema=prop,
