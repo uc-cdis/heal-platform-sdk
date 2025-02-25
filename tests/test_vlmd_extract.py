@@ -121,18 +121,27 @@ def test_extract_missing_title():
     expected_message = "Title must be supplied when extracting from non-json to json"
     assert expected_message in str(err.value)
 
-    # no error from extract for missing title when the json dictionary
-    # has a standardsMapping.instrument.title (like from CDEs)
+
+def test_get_title_from_standards_mapping(tmp_path):
+    """
+    If a CSV input has standardsMapping.title then use that
+    for title and don't raise an error
+    """
+    input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
+    output_file_name = f"{tmp_path}/output_with_title"
+    test_title = "Instrument Test Title"
     with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate, patch(
-        "heal.vlmd.extract.extract.write_vlmd_dict"
-    ) as mock_write:
+        "heal.vlmd.extract.extract.get_output_filepath"
+    ) as mock_output_filepath:
+        # converted CSV has a standardsMappings title
+        # and a default title from config
         mock_validate.return_value = {
             "schemaVersion": "0.3.2",
             "title": "default title from config - not a user supplied title",
             "standardsMappings": [
                 {
                     "instrument": {
-                        "title": "Instrument Test Title",
+                        "title": test_title,
                         "id": "1234",
                         "url": "https://theurl",
                     }
@@ -140,8 +149,26 @@ def test_extract_missing_title():
             ],
             "fields": [],
         }
-        mock_write.return_value = True
-        vlmd_extract(input_file, file_type="csv", output_type="json")
+        mock_output_filepath.return_value = output_file_name
+        # call extract without title - get title from standardsMappings
+        result = vlmd_extract(input_file, file_type="csv", output_type="json")
+        assert result
+        assert os.path.isfile(output_file_name)
+        with open(output_file_name, "r") as json_file:
+            data = json.load(json_file)
+        assert "standardsMappings" in data.keys()
+        assert data["title"] == test_title
+
+        # call extract with a title so we don't use the standardsMappings title
+        result = vlmd_extract(
+            input_file, title="Some other title", file_type="csv", output_type="json"
+        )
+        assert result
+        assert os.path.isfile(output_file_name)
+        with open(output_file_name, "r") as json_file:
+            data = json.load(json_file)
+        assert "standardsMappings" in data.keys()
+        assert data["title"] == "Some other title"
 
 
 def test_extract_failed_dict_write():
