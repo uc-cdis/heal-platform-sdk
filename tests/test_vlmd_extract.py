@@ -110,6 +110,7 @@ def test_extract_missing_title():
     unless the data contains standardsMappings.instrument.title
     """
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
+    # missing standardsMapping
     with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
         mock_validate.return_value = {
             "schemaVersion": "0.3.2",
@@ -121,10 +122,31 @@ def test_extract_missing_title():
     expected_message = "Title must be supplied when extracting from non-json to json"
     assert expected_message in str(err.value)
 
+    # have standardsMapping, but no instrument
+    with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
+        mock_validate.return_value = {
+            "schemaVersion": "0.3.2",
+            "title": "default title from config - not a user supplied title",
+            "standardsMappings": [
+                {
+                    "some other field, not instrument": {
+                        "title": test_title,
+                        "id": "1234",
+                        "url": "https://theurl",
+                    }
+                }
+            ],
+            "fields": [],
+        }
+        with pytest.raises(ExtractionError) as err:
+            vlmd_extract(input_file, file_type="csv", output_type="json")
+    expected_message = "Title must be supplied when extracting from non-json to json"
+    assert expected_message in str(err.value)
+
 
 def test_get_title_from_standards_mapping(tmp_path):
     """
-    If a CSV input has standardsMapping.title then use that
+    If a CSV input has standardsMapping.instrument.title then use that
     for title and don't raise an error
     """
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"

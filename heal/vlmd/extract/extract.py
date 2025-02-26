@@ -18,6 +18,40 @@ from heal.vlmd.validate.validate import file_type_to_fxn_map
 logger = get_logger("extract", log_level="debug")
 
 
+def set_title_if_missing(file_type: str, title: str, converted_dict: dict) -> dict:
+    """
+    JSON output should have a title.
+    If input file_type is not json then title should come from
+    parameter or standardsMappings[0].instrument.title
+    """
+    if title is not None and title != converted_dict.get("title"):
+        logger.debug(f"JSON dictionary setting user-defined title '{title}'")
+        converted_dict["title"] = title
+        return converted_dict
+
+    instrument_title = None
+    try:
+        standards_mappings = converted_dict.get("standardsMappings")
+        if standards_mappings and len(standards_mappings) >= 1:
+            instrument_title = standards_mappings[0].get("instrument").get("title")
+    except Exception as err:
+        logger.warning("standardsMapping does not have 'instrument.title'")
+
+    if file_type != "json":
+        if title is None and instrument_title is None:
+            message = "Title must be supplied when extracting from non-json to json"
+            logger.error(message)
+            raise ExtractionError(message)
+
+        elif instrument_title is not None:
+            logger.debug(
+                f"JSON dictionary setting title to instrument title '{instrument_title}'"
+            )
+            converted_dict["title"] = instrument_title
+
+    return converted_dict
+
+
 def vlmd_extract(
     input_file, title=None, file_type="auto", output_dir=".", output_type="json"
 ) -> bool:
@@ -80,11 +114,10 @@ def vlmd_extract(
             output_type=output_type,
             return_converted_output=True,
         )
-        logger.debug("Converted dict")
-    except Exception as e:
+    except Exception as err:
         logger.error(f"Error in validating and extracting dictionary from {input_file}")
-        logger.error(e)
-        raise ExtractionError(str(e))
+        logger.error(err)
+        raise ExtractionError(str(err))
 
     # input json file require explicit conversion and post validation steps
     if file_type == "json":
@@ -102,9 +135,6 @@ def vlmd_extract(
                 logger.debug(
                     f"Ready to validate converted dict with output type '{output_type}'"
                 )
-                logger.debug(
-                    f"Data is pathlike {isinstance(converted_dictionary, (str, os.PathLike))}"
-                )
                 is_valid = vlmd_validate(
                     converted_dictionary,
                     file_type=file_type,
@@ -114,32 +144,18 @@ def vlmd_extract(
                 logger.debug(f"Converted dictionary is valid: {is_valid}")
             else:
                 converted_dictionary = data_dictionaries["template_csv"]["fields"]
-        except Exception as e:
+        except Exception as err:
             logger.error(f"Error in extracting JSON dictionary from {input_file}")
-            logger.error(e)
-            raise ExtractionError(str(e))
+            logger.error(err)
+            raise ExtractionError(str(err))
 
-    instrument_title = None
     if output_type == "json":
-        standards_mappings = converted_dictionary.get("standardsMappings")
-        if standards_mappings and len(standards_mappings) >= 1:
-            instrument_title = standards_mappings[0].get("instrument").get("title")
-
-        # non-json input files should have a title or standardsMapping
-        # when converting to json
-        if file_type != "json" and title is None and instrument_title is None:
-            message = "Title must be supplied when extracting from non-json to json"
-            logger.error(message)
-            raise ExtractionError(message)
-
-        if title:
-            logger.debug(f"JSON dictionary setting user-defined title '{title}'")
-            converted_dictionary["title"] = title
-        elif file_type != "json" and instrument_title is not None:
-            logger.debug(
-                f"JSON dictionary setting title to instrument title '{instrument_title}'"
-            )
-            converted_dictionary["title"] = instrument_title
+        converted_dictionary = set_title_if_missing(
+            file_type=file_type, title=title, converted_dict=converted_dictionary
+        )
+        if converted_dictionary.get("title") is None:
+            logger.error("JSON dictionary is missing 'title'")
+            raise ExtractionError("JSON dictionary is missing 'title'")
 
     # write to file
     output_filepath = get_output_filepath(
