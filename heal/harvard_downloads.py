@@ -11,7 +11,7 @@ https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dat
 
 from pathlib import Path
 from typing import Dict, List
-from utils import unpackage_object, get_id, download_from_url
+from heal.utils import unpackage_object, get_id, download_from_url
 
 from cdislogging import get_logger
 from gen3.tools.download.drs_download import DownloadStatus
@@ -20,12 +20,14 @@ logger = get_logger("__name__", log_level="debug")
 
 
 def get_harvard_dataverse_files(
-    file_metadata_list: List, download_path: str = "."
+    wts_hostname: str, auth, file_metadata_list: List, download_path: str = "."
 ) -> Dict:
     """
     Retrieves external data from the Harvard Dataverse.
 
     Args:
+        wts_hostname (str): hostname for commons with wts (not being used at this moment)
+        auth (Gen3Auth): auth for commons with wts (not being used at this moment)
         file_metadata_list (List of Dict): list of studies or files
         download_path (str): path to download files and unpack
 
@@ -102,6 +104,8 @@ def get_download_url_for_harvard_dataverse(file_metadata: Dict) -> str:
         base_url = "https://demo.dataverse.org/api/access"
     if "study_id" in file_metadata:
         url = f"{base_url}/dataset/:persistentId/?persistentId={file_metadata.get('study_id')}"
+    elif "file_id" in file_metadata:
+        url = f"{base_url}/datafile/{file_metadata.get('file_id')}"
     else:
         url = None
 
@@ -122,7 +126,7 @@ def is_valid_harvard_file_metadata(file_metadata: Dict) -> bool:
     if not isinstance(file_metadata, dict):
         logger.critical(f"Invalid metadata - item is not a dict: {file_metadata}")
         return False
-    if "study_id" not in file_metadata:
+    if "study_id" not in file_metadata and "file_id" not in file_metadata:
         logger.critical(
             f"Invalid metadata - missing required Harvard Dataverse keys {file_metadata}"
         )
