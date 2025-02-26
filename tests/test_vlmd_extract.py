@@ -5,7 +5,11 @@ from unittest.mock import patch
 import pytest
 
 from heal.vlmd.config import ALLOWED_OUTPUT_TYPES, OUTPUT_FILE_PREFIX
-from heal.vlmd.extract.extract import ExtractionError, vlmd_extract
+from heal.vlmd.extract.extract import (
+    ExtractionError,
+    set_title_if_missing,
+    vlmd_extract,
+)
 
 test_title = "Test title for unit tests"
 
@@ -223,3 +227,50 @@ def test_extract_invalid_converted_data():
         with pytest.raises(ExtractionError) as err:
             vlmd_extract(input_file, title=test_title, output_type="csv")
         assert fail_message in str(err.value)
+
+
+@pytest.mark.parametrize(
+    "converted_dict, title, expected_title",
+    [
+        (
+            {
+                "schemaVersion": "0.3.2",
+                "fields": [],
+            },
+            "New title",
+            "New title",
+        ),
+        (
+            {
+                "schemaVersion": "0.3.2",
+                "title": "old title",
+                "fields": [],
+            },
+            "New title",
+            "New title",
+        ),
+        (
+            {
+                "schemaVersion": "0.3.2",
+                "standardsMappings": [
+                    {
+                        "instrument": {
+                            "title": "standardsMappings title",
+                            "id": "1234",
+                            "url": "https://theurl",
+                        }
+                    }
+                ],
+                "fields": [],
+            },
+            None,
+            "standardsMappings title",
+        ),
+    ],
+)
+def test_set_title_if_missing(converted_dict, title, expected_title):
+    """Test that set_title uses title or standardsMapping"""
+    new_dict = set_title_if_missing(
+        file_type="csv", title=title, converted_dict=converted_dict
+    )
+    assert new_dict.get("title") == expected_title
