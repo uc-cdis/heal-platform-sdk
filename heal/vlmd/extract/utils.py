@@ -90,6 +90,14 @@ def refactor_field_props(flat_fields, schema):
 
 
 # individual cell utilities
+def strip_html(html_string):
+    """Strip out html from string"""
+    if html_string:
+        return re.sub(r"<[^>]+>", "", html_string)
+    else:
+        return html_string
+
+
 def parse_dictionary_str(string, item_sep, key_val_sep):
     """
     Parses a stringified dictionary into a dictionary
@@ -135,12 +143,23 @@ def flatten_to_json_path(dictionary, schema, parent_key=False, sep="."):
     items = []
     for key, value in dictionary.items():
         new_key = str(parent_key) + sep + key if parent_key else key
+        try:
+            prop = schema["properties"]
+        except:
+            message = f"Missing key: 'properties' in prop {prop}"
+            raise KeyError(message)
         prop = schema["properties"].get(key, {})
         childprops = prop.get("properties")
         child_item_props = prop.get("items", {}).get("properties")
 
         if child_item_props:
             for i, _value in enumerate(value):
+                # check that child prop has properties
+                try:
+                    prop["properties"]
+                except:
+                    message = f"Missing key 'properties' in child prop: {_value}"
+                    raise KeyError(message)
                 item = flatten_to_json_path(
                     dictionary=_value,
                     schema=prop,

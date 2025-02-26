@@ -11,6 +11,7 @@ from heal.vlmd.extract.utils import (
     parse_dictionary_str,
     parse_list_str,
     refactor_field_props,
+    strip_html,
     unflatten_from_json_path,
 )
 
@@ -141,7 +142,7 @@ def test_get_prop_names_to_rearrange():
     assert names_to_rearrange == expected_prop_names
 
 
-def test_flatten_to_json_path(valid_json_data, VALID_JSON_SCHEMA):
+def test_flatten_to_json_path(valid_json_data, valid_json_schema):
     # example field item
     dict_field = {
         "section": "Enrollment",
@@ -153,7 +154,7 @@ def test_flatten_to_json_path(valid_json_data, VALID_JSON_SCHEMA):
         "name": "participant_id",
         "constraints.pattern": "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
     }
-    fields_schema = VALID_JSON_SCHEMA["properties"]["fields"]["items"]
+    fields_schema = valid_json_schema["properties"]["fields"]["items"]
     flattened_dict = flatten_to_json_path(dict_field, fields_schema)
     assert flattened_dict == expected_flattened_dict
 
@@ -249,8 +250,17 @@ def test_refactor_field_props():
     ]
 
 
+def test_strip_html():
+    input_string = "<b><head>Here is a header</head></b>"
+    expected = "Here is a header"
+    assert strip_html(input_string) == expected
+
+
 def test_parse_dictionary_str():
-    input_string = "title=Example VLMD|description=This is an example description|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+    input_string = (
+        "title=Example VLMD|description=This is an example description"
+        "|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+    )
     expected_dict = {
         "title": "Example VLMD",
         "description": "This is an example description",
@@ -284,5 +294,8 @@ def test_join_dict_items():
             },
         ],
     }
-    expected = "title=Example VLMD|description=This is an example description|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+    expected = (
+        "title=Example VLMD|description=This is an example description"
+        "|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+    )
     assert join_dict_items(dict) == expected

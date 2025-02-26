@@ -4,6 +4,7 @@ from heal.vlmd.utils import (
     add_missing_type,
     add_types_to_props,
     clean_json_fields,
+    has_redcap_headers,
     remove_empty_props,
 )
 
@@ -151,3 +152,19 @@ def test_clean_json_fields():
     fields = [input_prop_with_empties, input_prop_with_empties]
     expected_fields = [expected_prop, expected_prop]
     assert clean_json_fields(fields) == expected_fields
+
+
+def test_has_redcap_headers():
+    """Test has_redcap_headers"""
+    test_fields = [
+        "Variable / Field Name",
+        "Form Name",
+        "Field Type",
+        "Field Label",
+        "Another Field",
+        "And another",
+    ]
+    assert has_redcap_headers(test_fields)
+
+    test_fields = ["Some Field", "And another"]
+    assert has_redcap_headers(test_fields) is False

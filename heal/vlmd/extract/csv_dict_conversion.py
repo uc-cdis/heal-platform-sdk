@@ -4,9 +4,14 @@ from pathlib import Path
 
 import pandas as pd
 
+from cdislogging import get_logger
 from heal.vlmd.config import JSON_SCHEMA
 from heal.vlmd.extract import utils
+from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv
+from heal.vlmd.utils import has_redcap_headers
 from heal.vlmd.validate.utils import read_delim
+
+logger = get_logger("csv-conversion", log_level="debug")
 
 
 def _parse_string_objects(
@@ -75,7 +80,8 @@ def convert_datadict_csv(
             The HEAL-specified data dictionary properties.
         rename_map: A mapping of source (current) column headers to target (desired -- conforming to CVS HEAL spec)
             column headers
-        recode_map: A mapping of values for each column in HEAL spec -- {..."column_name":{"old_value":"new_value"...}...}
+        recode_map: A mapping of values for each column in HEAL spec, eg,
+            {..."column_name":{"old_value":"new_value"...}...}
         drop_list: a list of variables to drop from headers before processing
         item_sep:str (default:"|") Used to split stringified items (in objects and arrays)
         key_val_sep:str (default:"=") Used to split stringified each key-value pair
@@ -123,10 +129,22 @@ def convert_datadict_csv(
         return inferred_delim
 
     if isinstance(csv_template, (str, PathLike)):
+        logger.debug("Getting data from path to CSV file")
         template_tbl = read_delim(str(Path(csv_template)))
     else:
+        logger.debug("Getting data from input dataframe")
         template_tbl = pd.DataFrame(csv_template)
 
+    # If REDCap then get dictionary and return.
+    column_names = template_tbl.columns
+    if has_redcap_headers(column_names):
+        logger.debug("File appears to have REDCap headers. Ready to convert.")
+        converted_dict = convert_redcap_csv(template_tbl)
+        return converted_dict
+    else:
+        logger.debug("File is CSV dictionary, not REDCap dictionary.")
+
+    # Regular CSV, not REDCap.
     if not rename_map:
         rename_map = {}
 

@@ -8,6 +8,7 @@ from heal.vlmd.file_utils import get_output_filepath, write_vlmd_dict
 
 
 def test_write_json(tmp_path, valid_json_data):
+    """Write a valid json output file"""
     output_filepath = f"{tmp_path}/some/path/valid_dict.json"
     if os.path.isfile(output_filepath):
         os.unlink(output_filepath)
@@ -22,6 +23,7 @@ def test_write_json(tmp_path, valid_json_data):
 
 
 def test_write_csv(tmp_path, valid_array_data):
+    """Write a valid csv file"""
     output_filepath = f"{tmp_path}/some/other/path/valid_dict.csv"
     if os.path.isfile(output_filepath):
         os.unlink(output_filepath)
@@ -40,6 +42,7 @@ def test_write_csv(tmp_path, valid_array_data):
 
 
 def test_get_output_filepath():
+    """Test the get_output_filepath method"""
     output_dir = "tmp/foo"
     input_filename = "data/valid/valid_dict.csv"
     output_type = "auto"
@@ -54,6 +57,7 @@ def test_get_output_filepath():
 
 
 def test_write_vlmd_unallowed():
+    """Test that unallowed suffixes do not get written"""
     dictionary = "some text"
     output_filepath = "tmp/foo/unallowed_suffix.txt"
     result = write_vlmd_dict(

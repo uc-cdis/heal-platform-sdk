@@ -7,6 +7,7 @@ from heal.vlmd import mappings
 from heal.vlmd.config import JSON_SCHEMA, TOP_LEVEL_PROPS
 from heal.vlmd.extract.csv_dict_conversion import convert_datadict_csv
 from heal.vlmd.extract.json_dict_conversion import convert_template_json
+from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv
 from heal.vlmd.utils import clean_json_fields
 
 logger = get_logger("vlmd-conversion", log_level="debug")
@@ -18,6 +19,7 @@ choice_fxn = {
         recode_map=mappings.recode_map,
     ),
     "json-template": convert_template_json,
+    "redcap-csv-dict": convert_redcap_csv,
 }
 
 ext_map = {
@@ -45,7 +47,8 @@ def convert_to_vlmd(
         input_type (str): The input type. See keys of 'choice_fxn' dict for options, currently:
             csv-data-dict, json-template.
         data_dictionary_props (dict):
-            The other data-dictionary level properties. By default, will give the data_dictionary `title` property as the file name stem.
+            The other data-dictionary level properties. By default,
+            will give the data_dictionary `title` property as the file name stem.
 
     Returns
         Dictionary with:
@@ -71,7 +74,6 @@ def convert_to_vlmd(
     data_dictionary_package = choice_fxn[input_type](
         input_filepath, data_dictionary_props
     )
-    logger.debug(f"Data Dictionary Package keys {data_dictionary_package.keys()}")
 
     # For now we return the csv and json in one package.
     # If any multiple data dictionaries are needed then implement the methods in
