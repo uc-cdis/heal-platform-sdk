@@ -29,7 +29,7 @@ def test_validate_valid_input(file_type, output_type):
 
 @pytest.mark.parametrize("file_type", ["csv", "tsv", "json"])
 def test_validate_with_json_output(
-    file_type, valid_json_output, valid_converted_csv_to_json_output
+    file_type, valid_json_data, valid_converted_csv_to_json_output
 ):
     input_file = f"tests/test_data/vlmd/valid/vlmd_valid.{file_type}"
     result = vlmd_validate(input_file, output_type="json", return_converted_output=True)
@@ -37,7 +37,7 @@ def test_validate_with_json_output(
     if file_type in ["csv", "tsv"]:
         assert result == valid_converted_csv_to_json_output
     if file_type == "json":
-        assert result == valid_json_output
+        assert result == valid_json_data
 
 
 @pytest.mark.parametrize("file_type", ["csv", "json", "tsv"])
@@ -81,7 +81,7 @@ def test_input_does_not_exist():
 
 
 def test_unallowed_input_type(allowed_input_types):
-    unallowed_file = "vlmd_unallowed_type.txt"
+    unallowed_file = "tests/test_data/vlmd/invalid/vlmd_invalid.txt"
     with pytest.raises(ValueError) as e:
         vlmd_validate(input_file=unallowed_file, schema_type="auto")
 

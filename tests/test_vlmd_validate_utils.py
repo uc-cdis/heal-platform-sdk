@@ -88,9 +88,9 @@ def test_read_delim_unallowed_file_type():
 
 
 @pytest.mark.parametrize("file_type", ["csv", "tsv"])
-def test_get_schema_csv_file(file_type, VALID_CSV_SCHEMA):
+def test_get_schema_csv_file(file_type, valid_csv_schema):
     test_file = f"vlmd.{file_type}"
-    expected_schema = {"type": "array", "items": VALID_CSV_SCHEMA}
+    expected_schema = {"type": "array", "items": valid_csv_schema}
 
     result = get_schema(test_file, "auto")
     assert result == expected_schema
@@ -100,8 +100,8 @@ def test_get_schema_csv_file(file_type, VALID_CSV_SCHEMA):
 
 
 @pytest.mark.parametrize("file_type", ["csv", "tsv"])
-def test_get_schema_csv_list(file_type, VALID_CSV_SCHEMA, valid_array_data):
-    expected_schema = {"type": "array", "items": VALID_CSV_SCHEMA}
+def test_get_schema_csv_list(file_type, valid_csv_schema, valid_array_data):
+    expected_schema = {"type": "array", "items": valid_csv_schema}
 
     result = get_schema(valid_array_data, "auto")
     assert result == expected_schema
@@ -111,24 +111,24 @@ def test_get_schema_csv_list(file_type, VALID_CSV_SCHEMA, valid_array_data):
 
 
 @pytest.mark.parametrize("schema_type", ["auto", "json"])
-def test_get_schema_json_file(schema_type, VALID_JSON_SCHEMA):
+def test_get_schema_json_file(schema_type, valid_json_schema):
     test_file = "vlmd.json"
 
     result = get_schema(test_file, schema_type)
-    assert result == VALID_JSON_SCHEMA
+    assert result == valid_json_schema
 
 
 @pytest.mark.parametrize("schema_type", ["auto", "json"])
-def test_get_schema_json_object(schema_type, VALID_JSON_SCHEMA):
+def test_get_schema_json_object(schema_type, valid_json_schema):
     test_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     data = json.loads(Path(test_file).read_text())
 
     result = get_schema(data_or_path=data, schema_type=schema_type)
-    assert result == VALID_JSON_SCHEMA
+    assert result == valid_json_schema
 
 
 @pytest.mark.parametrize("invalid_data", [("set", "not", "a", "dict"), 5])
-def test_get_schema_json_invalid_object(invalid_data, VALID_JSON_SCHEMA):
+def test_get_schema_json_invalid_object(invalid_data, valid_json_schema):
     with pytest.raises(ValueError) as e:
         get_schema(data_or_path=invalid_data, schema_type="json")
     expected_message = "Input should be path or dict"

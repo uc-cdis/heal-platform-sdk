@@ -38,9 +38,9 @@ def test_csv_conversion_valid_data(
     assert result.get("template_csv") == valid_csv_output
 
 
-def test_parse_string_objects(VALID_JSON_SCHEMA):
+def test_parse_string_objects(valid_json_schema):
     field_properties = utils.flatten_properties(
-        VALID_JSON_SCHEMA["properties"]["fields"]["items"]["properties"]
+        valid_json_schema["properties"]["fields"]["items"]["properties"]
     )
 
     csv_data = """
@@ -51,7 +51,10 @@ def test_parse_string_objects(VALID_JSON_SCHEMA):
             "description": ["Unique identifier for participant", "Self-reported race"],
             "constraints.enum": ["", "1|2|3|4|5|6|7|8"],
             "constraints.pattern": ["[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]", ""],
-            "enumLabels": ["", "1=White|2=Black or African American|3=American Indian or Alaska Native|4=Native| 5=Hawaiian or Other Pacific Islander|6=Asian|7=Some other race|8=Multiracial|99=Not reported"],
+            "enumLabels": [
+                "",
+                "1=White|2=Black or African American|3=American Indian or Alaska Native|4=Native| 5=Hawaiian or Other Pacific Islander|6=Asian|7=Some other race|8=Multiracial|99=Not reported"
+            ],
             "custom.notes": ["This is a note", "This is a custom note"]
         }
     """
@@ -66,7 +69,20 @@ def test_parse_string_objects(VALID_JSON_SCHEMA):
             "description": ["Unique identifier for participant", "Self-reported race"],
             "constraints.enum": ["", ["1", "2", "3", "4", "5", "6", "7", "8"]],
             "constraints.pattern": ["[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]", ""],
-            "enumLabels": ["", {"1": "White", "2": "Black or African American", "3": "American Indian or Alaska Native", "4": "Native", "5": "Hawaiian or Other Pacific Islander", "6": "Asian", "7": "Some other race", "8": "Multiracial", "99": "Not reported"}],
+            "enumLabels": [
+                "",
+                {
+                    "1": "White",
+                    "2": "Black or African American",
+                    "3": "American Indian or Alaska Native",
+                    "4": "Native",
+                    "5": "Hawaiian or Other Pacific Islander",
+                    "6": "Asian",
+                    "7": "Some other race",
+                    "8": "Multiracial",
+                    "99": "Not reported"
+                }
+            ],
             "custom.notes": ["This is a note", "This is a custom note"],
             "custom": [{"notes": "This is a note"}, {"notes": "This is a custom note"}]
         }
