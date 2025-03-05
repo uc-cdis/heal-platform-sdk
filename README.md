@@ -7,11 +7,17 @@ The HEAL Platform Software Development Kit (SDK) for Python provides classes and
 
 The qdr_downloads module include a retriever function for downloading files from Syracuse QDR.
 
-This is intended to be called by gen3sdk [external download functions](https://github.com/uc-cdis/gen3sdk-python/blob/master/gen3/tools/download/external_file_download.py). It is also possible to write a wrapper script for the qdr download functions.
+This is intended to be called by Gen3SDK [external download functions](https://github.com/uc-cdis/gen3sdk-python/blob/master/gen3/tools/download/external_file_download.py). It is also possible to write a wrapper script for the QDR download functions.
+
+### harvard_downloads
+
+The harvard_downloads module include a retriever function for downloading files from Harvard Dataverse.
+
+This is intended to be called by Gen3SDK [external download functions](https://github.com/uc-cdis/gen3sdk-python/blob/master/gen3/tools/download/external_file_download.py). It is also possible to write a wrapper script for the Dataverse download functions.
 
 ### Notebooks
 
-In the notebooks directory there are jupyter notebooks that may be used to download files from a corresponding platform. For instance the qdr_data_download.ipynb notebook may be used to download files from Syracuse QDR.
+In the notebooks directory there are jupyter notebooks that may be used to download files from a corresponding platform that requires an external file retriever. For instance the external_data_download.ipynb notebook may be used to download files from data repositories like Syracuse QDR and/or Harvard Dataverse.
 
 These notebooks perform optimally within a HEAL Gen3 Workspace and the notebooks will be automatically installed to a user's workspace when the workspace is initiated. However, you may also use these notebooks on your local machine.
 
