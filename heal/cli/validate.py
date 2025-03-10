@@ -24,9 +24,7 @@ def validate(input_file):
         vlmd_validate(input_file)
         logging.info("Valid")
     except ValidationError as err:
-        logging.error(
-            f"Error in validating and extracting dictionary from {input_file}"
-        )
+        logging.error(f"Error in validating dictionary from {input_file}")
         logging.error(err.message)
     except Exception as e:
         logging.error(f"Validation error {str(e)}")
