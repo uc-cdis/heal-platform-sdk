@@ -3,6 +3,7 @@ from os.path import isfile
 from pathlib import Path
 
 from cdislogging import get_logger
+from jsonschema import ValidationError
 
 from heal.vlmd import ExtractionError, vlmd_validate
 from heal.vlmd.config import (
@@ -134,8 +135,12 @@ def vlmd_extract(
             output_type=output_type,
             return_converted_output=True,
         )
-    except Exception as err:
+    except ValidationError as err:
         logger.error(f"Error in validating and extracting dictionary from {input_file}")
+        logger.error(err.message)
+        raise ExtractionError(str(err.message))
+    except Exception as err:
+        logger.error(f"Error in extracting dictionary from {input_file}")
         logger.error(err)
         raise ExtractionError(str(err))
 
