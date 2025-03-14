@@ -108,6 +108,16 @@ def test_extract_unallowed_output():
     assert expected_message in str(err.value)
 
 
+def test_extract_empty_title():
+    """Empty title should trigger error"""
+    input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
+    fail_message = "Empty title is not allowed"
+
+    with pytest.raises(ExtractionError) as err:
+        vlmd_extract(input_file, title="", output_type="csv")
+    assert fail_message in str(err.value)
+
+
 def test_extract_missing_title():
     """
     Title should be supplied when converting from non-json to json,

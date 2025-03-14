@@ -108,6 +108,7 @@ def vlmd_extract(
         message = f"Input file must be one of {ALLOWED_INPUT_TYPES}"
         logger.error(message)
         raise ExtractionError(message)
+
     if not isfile(input_file):
         message = f"Input file does not exist: {input_file}"
         logger.error(message)
@@ -117,11 +118,17 @@ def vlmd_extract(
         message = f"File type must be one of {ALLOWED_FILE_TYPES}"
         logger.error(message)
         raise ExtractionError(message)
+
     if file_type == "auto":
         file_type = file_suffix
 
     if output_type not in ALLOWED_OUTPUT_TYPES:
         message = f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
+        logger.error(message)
+        raise ExtractionError(message)
+
+    if title == "" or title == " ":
+        message = f"Empty title is not allowed"
         logger.error(message)
         raise ExtractionError(message)
 
