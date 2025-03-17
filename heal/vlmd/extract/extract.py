@@ -1,4 +1,3 @@
-import os
 from os.path import isfile
 from pathlib import Path
 import re
