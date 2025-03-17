@@ -1,6 +1,7 @@
 import os
 from os.path import isfile
 from pathlib import Path
+import re
 
 from cdislogging import get_logger
 from jsonschema import ValidationError
@@ -127,7 +128,7 @@ def vlmd_extract(
         logger.error(message)
         raise ExtractionError(message)
 
-    if title == "" or title == " ":
+    if title is not None and re.match(r"^\s*$", title):
         message = f"Empty title is not allowed"
         logger.error(message)
         raise ExtractionError(message)

@@ -108,13 +108,22 @@ def test_extract_unallowed_output():
     assert expected_message in str(err.value)
 
 
-def test_extract_empty_title():
+@pytest.mark.parametrize(
+    "test_title",
+    [
+        (""),
+        ("   "),
+        ("\n"),
+        ("\t"),
+    ],
+)
+def test_extract_empty_title(test_title):
     """Empty title should trigger error"""
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     fail_message = "Empty title is not allowed"
 
     with pytest.raises(ExtractionError) as err:
-        vlmd_extract(input_file, title="", output_type="csv")
+        vlmd_extract(input_file, title=test_title, output_type="csv")
     assert fail_message in str(err.value)
 
 
