@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from heal.vlmd.config import ALLOWED_OUTPUT_TYPES, OUTPUT_FILE_PREFIX
+from heal.vlmd.config import ALLOWED_OUTPUT_TYPES, OUTPUT_FILE_PREFIX, TOP_LEVEL_PROPS
 from heal.vlmd.extract.extract import (
     ExtractionError,
     set_title_if_missing,
@@ -108,17 +108,38 @@ def test_extract_unallowed_output():
     assert expected_message in str(err.value)
 
 
+@pytest.mark.parametrize(
+    "test_title",
+    [
+        (""),
+        ("   "),
+        ("\n"),
+        ("\t"),
+    ],
+)
+def test_extract_empty_title(test_title):
+    """Empty title should trigger error"""
+    input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
+    fail_message = "Empty title is not allowed"
+
+    with pytest.raises(ExtractionError) as err:
+        vlmd_extract(input_file, title=test_title, output_type="csv")
+    assert fail_message in str(err.value)
+
+
 def test_extract_missing_title():
     """
     Title should be supplied when converting from non-json to json,
     unless the data contains standardsMappings.instrument.title
     """
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
+    default_csv_title = TOP_LEVEL_PROPS.get("title")
+
     # missing standardsMapping
     with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
         mock_validate.return_value = {
             "schemaVersion": "0.3.2",
-            "title": "default title from config - not a user supplied title",
+            "title": default_csv_title,
             "fields": [],
         }
         with pytest.raises(ExtractionError) as err:
@@ -130,7 +151,7 @@ def test_extract_missing_title():
     with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
         mock_validate.return_value = {
             "schemaVersion": "0.3.2",
-            "title": "default title from config - not a user supplied title",
+            "title": default_csv_title,
             "standardsMappings": [
                 {
                     "some other field, not instrument": {
@@ -155,7 +176,9 @@ def test_get_title_from_standards_mapping(tmp_path):
     """
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
     output_file_name = f"{tmp_path}/output_with_title"
-    test_title = "Instrument Test Title"
+    instrument_title = "Instrument Test Title"
+    default_csv_title = TOP_LEVEL_PROPS.get("title")
+
     with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate, patch(
         "heal.vlmd.extract.extract.get_output_filepath"
     ) as mock_output_filepath:
@@ -163,11 +186,11 @@ def test_get_title_from_standards_mapping(tmp_path):
         # and a default title from config
         mock_validate.return_value = {
             "schemaVersion": "0.3.2",
-            "title": "default title from config - not a user supplied title",
+            "title": default_csv_title,
             "standardsMappings": [
                 {
                     "instrument": {
-                        "title": test_title,
+                        "title": instrument_title,
                         "id": "1234",
                         "url": "https://theurl",
                     }
@@ -183,9 +206,10 @@ def test_get_title_from_standards_mapping(tmp_path):
         with open(output_file_name, "r") as json_file:
             data = json.load(json_file)
         assert "standardsMappings" in data.keys()
-        assert data["title"] == test_title
+        assert data["title"] == instrument_title
+        assert data["title"] != default_csv_title
 
-        # call extract with a title so we don't use the standardsMappings title
+        # call extract with another title but it does not overwrite the standardsMappings title
         result = vlmd_extract(
             input_file, title="Some other title", file_type="csv", output_type="json"
         )
@@ -194,7 +218,9 @@ def test_get_title_from_standards_mapping(tmp_path):
         with open(output_file_name, "r") as json_file:
             data = json.load(json_file)
         assert "standardsMappings" in data.keys()
-        assert data["title"] == "Some other title"
+        assert data["title"] == instrument_title
+        assert data["title"] != "Some other title"
+        assert data["title"] != default_csv_title
 
 
 def test_extract_failed_dict_write():
@@ -247,7 +273,7 @@ def test_extract_invalid_converted_data():
                 "fields": [],
             },
             "New title",
-            "New title",
+            "old title",
         ),
         (
             {
@@ -264,6 +290,42 @@ def test_extract_invalid_converted_data():
                 "fields": [],
             },
             None,
+            "standardsMappings title",
+        ),
+        (
+            {
+                "schemaVersion": "0.3.2",
+                "title": "old title",
+                "standardsMappings": [
+                    {
+                        "instrument": {
+                            "title": "standardsMappings title",
+                            "id": "1234",
+                            "url": "https://theurl",
+                        }
+                    }
+                ],
+                "fields": [],
+            },
+            None,
+            "standardsMappings title",
+        ),
+        (
+            {
+                "schemaVersion": "0.3.2",
+                "title": "old title",
+                "standardsMappings": [
+                    {
+                        "instrument": {
+                            "title": "standardsMappings title",
+                            "id": "1234",
+                            "url": "https://theurl",
+                        }
+                    }
+                ],
+                "fields": [],
+            },
+            "New title",
             "standardsMappings title",
         ),
     ],

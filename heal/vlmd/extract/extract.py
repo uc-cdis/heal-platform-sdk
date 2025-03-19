@@ -1,6 +1,6 @@
-import os
 from os.path import isfile
 from pathlib import Path
+import re
 
 from cdislogging import get_logger
 from jsonschema import ValidationError
@@ -10,6 +10,7 @@ from heal.vlmd.config import (
     ALLOWED_FILE_TYPES,
     ALLOWED_INPUT_TYPES,
     ALLOWED_OUTPUT_TYPES,
+    TOP_LEVEL_PROPS,
 )
 from heal.vlmd.extract.conversion import convert_to_vlmd
 from heal.vlmd.file_utils import get_output_filepath, write_vlmd_dict
@@ -21,34 +22,53 @@ logger = get_logger("extract", log_level="debug")
 
 def set_title_if_missing(file_type: str, title: str, converted_dict: dict) -> dict:
     """
-    JSON output should have a title.
-    If input file_type is not json then title should come from
-    parameter or standardsMappings[0].instrument.title
+    Dictionary from json input should have an existing title or a user-supplied title.
+    Dictionary from non-json input should set the title from
+    standardsMappings[0].instrument.title or from the user supplied title.
     """
-    if title is not None and title != converted_dict.get("title"):
-        logger.debug(f"JSON dictionary setting user-defined title '{title}'")
-        converted_dict["title"] = title
-        return converted_dict
 
-    instrument_title = None
-    try:
-        standards_mappings = converted_dict.get("standardsMappings")
-        if standards_mappings and len(standards_mappings) >= 1:
-            instrument_title = standards_mappings[0].get("instrument").get("title")
-    except Exception as err:
-        logger.warning("standardsMapping does not have 'instrument.title'")
+    existing_title = converted_dict.get("title")
+    default_csv_title = TOP_LEVEL_PROPS.get("title")
 
-    if file_type != "json":
+    if file_type == "json":
+        if existing_title is not None and existing_title != default_csv_title:
+            logger.info(f"Converted dict already has a title {existing_title}")
+            return converted_dict
+
+        if title is not None:
+            logger.debug(f"JSON dictionary setting user-defined title '{title}'")
+            converted_dict["title"] = title
+            return converted_dict
+
+    else:
+        instrument_title = None
+        try:
+            standards_mappings = converted_dict.get("standardsMappings")
+            if standards_mappings and len(standards_mappings) >= 1:
+                instrument_title = standards_mappings[0].get("instrument").get("title")
+        except Exception as err:
+            logger.warning("standardsMapping does not have 'instrument.title'")
+
         if title is None and instrument_title is None:
             message = "Title must be supplied when extracting from non-json to json"
             logger.error(message)
             raise ExtractionError(message)
 
-        elif instrument_title is not None:
+        if instrument_title is not None:
             logger.debug(
-                f"JSON dictionary setting title to instrument title '{instrument_title}'"
+                f"Converted CSV dictionary setting title to instrument title '{instrument_title}'"
             )
             converted_dict["title"] = instrument_title
+            return converted_dict
+
+        if title is not None and (
+            existing_title is None or existing_title == default_csv_title
+        ):
+            logger.debug(
+                f"Converted CSVdictionary setting user-defined title '{title}'"
+            )
+            converted_dict["title"] = title
+            return converted_dict
 
     return converted_dict
 
@@ -88,6 +108,7 @@ def vlmd_extract(
         message = f"Input file must be one of {ALLOWED_INPUT_TYPES}"
         logger.error(message)
         raise ExtractionError(message)
+
     if not isfile(input_file):
         message = f"Input file does not exist: {input_file}"
         logger.error(message)
@@ -97,11 +118,17 @@ def vlmd_extract(
         message = f"File type must be one of {ALLOWED_FILE_TYPES}"
         logger.error(message)
         raise ExtractionError(message)
+
     if file_type == "auto":
         file_type = file_suffix
 
     if output_type not in ALLOWED_OUTPUT_TYPES:
         message = f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
+        logger.error(message)
+        raise ExtractionError(message)
+
+    if title is not None and re.match(r"^\s*$", title):
+        message = f"Empty title is not allowed"
         logger.error(message)
         raise ExtractionError(message)
 
