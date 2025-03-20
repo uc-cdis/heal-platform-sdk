@@ -1,5 +1,26 @@
 # VLMD methods
 
+## CLI
+
+The CLI can be invoked as follows
+
+`heal [OPTIONS] COMMAND [ARGS]`
+
+For a list of VLMD commands and options run
+
+`heal vlmd --help`
+
+For example, the following can validate a VLMD file in csv format:
+
+`heal vlmd validate --input_file "vlmd_for_validation.csv"`
+
+The following would extract a json format VLMD file from a csv format input file and
+write a json file in the directory `output`:
+
+`heal vlmd extract --input_file "vlmd_for_extraction.csv" --title "The dictionary title" --output_dir "./output"`
+
+The `--title` option is required when extracting from `csv` to `json`.
+
 ## VLMD extract
 
 The extract module implements extraction and conversion of dictionaries into different formats.
@@ -97,25 +118,3 @@ To add code for a new dictionary file type:
 * Call the new extractor module from the `conversion.py` module
 * Add new file writing utilities if saving converted dictionaries in the new format
 * Create unit tests as needed for new code
-
-
-## CLI
-
-The CLI can be invoked as follows
-
-`heal [OPTIONS] COMMAND [ARGS]`
-
-For a list of VLMD commands and options run
-
-`heal vlmd --help`
-
-For example, the following can validate a VLMD file in csv format:
-
-`heal vlmd validate --input_file "vlmd_for_validation.csv"`
-
-The following would extract a json format VLMD file from a csv format input file and
-write a json file in the directory `output`:
-
-`heal vlmd extract --input_file "vlmd_for_extraction.csv" --title "The dictionary title" --output_dir "./output"`
-
-The `--title` option is required when extracting from `csv` to `json`.
