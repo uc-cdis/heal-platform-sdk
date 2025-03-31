@@ -35,7 +35,7 @@ Example extraction code:
 ```python
 from jsonschema import ValidationError
 
-from healsdk.vlmd import vlmd_extract
+from heal.vlmd import vlmd_extract
 
 try:
   vlmd_extract("vlmd_for_extraction.csv", output_dir="./output")
