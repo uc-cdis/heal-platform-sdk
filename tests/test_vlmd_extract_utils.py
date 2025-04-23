@@ -12,6 +12,7 @@ from heal.vlmd.extract.utils import (
     parse_list_str,
     refactor_field_props,
     strip_html,
+    sync_fields,
     unflatten_from_json_path,
 )
 
@@ -299,3 +300,51 @@ def test_join_dict_items():
         "|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
     )
     assert join_dict_items(dict) == expected
+
+
+def test_sync_fields():
+    """Test that fields in a field_list are added to data"""
+    data = [
+        {
+            "name": "id",
+            "type": "integer",
+            "schemaVersion": "0.3.2",
+            "description": "description required",
+        },
+        {
+            "name": "name",
+            "type": "string",
+            "schemaVersion": "0.3.2",
+            "description": "description required",
+        },
+    ]
+    field_list = [
+        "schemaVersion",
+        "name",
+        "section",
+        "type",
+        "format",
+        "title",
+        "description",
+    ]
+    expected_data = [
+        {
+            "schemaVersion": "0.3.2",
+            "name": "id",
+            "section": None,
+            "type": "integer",
+            "format": None,
+            "title": None,
+            "description": "description required",
+        },
+        {
+            "schemaVersion": "0.3.2",
+            "name": "name",
+            "section": None,
+            "type": "string",
+            "format": None,
+            "title": None,
+            "description": "description required",
+        },
+    ]
+    assert sync_fields(data, field_list) == expected_data
