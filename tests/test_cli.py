@@ -40,6 +40,8 @@ def test_extract_help():
     # truncated to avoid wrapped lines
     expected_commands = [
         "--input_file PATH  name of file to extract HEAL-compliant VLMD file",
+        "--file_type TEXT   Type of input file: auto, csv, json, tsv, dataset_csv",
+        "                   dataset_tsv, redcap  [default: auto]",
         "--title TEXT       Root level title for the dictionary (required if",
         "--output_dir PATH  directory to write converted dictionary'  [default: .]",
     ]
@@ -65,6 +67,34 @@ def test_extract(tmp_path):
             "extract",
             "--input_file",
             input_file,
+            "--title",
+            title,
+            "--output_dir",
+            tmp_path,
+        ],
+    )
+    assert result.exit_code == 0
+    assert os.path.isfile(expected_output_file)
+
+
+def test_extract_dataset_csv(tmp_path):
+    """Test the cli extract"""
+    runner = CliRunner()
+    input_file = "tests/test_data/vlmd/valid/vlmd_valid_data.csv"
+    title = "Test dictionary"
+    file_type = "dataset_csv"
+    expected_output_file = file_utils.get_output_filepath(
+        tmp_path, input_file, output_type="json"
+    )
+    result = runner.invoke(
+        cli_module.main,
+        [
+            "vlmd",
+            "extract",
+            "--input_file",
+            input_file,
+            "--file_type",
+            file_type,
             "--title",
             title,
             "--output_dir",
