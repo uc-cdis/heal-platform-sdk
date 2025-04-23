@@ -98,6 +98,16 @@ def test_extract_unallowed_output():
     assert expected_message in str(e.value)
 
 
+@pytest.mark.parametrize("dataset_file_type", ["dataset_csv", "dataset_tsv"])
+def test_validate_dataset_type(dataset_file_type):
+    test_file = "tests/test_data/vlmd/valid/vlmd_valid_data.csv"
+    with pytest.raises(ValueError) as e:
+        vlmd_validate(input_file=test_file, file_type=dataset_file_type)
+
+    expected_message = f"Data set input file types are not valid dictionaries."
+    assert str(e.value) == expected_message
+
+
 @pytest.mark.parametrize("test_schema_type", ["auto", "csv"])
 def test_read_non_delim_data_in_csv(test_schema_type):
     test_file = "tests/test_data/vlmd/invalid/vlmd_text_data.csv"

@@ -25,6 +25,8 @@ class ExtractionError(Exception):
 
 file_type_to_fxn_map = {
     "csv": "csv-data-dict",
+    "dataset_csv": "csv-data-set",
+    "dataset_tsv": "csv-data-set",
     "json": "json-template",
     "tsv": "csv-data-dict",
     "redcap": "redcap-csv-dict",
@@ -65,7 +67,11 @@ def vlmd_validate(
         Raises SchemaError if the schema is invalid.
         Raises ExctractionError if the input cannot be converted to VLMD dictionary.
     """
-    logger.debug("In vlmd validate")
+
+    if file_type in ["dataset_csv", "dataset_tsv"]:
+        message = f"Data set input file types are not valid dictionaries."
+        logger.error(message)
+        raise ValueError(message)
 
     if isinstance(input_file, (str, os.PathLike)):
         logger.info(
@@ -188,11 +194,13 @@ def vlmd_validate(
             raise ValueError(message)
 
     try:
+        logger.debug(f"Validating converted dictionary")
         jsonschema.validate(instance=converted_dictionary, schema=schema)
     except jsonschema.ValidationError as err:
         logger.error("Error in validating converted dictionary")
+        logger.error(str(err.message))
         raise err
-    logger.debug("Converted dict is valid")
+    logger.debug("Converted dictionary is valid")
 
     if return_converted_output:
         return converted_dictionary
