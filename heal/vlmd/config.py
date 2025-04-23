@@ -6,7 +6,15 @@ OUTPUT_FILE_PREFIX = "heal-dd"
 
 # file suffixes
 ALLOWED_INPUT_TYPES = ["csv", "tsv", "json"]
-ALLOWED_FILE_TYPES = ["auto", "csv", "tsv", "json", "redcap"]
+ALLOWED_FILE_TYPES = [
+    "auto",
+    "csv",
+    "dataset_csv",
+    "dataset_tsv",
+    "json",
+    "redcap",
+    "tsv",
+]
 ALLOWED_SCHEMA_TYPES = ["auto", "csv", "json", "tsv"]
 ALLOWED_OUTPUT_TYPES = ["csv", "json"]
 
