@@ -4,15 +4,18 @@ from pathlib import Path
 from cdislogging import get_logger
 
 from heal.vlmd import mappings
-from heal.vlmd.config import JSON_SCHEMA, TOP_LEVEL_PROPS
+from heal.vlmd.config import CSV_SCHEMA, JSON_SCHEMA, TOP_LEVEL_PROPS
+from heal.vlmd.extract.csv_data_conversion import convert_dataset_csv
 from heal.vlmd.extract.csv_dict_conversion import convert_datadict_csv
 from heal.vlmd.extract.json_dict_conversion import convert_template_json
 from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv
+from heal.vlmd.extract.utils import sync_fields
 from heal.vlmd.utils import clean_json_fields
 
 logger = get_logger("vlmd-conversion", log_level="debug")
 
 choice_fxn = {
+    "csv-data-set": convert_dataset_csv,
     "csv-data-dict": partial(
         convert_datadict_csv,
         rename_map=mappings.rename_map,
@@ -36,20 +39,25 @@ def _detect_input_type(filepath, ext_to_input_type=ext_map):
 
 def convert_to_vlmd(
     input_filepath,
-    input_type=None,
-    data_dictionary_props=None,
+    input_type: str = None,
+    data_dictionary_props: dict = None,
+    include_all_fields: bool = True,
 ) -> dict:
     """
-    Converts a data dictionary to HEAL compliant json or csv format.
+    Converts a data dictionary or data file to HEAL compliant json or csv format.
 
     Args
-        input_filepath (str): Path to input file. Currently converts data dictionaries in csv, json, and tsv.
+        input_filepath (str): Path to input file. Currently converts data
+            dictionaries in csv, json, and tsv.
         input_type (str): The input type. See keys of 'choice_fxn' dict for options, currently:
-            csv-data-dict, json-template.
+            csv-data-set, csv-data-dict, json-template, redcap-data-dict.
         data_dictionary_props (dict):
             The other data-dictionary level properties. By default,
             will give the data_dictionary `title` property as the file name stem.
-
+        include_all_fields (bool): If true then csv dictionaries extracted from
+            csv datasets will include columns for all fields in the schema.
+            Useful for generating a template that can be manually updated.
+            Default = True.
     Returns
         Dictionary with:
          1. csvtemplated array of fields.
@@ -81,8 +89,34 @@ def convert_to_vlmd(
     package = data_dictionary_package
 
     # add schema version
+    schema_version = {"schemaVersion": JSON_SCHEMA["version"]}
     for field in package["template_csv"]["fields"]:
         field.update({"schemaVersion": JSON_SCHEMA["version"], **field})
+
+    if input_type == "csv-data-set":
+        # add a value placeholder for description field
+        description_placeholder = "description required"
+        for field in package["template_json"]["fields"]:
+            if not field.get("description"):
+                field.update({"description": description_placeholder, **field})
+        for field in package["template_csv"]["fields"]:
+            if not field.get("description"):
+                field.update({"description": description_placeholder, **field})
+
+        if include_all_fields:
+            # include schema fields that were not present in data file, don't include schema flags
+            field_list = [
+                key
+                for key in CSV_SCHEMA["properties"].keys()
+                if isinstance(CSV_SCHEMA["properties"][key], dict)
+            ] + [
+                key
+                for key in CSV_SCHEMA["patternProperties"].keys()
+                if isinstance(CSV_SCHEMA["patternProperties"][key], dict)
+            ]
+            package["template_csv"]["fields"] = sync_fields(
+                package["template_csv"]["fields"], field_list
+            )
 
     # remove empty json fields, add schema version (in TOP_LEVEL_PROPS)
     package["template_json"]["fields"] = clean_json_fields(

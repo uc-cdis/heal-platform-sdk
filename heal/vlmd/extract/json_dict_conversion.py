@@ -44,7 +44,6 @@ def convert_template_json(
         logger.debug(f"Getting data from path to JSON file '{json_template}'")
         json_template_dict = json.loads(Path(json_template).read_text())
     elif isinstance(json_template, collections.abc.MutableMapping):
-        logger.debug("Getting JOSN data from object")
         json_template_dict = json_template
     else:
         raise ValueError(
