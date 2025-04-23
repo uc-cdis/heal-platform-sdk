@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 from unittest.mock import patch
@@ -15,31 +16,200 @@ test_title = "Test title for unit tests"
 
 
 @pytest.mark.parametrize(
-    "file_type, output_type",
+    "input_file_name, file_type",
     [
-        ("csv", "csv"),
-        ("csv", "json"),
-        ("json", "csv"),
-        ("json", "json"),
-        ("tsv", "csv"),
-        ("tsv", "json"),
+        ("vlmd_valid.csv", "csv"),
+        ("vlmd_valid.json", "json"),
+        ("vlmd_valid.tsv", "tsv"),
+        ("vlmd_valid_data.csv", "dataset_csv"),
+        ("vlmd_valid_data.tsv", "dataset_tsv"),
     ],
 )
-def test_extract_valid_input(file_type, output_type, tmp_path):
-    """Extract various valid input types"""
-    input_file = f"tests/test_data/vlmd/valid/vlmd_valid.{file_type}"
-    expected_file_name = f"{tmp_path}/{OUTPUT_FILE_PREFIX}_vlmd_valid.{output_type}"
+def test_extract_valid_input_json_output(input_file_name, file_type, tmp_path):
+    """Extract various valid input types without error and write result to json file"""
+
+    output_type = "json"
+    if file_type in ["dataset_csv", "dataset_tsv"]:
+        test_file_name = "vlmd_valid_data"
+        # subset of standard dictionary fields keys
+        expected_fields = ["name", "description", "type"]
+    else:
+        test_file_name = "vlmd_valid"
+        # larger subset of standard dictionary fields keys
+        expected_fields = ["section", "name", "title", "description", "type"]
+    input_file_path = f"tests/test_data/vlmd/valid/{input_file_name}"
+    root_name, _ = os.path.splitext(input_file_name)
+    expected_file_name = f"{tmp_path}/{OUTPUT_FILE_PREFIX}_{root_name}.{output_type}"
 
     result = vlmd_extract(
-        input_file, title=test_title, output_dir=tmp_path, output_type=output_type
+        input_file_path, title=test_title, output_dir=tmp_path, output_type=output_type
     )
+
     assert result
     assert os.path.isfile(expected_file_name)
-    if output_type == "json":
-        with open(expected_file_name, "r") as f:
-            data = json.load(f)
-        assert "fields" in data.keys()
-        assert "schemaVersion" in data.keys()
+    with open(expected_file_name, "r") as json_file:
+        data = json.load(json_file)
+    assert "schemaVersion" in data.keys()
+    assert "fields" in data.keys()
+    assert set(expected_fields).issubset(list(data["fields"][0].keys()))
+
+
+@pytest.mark.parametrize(
+    "input_file_name, file_type",
+    [
+        ("vlmd_valid.csv", "csv"),
+        ("vlmd_valid.json", "json"),
+        ("vlmd_valid.tsv", "tsv"),
+        ("vlmd_valid_data.csv", "dataset_csv"),
+        ("vlmd_valid_data.tsv", "dataset_tsv"),
+    ],
+)
+def test_extract_valid_input_csv_output(input_file_name, file_type, tmp_path):
+    """Extract various valid input types without error and write result to csv file"""
+
+    output_type = "csv"
+    if file_type in ["dataset_csv", "dataset_tsv"]:
+        # values of output name field are from dataset header row
+        # (eg, {"name": "id",...}, {"name": "name"...}...)
+        expected_fields = ["id", "name", "population"]
+    else:
+        expected_fields = ["section", "name", "title", "description", "type"]
+    input_file_path = f"tests/test_data/vlmd/valid/{input_file_name}"
+    root_name, _ = os.path.splitext(input_file_name)
+    expected_file_name = f"{tmp_path}/{OUTPUT_FILE_PREFIX}_{root_name}.{output_type}"
+
+    result = vlmd_extract(
+        input_file_path, title=test_title, output_dir=tmp_path, output_type=output_type
+    )
+
+    assert result
+    assert os.path.isfile(expected_file_name)
+    with open(expected_file_name, "r") as csv_file:
+        reader = csv.reader(csv_file)
+        header = next(reader)
+        assert set(expected_fields).issubset(header)
+
+
+@pytest.mark.parametrize("file_type", ["dataset_csv", "dataset_tsv"])
+def test_extract_dataset_auto_with_fallback(
+    file_type, valid_converted_csv_dataset_to_json, tmp_path
+):
+    """
+    With file_type = "auto" the dataset extraction will first process the input
+    as a csv dictionary with vlmd_validate. The validation should raise an error.
+    Extract will fall back to processing input as a dataset using convert_to_vlmd.
+    """
+
+    output_type = "json"
+    suffix = file_type.split("_")[-1]
+    input_file = f"tests/test_data/vlmd/valid/vlmd_valid_data.{suffix}"
+    expected_file_name = (
+        f"{tmp_path}/{OUTPUT_FILE_PREFIX}_vlmd_valid_data.{output_type}"
+    )
+
+    with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
+        fail_message = "'description' is a required property"
+        mock_validate.side_effect = ExtractionError(fail_message)
+        mock_validate.return_value = {
+            "schemaVersion": "0.3.2",
+            "title": "some_title",
+            "fields": [],
+        }
+        with patch("heal.vlmd.extract.extract.convert_to_vlmd") as mock_convert:
+            mock_convert.return_value = {
+                "template_json": valid_converted_csv_dataset_to_json
+            }
+
+            result = vlmd_extract(
+                input_file,
+                title=test_title,
+                file_type="auto",
+                output_dir=tmp_path,
+                output_type="json",
+            )
+            mock_validate.assert_called()
+            # Test that validate was called with file_type="csv"
+            mock_validate.assert_called_with(
+                input_file,
+                file_type=suffix,
+                output_type="json",
+                return_converted_output=True,
+            )
+            # Test that convert_to_vlmd was called with dataset input type
+            # ie, we did a fallback to dataset after trying dictionary
+            mock_convert.assert_called_with(
+                input_filepath=input_file,
+                input_type="csv-data-set",
+                data_dictionary_props={},
+                include_all_fields=True,
+            )
+
+    assert result
+    assert os.path.isfile(expected_file_name)
+    with open(expected_file_name, "r") as f:
+        data = json.load(f)
+    assert "fields" in data.keys()
+    assert "schemaVersion" in data.keys()
+    assert data == valid_converted_csv_dataset_to_json
+
+
+@pytest.mark.parametrize("file_type", ["csv", "tsv"])
+def test_extract_dict_auto_without_fallback(
+    file_type, valid_converted_csv_to_json, tmp_path
+):
+    """
+    With file_type = "auto" the dictionary extraction will first process the input
+    as a csv dictionary. The validation should not raise an error. Extract will
+    not fall back to trying input as a dataset.
+    """
+
+    output_type = "json"
+    input_file = f"tests/test_data/vlmd/valid/vlmd_valid.{file_type}"
+    expected_file_name = f"{tmp_path}/{OUTPUT_FILE_PREFIX}_vlmd_valid.{output_type}"
+    # expected output is valid csv dictionary converted to json.
+    expected_valid_data = {
+        "schemaVersion": "0.3.2",
+        "title": "some title",
+        "fields": valid_converted_csv_to_json["fields"],
+    }
+
+    with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
+        mock_validate.return_value = expected_valid_data
+        with patch("heal.vlmd.extract.extract.convert_to_vlmd") as mock_convert:
+            mock_convert.return_value = {
+                "template_json": {
+                    "schemaVersion": "0.3.2",
+                    "title": "some other title",
+                    "fields": [],
+                }
+            }
+
+            result = vlmd_extract(
+                input_file,
+                title=test_title,
+                file_type="auto",
+                output_dir=tmp_path,
+                output_type="json",
+            )
+            mock_validate.assert_called()
+            # Test that validate was called with file_type="csv"
+            mock_validate.assert_called_with(
+                input_file,
+                file_type=file_type,
+                output_type=output_type,
+                return_converted_output=True,
+            )
+            # Test that convert_to_vlmd was not called
+            # ie, no fallback after successful dictionary validation.
+            mock_convert.assert_not_called()
+
+    assert result
+    assert os.path.isfile(expected_file_name)
+    with open(expected_file_name, "r") as f:
+        data = json.load(f)
+    assert "fields" in data.keys()
+    assert "schemaVersion" in data.keys()
+    assert data == expected_valid_data
 
 
 @pytest.mark.parametrize(
@@ -65,7 +235,7 @@ def test_extract_valid_input(file_type, output_type, tmp_path):
 def test_extract_invalid_input(input_file, expected_message, error_type):
     """Invalid input triggers error"""
     with pytest.raises(error_type) as err:
-        vlmd_extract(input_file, test_title)
+        vlmd_extract(input_file, title=test_title, file_type="csv")
     assert expected_message in str(err.value)
 
 
@@ -243,7 +413,9 @@ def test_extract_invalid_converted_data():
     with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
         mock_validate.side_effect = ExtractionError(fail_message)
         with pytest.raises(ExtractionError) as err:
-            vlmd_extract(input_file, title=test_title, output_type="json")
+            vlmd_extract(
+                input_file, file_type="csv", title=test_title, output_type="json"
+            )
         assert fail_message in str(err.value)
 
     # convert json to invalid csv
@@ -251,7 +423,9 @@ def test_extract_invalid_converted_data():
     with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
         mock_validate.side_effect = ExtractionError(fail_message)
         with pytest.raises(ExtractionError) as err:
-            vlmd_extract(input_file, title=test_title, output_type="csv")
+            vlmd_extract(
+                input_file, file_type="csv", title=test_title, output_type="csv"
+            )
         assert fail_message in str(err.value)
 
 
