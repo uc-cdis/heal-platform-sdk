@@ -137,7 +137,7 @@ def vlmd_extract(
     if file_type == "auto":
         # Set as data dictionary
         file_type = file_suffix
-        logger.debug(f"File type is set to '{file_type}'")
+        logger.debug(f"Changing file_type from 'auto' to '{file_type}'")
         type_is_auto = True
 
     if output_type not in ALLOWED_OUTPUT_TYPES:
@@ -181,8 +181,6 @@ def vlmd_extract(
             raise ExtractionError(str(err))
 
     elif file_type in ["csv", "tsv"]:
-        logger.debug(f"In file type = csv with type_is_auto = {type_is_auto}")
-        # validate
         try:
             # csv files are converted as part of validate
             converted_dictionary = vlmd_validate(
@@ -196,7 +194,6 @@ def vlmd_extract(
                 f"Error in validating and extracting dictionary from {input_file}"
             )
             logger.error(err.message)
-            # TODO: could put this in a function log_error_or_raise(message, type_is_auto)
             if type_is_auto:
                 file_type = f"dataset_{file_suffix}"
                 logger.info(

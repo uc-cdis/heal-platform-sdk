@@ -75,18 +75,16 @@ def vlmd_validate(
 
     if isinstance(input_file, (str, os.PathLike)):
         logger.info(
-            f"Validating VLMD file '{input_file}' against schema type '{schema_type}'"
+            f"Validating VLMD file '{input_file}' using file_type '{file_type}'"
         )
         if not isfile(input_file):
             message = f"Input file does not exist: {input_file}"
             logger.error(message)
             raise IOError(message)
-        logger.debug(f"File_type = {file_type}")
         file_suffix = Path(input_file).suffix.replace(".", "")
         data = None
     else:
-        logger.info(f"Validating VLMD json data against schema type '{schema_type}'")
-        logger.debug(f"File_type = {file_type}")
+        logger.info(f"Validating VLMD json data using file_type '{file_type}'")
         file_suffix = "json"
         data = input_file
 
@@ -119,19 +117,16 @@ def vlmd_validate(
 
     if file_suffix in ["csv", "tsv"]:
         schema = add_types_to_props(schema)
-    logger.debug("Checking schema")
     jsonschema.validators.Draft7Validator.check_schema(schema)
 
     # read the input file
     if file_suffix in ["csv", "tsv"]:
-        logger.debug("Getting csv data from file")
         data = read_delim(input_file).to_dict(orient="records")
         if len(data) == 0:
             message = "Could not read csv data from input"
             logger.error(message)
             raise ValidationError(message)
     elif file_suffix == "json" and data is None:
-        logger.debug("Getting json data from file")
         data = read_data_from_json_file(input_file)
 
     # if input is json then try a validation and return input
@@ -203,7 +198,6 @@ def vlmd_validate(
 
     # Special check
     if output_type == "csv":
-        logger.debug(f"Dictionary keys {converted_dictionary[0].keys()}")
         existing_fields = list(converted_dictionary[0].keys())
         required_fields = ["name", "description"]
         for field in required_fields:
