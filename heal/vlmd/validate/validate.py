@@ -204,8 +204,8 @@ def vlmd_validate(
     # Special check
     if output_type == "csv":
         logger.debug(f"Dictionary keys {converted_dictionary[0].keys()}")
-        required_fields = ["name", "description"]
         existing_fields = list(converted_dictionary[0].keys())
+        required_fields = ["name", "description"]
         for field in required_fields:
             if field not in existing_fields:
                 message = f"'{field}' is a required property in csv dictionaries"
