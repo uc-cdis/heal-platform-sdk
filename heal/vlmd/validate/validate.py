@@ -208,7 +208,7 @@ def vlmd_validate(
         existing_fields = list(converted_dictionary[0].keys())
         for field in required_fields:
             if field not in existing_fields:
-                message = f"'{field}' is a required field in csv dictionaries."
+                message = f"'{field}' is a required property in csv dictionaries"
                 logger.error(message)
                 raise Exception(message)
 

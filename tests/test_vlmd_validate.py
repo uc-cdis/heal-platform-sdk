@@ -98,13 +98,36 @@ def test_extract_unallowed_output():
     assert expected_message in str(e.value)
 
 
-@pytest.mark.parametrize("dataset_file_type", ["dataset_csv", "dataset_tsv"])
-def test_validate_dataset_type(dataset_file_type):
-    test_file = "tests/test_data/vlmd/valid/vlmd_valid_data.csv"
+@pytest.mark.parametrize("suffix", ["csv", "tsv"])
+def test_validate_dataset_type(suffix):
+    test_file = f"tests/test_data/vlmd/valid/vlmd_valid_data.{suffix}"
+    dataset_file_type = f"dataset_{suffix}"
     with pytest.raises(ValueError) as e:
         vlmd_validate(input_file=test_file, file_type=dataset_file_type)
 
     expected_message = f"Data set input file types are not valid dictionaries."
+    assert str(e.value) == expected_message
+
+
+@pytest.mark.parametrize("suffix", ["csv", "tsv"])
+def test_validate_dataset_as_dictionary(suffix):
+    test_file = f"tests/test_data/vlmd/valid/vlmd_valid_data.{suffix}"
+    file_type = suffix
+    with pytest.raises(ValidationError) as e:
+        vlmd_validate(input_file=test_file, file_type=file_type, output_type="json")
+
+    expected_message = f"'description' is a required property"
+    assert str(e.value.message) == expected_message
+
+
+@pytest.mark.parametrize("suffix", ["csv", "tsv"])
+def test_validate_dataset_as_dictionary_csv_output(suffix):
+    test_file = f"tests/test_data/vlmd/valid/vlmd_valid_data.{suffix}"
+    file_type = suffix
+    with pytest.raises(Exception) as e:
+        vlmd_validate(input_file=test_file, file_type=file_type, output_type="csv")
+
+    expected_message = f"'description' is a required property in csv dictionaries"
     assert str(e.value) == expected_message
 
 
