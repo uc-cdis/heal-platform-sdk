@@ -200,6 +200,18 @@ def vlmd_validate(
         logger.error("Error in validating converted dictionary")
         logger.error(str(err.message))
         raise err
+
+    # Special check
+    if output_type == "csv":
+        logger.debug(f"Dictionary keys {converted_dictionary[0].keys()}")
+        required_fields = ["name", "description"]
+        existing_fields = list(converted_dictionary[0].keys())
+        for field in required_fields:
+            if field not in existing_fields:
+                message = f"'{field}' is a required field in csv dictionaries."
+                logger.error(message)
+                raise Exception(message)
+
     logger.debug("Converted dictionary is valid")
 
     if return_converted_output:

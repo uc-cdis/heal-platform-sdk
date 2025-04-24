@@ -135,6 +135,7 @@ def vlmd_extract(
 
     type_is_auto = False
     if file_type == "auto":
+        # Set as data dictionary
         file_type = file_suffix
         logger.debug(f"File type is set to '{file_type}'")
         type_is_auto = True

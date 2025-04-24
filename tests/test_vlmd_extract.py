@@ -68,12 +68,7 @@ def test_extract_valid_input_csv_output(input_file_name, file_type, tmp_path):
     """Extract various valid input types without error and write result to csv file"""
 
     output_type = "csv"
-    if file_type in ["dataset_csv", "dataset_tsv"]:
-        # values of output name field are from dataset header row
-        # (eg, {"name": "id",...}, {"name": "name"...}...)
-        expected_fields = ["id", "name", "population"]
-    else:
-        expected_fields = ["section", "name", "title", "description", "type"]
+    expected_fields = ["schemaVersion", "name", "title", "description", "type"]
     input_file_path = f"tests/test_data/vlmd/valid/{input_file_name}"
     root_name, _ = os.path.splitext(input_file_name)
     expected_file_name = f"{tmp_path}/{OUTPUT_FILE_PREFIX}_{root_name}.{output_type}"
@@ -87,6 +82,8 @@ def test_extract_valid_input_csv_output(input_file_name, file_type, tmp_path):
     with open(expected_file_name, "r") as csv_file:
         reader = csv.reader(csv_file)
         header = next(reader)
+        print(f"Expected fields {expected_fields}")
+        print(f"header {header}")
         assert set(expected_fields).issubset(header)
 
 
