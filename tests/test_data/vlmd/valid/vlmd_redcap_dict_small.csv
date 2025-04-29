@@ -5,3 +5,4 @@ telephone_1,demographics,,text,Phone number,,Include Area Code,phone,,,y,,,,,
 sex,demographics,,dropdown,Gender,"0, Female | 1, Male",,,,,,,y,,,
 height,demographics,,text,Height (cm),,,number,130,215,,,,,,
 weight,demographics,,text,Weight (kilograms),,,integer,35,200,,,,,,
+aerobics,demographics,,checkbox,Aerobics,"0, Monday | 1, Tuesday | 2, Wednesday | 3, Thursday | 4, Friday",,,,,,,,,,weekly_schedule
