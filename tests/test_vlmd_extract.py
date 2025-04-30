@@ -13,7 +13,11 @@ from heal.vlmd.extract.extract import (
     vlmd_extract,
 )
 
-test_title = "Test title for unit tests"
+
+@pytest.fixture(name="test_title")
+def fixture_test_title():
+    """String for dictionary title"""
+    return "Test title for unit tests"
 
 
 @pytest.mark.parametrize(
@@ -26,16 +30,16 @@ test_title = "Test title for unit tests"
         ("vlmd_valid_data.tsv", "dataset_tsv"),
     ],
 )
-def test_extract_valid_input_json_output(input_file_name, file_type, tmp_path):
+def test_extract_valid_input_json_output(
+    input_file_name, file_type, test_title, tmp_path
+):
     """Extract various valid input types without error and write result to json file"""
 
     output_type = "json"
     if file_type in ["dataset_csv", "dataset_tsv"]:
-        test_file_name = "vlmd_valid_data"
         # subset of standard dictionary fields keys
         expected_fields = ["name", "description", "type"]
     else:
-        test_file_name = "vlmd_valid"
         # larger subset of standard dictionary fields keys
         expected_fields = ["section", "name", "title", "description", "type"]
     input_file_path = f"tests/test_data/vlmd/valid/{input_file_name}"
@@ -56,16 +60,16 @@ def test_extract_valid_input_json_output(input_file_name, file_type, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "input_file_name, file_type",
+    "input_file_name",
     [
-        ("vlmd_valid.csv", "csv"),
-        ("vlmd_valid.json", "json"),
-        ("vlmd_valid.tsv", "tsv"),
-        ("vlmd_valid_data.csv", "dataset_csv"),
-        ("vlmd_valid_data.tsv", "dataset_tsv"),
+        "vlmd_valid.csv",
+        "vlmd_valid.json",
+        "vlmd_valid.tsv",
+        "vlmd_valid_data.csv",
+        "vlmd_valid_data.tsv",
     ],
 )
-def test_extract_valid_input_csv_output(input_file_name, file_type, tmp_path):
+def test_extract_valid_input_csv_output(input_file_name, test_title, tmp_path):
     """Extract various valid input types without error and write result to csv file"""
 
     output_type = "csv"
@@ -90,7 +94,7 @@ def test_extract_valid_input_csv_output(input_file_name, file_type, tmp_path):
 
 @pytest.mark.parametrize("file_type", ["dataset_csv", "dataset_tsv"])
 def test_extract_dataset_auto_with_fallback(
-    file_type, valid_converted_csv_dataset_to_json, tmp_path
+    file_type, valid_converted_csv_dataset_to_json, test_title, tmp_path
 ):
     """
     With file_type = "auto" the dataset extraction will first process the input
@@ -153,7 +157,7 @@ def test_extract_dataset_auto_with_fallback(
 
 @pytest.mark.parametrize("file_type", ["csv", "tsv"])
 def test_extract_dict_auto_without_fallback(
-    file_type, valid_converted_csv_to_json, tmp_path
+    file_type, valid_converted_csv_to_json, test_title, tmp_path
 ):
     """
     With file_type = "auto" the dictionary extraction will first process the input
@@ -210,7 +214,7 @@ def test_extract_dict_auto_without_fallback(
     assert data == expected_valid_data
 
 
-def test_extract_invalid_redcap_auto_without_fallback(tmp_path):
+def test_extract_invalid_redcap_auto_without_fallback(test_title, tmp_path):
     """
     With file_type = "auto" the dictionary extraction will first process the input
     as a csv dictionary. An invalid REDCap dictionary will trigger an error.
@@ -276,14 +280,14 @@ def test_extract_invalid_redcap_auto_without_fallback(tmp_path):
         ),
     ],
 )
-def test_extract_invalid_input(input_file, expected_message, error_type):
+def test_extract_invalid_input(input_file, expected_message, error_type, test_title):
     """Invalid input triggers error"""
     with pytest.raises(error_type) as err:
         vlmd_extract(input_file, title=test_title, file_type="csv")
     assert expected_message in str(err.value)
 
 
-def test_extract_unallowed_input_type():
+def test_extract_unallowed_input_type(test_title):
     """Unallowed input type triggers error"""
     input_file = "tests/test_data/vlmd/invalid/vlmd_invalid.txt"
     with pytest.raises(ExtractionError) as err:
@@ -292,7 +296,7 @@ def test_extract_unallowed_input_type():
     assert expected_message in str(err.value)
 
 
-def test_extract_unallowed_file_type():
+def test_extract_unallowed_file_type(test_title):
     """Unallowed file type triggers error"""
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     with pytest.raises(ExtractionError) as err:
@@ -301,7 +305,7 @@ def test_extract_unallowed_file_type():
     assert expected_message in str(err.value)
 
 
-def test_extract_input_does_not_exist(tmp_path):
+def test_extract_input_does_not_exist(test_title, tmp_path):
     """Input file does-not-exist triggers error"""
     input_file = f"{tmp_path}/foo.csv"
     with pytest.raises(ExtractionError) as err:
@@ -310,7 +314,7 @@ def test_extract_input_does_not_exist(tmp_path):
     assert expected_message in str(err.value)
 
 
-def test_extract_unallowed_output():
+def test_extract_unallowed_output(test_title):
     """Unallowed output type triggers error"""
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     unallowed_output = "txt"
@@ -323,7 +327,7 @@ def test_extract_unallowed_output():
 
 
 @pytest.mark.parametrize(
-    "test_title",
+    "test_dict_title",
     [
         (""),
         ("   "),
@@ -331,17 +335,17 @@ def test_extract_unallowed_output():
         ("\t"),
     ],
 )
-def test_extract_empty_title(test_title):
+def test_extract_empty_title(test_dict_title):
     """Empty title should trigger error"""
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     fail_message = "Empty title is not allowed"
 
     with pytest.raises(ExtractionError) as err:
-        vlmd_extract(input_file, title=test_title, output_type="csv")
+        vlmd_extract(input_file, title=test_dict_title, output_type="csv")
     assert fail_message in str(err.value)
 
 
-def test_extract_missing_title():
+def test_extract_missing_title(test_title):
     """
     Title should be supplied when converting from non-json to json,
     unless the data contains standardsMappings.instrument.title
@@ -437,7 +441,7 @@ def test_get_title_from_standards_mapping(tmp_path):
         assert data["title"] != default_csv_title
 
 
-def test_extract_failed_dict_write():
+def test_extract_failed_dict_write(test_title):
     """Failed conversion should trigger error"""
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     fail_message = "Error in writing converted dictionary"
@@ -448,7 +452,7 @@ def test_extract_failed_dict_write():
         assert fail_message in str(err.value)
 
 
-def test_extract_invalid_converted_data():
+def test_extract_invalid_converted_data(test_title):
     """Invalid converted data should trigger error"""
     # convert csv to invalid json
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
