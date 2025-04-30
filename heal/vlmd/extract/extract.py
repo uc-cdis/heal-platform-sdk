@@ -6,6 +6,7 @@ from cdislogging import get_logger
 from jsonschema import ValidationError
 import jsonschema
 
+from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd import ExtractionError, vlmd_validate
 from heal.vlmd.config import (
     ALLOWED_FILE_TYPES,
@@ -180,7 +181,7 @@ def vlmd_extract(
             logger.error(err)
             raise ExtractionError(str(err))
 
-    elif file_type in ["csv", "tsv"]:
+    elif file_type in ["csv", "redcap", "tsv"]:
         try:
             # csv files are converted as part of validate
             converted_dictionary = vlmd_validate(
@@ -189,6 +190,13 @@ def vlmd_extract(
                 output_type=output_type,
                 return_converted_output=True,
             )
+        except RedcapExtractionError as err:
+            logger.error("Error in extracting REDCap dictionary")
+            if type_is_auto:
+                logger.info(
+                    "File_type was 'auto' but input identified as REDCap. Skipping fallback to dataset."
+                )
+            raise ExtractionError(str(err))
         except ValidationError as err:
             logger.error(
                 f"Error in validating and extracting dictionary from {input_file}"
@@ -197,15 +205,13 @@ def vlmd_extract(
             if type_is_auto:
                 file_type = f"dataset_{file_suffix}"
                 logger.info(
-                    f"Will attempt to extract file '{input_file}' as '{file_type}'"
+                    f"Will now attempt to extract file '{input_file}' as '{file_type}'"
                 )
             else:
                 raise ExtractionError(str(err.message))
-
         except Exception as err:
             logger.error(f"Error in extracting dictionary from {input_file}")
             logger.error(err)
-            # TODO: could put this in a function
             if type_is_auto:
                 file_type = f"dataset_{file_suffix}"
                 logger.info(
@@ -227,14 +233,11 @@ def vlmd_extract(
                 include_all_fields=include_all_fields,
             )
 
-            # TODO: maybe adjust these logs based on falling back from csv dict files
             if output_type == "json":
                 converted_dictionary = data_dictionaries["template_json"]
             else:
                 converted_dictionary = data_dictionaries["template_csv"]["fields"]
 
-        # TODO: trigger these errors if type_is_auto and the csv dict did not extract.
-        # No, we fall back from here.
         except ValidationError as err:
             logger.error(
                 f"Error in validating and extracting dataset from {input_file}"
@@ -246,7 +249,6 @@ def vlmd_extract(
             logger.error(err)
             raise ExtractionError(str(err))
 
-        # TODO: try the validation here
         schema_type = "csv"
         schema = get_schema(converted_dictionary, schema_type=output_type)
         logger.info(f"Schema keys {schema.keys()}")

@@ -11,6 +11,11 @@ from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv
 from heal.vlmd.utils import has_redcap_headers
 from heal.vlmd.validate.utils import read_delim
 
+
+class RedcapExtractionError(Exception):
+    pass
+
+
 logger = get_logger("csv-conversion", log_level="debug")
 
 
@@ -135,11 +140,16 @@ def convert_datadict_csv(
         logger.debug("Getting data from input dataframe")
         template_tbl = pd.DataFrame(csv_template)
 
-    # If REDCap then get dictionary and return.
+    # If REDCap then get dictionary and return or raise RedcapExtractionError.
     column_names = template_tbl.columns
     if has_redcap_headers(column_names):
         logger.debug("File appears to have REDCap headers. Ready to convert.")
-        converted_dict = convert_redcap_csv(template_tbl)
+        try:
+            converted_dict = convert_redcap_csv(template_tbl)
+        except Exception as err:
+            logger.error("Error in extracting REDCap dictionary")
+            logger.error(err)
+            raise RedcapExtractionError(str(err))
         return converted_dict
     else:
         logger.debug("File is CSV dictionary, not REDCap dictionary.")

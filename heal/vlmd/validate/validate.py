@@ -13,6 +13,7 @@ from heal.vlmd.config import (
     ALLOWED_SCHEMA_TYPES,
 )
 from heal.vlmd.extract.conversion import convert_to_vlmd
+from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd.utils import add_types_to_props
 from heal.vlmd.validate.utils import get_schema, read_data_from_json_file, read_delim
 
@@ -65,7 +66,9 @@ def vlmd_validate(
         Raises ValidationError if the input VLMD is not valid.
         Raises ValueError for unallowed input file types or unallowed schema types.
         Raises SchemaError if the schema is invalid.
-        Raises ExctractionError if the input cannot be converted to VLMD dictionary.
+        Raises ExtractionError if the input cannot be converted to VLMD dictionary.
+        Raises RedcapExtractionError if input is detected as Redcap and cannot be
+            converted to VLMD dictionary.
     """
 
     if file_type in ["dataset_csv", "dataset_tsv"]:
@@ -164,10 +167,14 @@ def vlmd_validate(
             input_type=file_convert_function,
             data_dictionary_props=data_dictionary_props,
         )
-    except Exception as e:
+    except RedcapExtractionError as redcap_err:
+        logger.error(f"Error in converting REDCap dictionary from {input_file}")
+        logger.error(redcap_err)
+        raise RedcapExtractionError(str(redcap_err))
+    except Exception as extract_err:
         logger.error(f"Error in converting dictionary from {input_file}")
-        logger.error(e)
-        raise ExtractionError(str(e))
+        logger.error(extract_err)
+        raise ExtractionError(str(extract_err))
     if output_type == "json":
         converted_dictionary = data_dictionaries["template_json"]
     elif output_type == "csv":

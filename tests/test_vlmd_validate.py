@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from jsonschema import SchemaError, ValidationError
 
+from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd import ExtractionError, vlmd_validate
 from heal.vlmd.config import ALLOWED_OUTPUT_TYPES
 
@@ -54,6 +55,14 @@ def test_invalid_has_additional_properties():
     with pytest.raises(ValidationError) as e:
         vlmd_validate(input_file=test_file, schema_type="auto")
     expected_message = "Additional properties are not allowed"
+    assert expected_message in str(e.value)
+
+
+def test_invalid_redcap_dictionary():
+    test_file = "tests/test_data/vlmd/invalid/vlmd_redcap_checkbox_unfilled.csv"
+    with pytest.raises(RedcapExtractionError) as e:
+        vlmd_validate(input_file=test_file, schema_type="auto")
+    expected_message = "REDCap conversion error for mapping field 'aerobics'"
     assert expected_message in str(e.value)
 
 

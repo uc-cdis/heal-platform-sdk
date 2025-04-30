@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from heal.vlmd.config import ALLOWED_OUTPUT_TYPES, OUTPUT_FILE_PREFIX, TOP_LEVEL_PROPS
+from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd.extract.extract import (
     ExtractionError,
     set_title_if_missing,
@@ -209,6 +210,47 @@ def test_extract_dict_auto_without_fallback(
     assert data == expected_valid_data
 
 
+def test_extract_invalid_redcap_auto_without_fallback(tmp_path):
+    """
+    With file_type = "auto" the dictionary extraction will first process the input
+    as a csv dictionary. An invalid REDCap dictionary will trigger an error.
+    There is no fallback to dataset because the input is known to be a REDCap dictionary.
+    """
+
+    output_type = "json"
+    input_file = "tests/test_data/vlmd/invalid/vlmd_redcap_checkbox_unfilled.csv"
+    expected_file_name = (
+        f"{tmp_path}/{OUTPUT_FILE_PREFIX}_vlmd_redcap_checkbox_unfilled.{output_type}"
+    )
+
+    with patch("heal.vlmd.extract.extract.vlmd_validate") as mock_validate:
+        fail_message = "REDCap conversion error for mapping field 'aerobics'"
+        mock_validate.side_effect = RedcapExtractionError(fail_message)
+        with patch("heal.vlmd.extract.extract.convert_to_vlmd") as mock_convert:
+            mock_convert.return_value = {"some": "data"}
+
+            with pytest.raises(ExtractionError) as err:
+                vlmd_extract(
+                    input_file,
+                    title=test_title,
+                    file_type="auto",
+                    output_dir=tmp_path,
+                    output_type="json",
+                )
+
+                mock_validate.assert_called_with(
+                    input_file,
+                    file_type="csv",
+                    output_type=output_type,
+                    return_converted_output=True,
+                )
+                # Test that convert_to_vlmd was not called
+                # ie, no fallback after unsuccessful REDCap dictionary validation.
+                mock_convert.assert_not_called()
+
+    assert not os.path.isfile(expected_file_name)
+
+
 @pytest.mark.parametrize(
     "input_file, expected_message, error_type",
     [
@@ -225,6 +267,11 @@ def test_extract_dict_auto_without_fallback(
         (
             "tests/test_data/vlmd/invalid/vlmd_missing_name.csv",
             "'name' is a required property",
+            ExtractionError,
+        ),
+        (
+            "tests/test_data/vlmd/invalid/vlmd_redcap_checkbox_unfilled.csv",
+            "REDCap conversion error for mapping field 'aerobics'",
             ExtractionError,
         ),
     ],
