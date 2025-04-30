@@ -36,7 +36,7 @@ def set_title_if_missing(file_type: str, title: str, converted_dict: dict) -> di
 
     if file_type == "json":
         if existing_title is not None and existing_title != default_csv_title:
-            logger.info(f"Converted dict already has a title {existing_title}")
+            logger.info(f"Converted dict already has a title '{existing_title}'")
             return converted_dict
 
         if title is not None:
@@ -251,7 +251,6 @@ def vlmd_extract(
 
         schema_type = "csv"
         schema = get_schema(converted_dictionary, schema_type=output_type)
-        logger.info(f"Schema keys {schema.keys()}")
         if output_type == "csv":
             schema = add_types_to_props(schema)
         if schema is None:

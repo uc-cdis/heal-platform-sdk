@@ -50,7 +50,7 @@ def convert_to_vlmd(
         input_filepath (str): Path to input file. Currently converts data
             dictionaries in csv, json, and tsv.
         input_type (str): The input type. See keys of 'choice_fxn' dict for options, currently:
-            csv-data-set, csv-data-dict, json-template, redcap-data-dict.
+            csv-data-dict, csv-data-set, json-template, redcap-data-dict.
         data_dictionary_props (dict):
             The other data-dictionary level properties. By default,
             will give the data_dictionary `title` property as the file name stem.

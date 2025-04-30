@@ -184,9 +184,6 @@ def vlmd_validate(
     if output_type != file_suffix and not (
         file_suffix == "tsv" and output_type == "csv"
     ):
-        logger.debug(
-            f"Getting schema for '{output_type}' to validate converted dictionary"
-        )
         schema = get_schema(converted_dictionary, schema_type=output_type)
         if output_type == "csv":
             schema = add_types_to_props(schema)
@@ -199,11 +196,10 @@ def vlmd_validate(
         logger.debug(f"Validating converted dictionary")
         jsonschema.validate(instance=converted_dictionary, schema=schema)
     except jsonschema.ValidationError as err:
-        logger.error("Error in validating converted dictionary")
-        logger.error(str(err.message))
+        logger.error(f"Validation Error: {str(err.message)}")
         raise err
 
-    # Special check
+    # Special check not covered by jsonschema.validate: required props in csv output
     if output_type == "csv":
         existing_fields = list(converted_dictionary[0].keys())
         required_fields = ["name", "description"]
@@ -213,7 +209,7 @@ def vlmd_validate(
                 logger.error(message)
                 raise Exception(message)
 
-    logger.debug("Converted dictionary is valid")
+    logger.info("Converted dictionary is valid")
 
     if return_converted_output:
         return converted_dictionary

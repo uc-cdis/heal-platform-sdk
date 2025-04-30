@@ -134,10 +134,8 @@ def convert_datadict_csv(
         return inferred_delim
 
     if isinstance(csv_template, (str, PathLike)):
-        logger.debug("Getting data from path to CSV file")
         template_tbl = read_delim(str(Path(csv_template)))
     else:
-        logger.debug("Getting data from input dataframe")
         template_tbl = pd.DataFrame(csv_template)
 
     # If REDCap then get dictionary and return or raise RedcapExtractionError.
