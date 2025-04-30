@@ -3,9 +3,9 @@ from unittest.mock import patch
 import pytest
 from jsonschema import SchemaError, ValidationError
 
-from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd import ExtractionError, vlmd_validate
 from heal.vlmd.config import ALLOWED_OUTPUT_TYPES
+from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 
 
 @pytest.mark.parametrize(
@@ -20,6 +20,7 @@ from heal.vlmd.config import ALLOWED_OUTPUT_TYPES
     ],
 )
 def test_validate_valid_input(file_type, output_type):
+    """vlmd_validate returns True for valid input"""
     input_file = f"tests/test_data/vlmd/valid/vlmd_valid.{file_type}"
     result = vlmd_validate(
         input_file, output_type=output_type, return_converted_output=False
@@ -32,6 +33,7 @@ def test_validate_valid_input(file_type, output_type):
 def test_validate_with_json_output(
     file_type, valid_json_data, valid_converted_csv_to_json_output
 ):
+    """vlmd_validate returns data when return_converted_output=True"""
     input_file = f"tests/test_data/vlmd/valid/vlmd_valid.{file_type}"
     result = vlmd_validate(input_file, output_type="json", return_converted_output=True)
     assert isinstance(result, dict)
@@ -43,6 +45,7 @@ def test_validate_with_json_output(
 
 @pytest.mark.parametrize("file_type", ["csv", "json", "tsv"])
 def test_invalid_missing_required_fields(file_type):
+    """vlmd_validate raises Error for invalid input"""
     test_file = f"tests/test_data/vlmd/invalid/vlmd_missing_description.{file_type}"
     with pytest.raises(ValidationError) as e:
         vlmd_validate(input_file=test_file, schema_type="auto")
@@ -51,6 +54,7 @@ def test_invalid_missing_required_fields(file_type):
 
 
 def test_invalid_has_additional_properties():
+    """vlmd_validate catches unallowed additional properties in json"""
     test_file = "tests/test_data/vlmd/invalid/vlmd_additional_properties.json"
     with pytest.raises(ValidationError) as e:
         vlmd_validate(input_file=test_file, schema_type="auto")
@@ -59,6 +63,7 @@ def test_invalid_has_additional_properties():
 
 
 def test_invalid_redcap_dictionary():
+    """vlmd_validate raises a Redcap error for invalid REDCap dictionary"""
     test_file = "tests/test_data/vlmd/invalid/vlmd_redcap_checkbox_unfilled.csv"
     with pytest.raises(RedcapExtractionError) as e:
         vlmd_validate(input_file=test_file, schema_type="auto")
@@ -74,6 +79,7 @@ def test_invalid_redcap_dictionary():
     ],
 )
 def test_invalid_incorrect_type(file_type, expected_message, error_type):
+    """vlmd_validate raises error for incorrect types"""
     test_file = f"tests/test_data/vlmd/invalid/vlmd_string_in_maxLength.{file_type}"
     with pytest.raises(error_type) as e:
         vlmd_validate(input_file=test_file, schema_type="auto")
@@ -81,6 +87,7 @@ def test_invalid_incorrect_type(file_type, expected_message, error_type):
 
 
 def test_input_does_not_exist():
+    """vlmd_validate raises error for non-existant input file"""
     file_dne = "does_not_exist.json"
     with pytest.raises(IOError) as e:
         vlmd_validate(input_file=file_dne, schema_type="auto")
@@ -90,6 +97,7 @@ def test_input_does_not_exist():
 
 
 def test_unallowed_input_type(allowed_input_types):
+    """vlmd_validate raises error for unallowed file type"""
     unallowed_file = "tests/test_data/vlmd/invalid/vlmd_invalid.txt"
     with pytest.raises(ValueError) as e:
         vlmd_validate(input_file=unallowed_file, schema_type="auto")
@@ -99,6 +107,7 @@ def test_unallowed_input_type(allowed_input_types):
 
 
 def test_extract_unallowed_output():
+    """vlmd_validate raises error for unallowed output type"""
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     unallowed_output = "txt"
     with pytest.raises(ValueError) as e:
@@ -109,34 +118,43 @@ def test_extract_unallowed_output():
 
 @pytest.mark.parametrize("suffix", ["csv", "tsv"])
 def test_validate_dataset_type(suffix):
+    """vlmd_validate raises error when trying to validate data set"""
     test_file = f"tests/test_data/vlmd/valid/vlmd_valid_data.{suffix}"
     dataset_file_type = f"dataset_{suffix}"
     with pytest.raises(ValueError) as e:
         vlmd_validate(input_file=test_file, file_type=dataset_file_type)
 
-    expected_message = f"Data set input file types are not valid dictionaries."
+    expected_message = "Data set input file types are not valid dictionaries."
     assert str(e.value) == expected_message
 
 
 @pytest.mark.parametrize("suffix", ["csv", "tsv"])
 def test_validate_dataset_as_dictionary(suffix):
+    """
+    vlmd_validate raises ValidationError when trying to validate data set as a dictionary
+    for json output
+    """
     test_file = f"tests/test_data/vlmd/valid/vlmd_valid_data.{suffix}"
     file_type = suffix
     with pytest.raises(ValidationError) as e:
         vlmd_validate(input_file=test_file, file_type=file_type, output_type="json")
 
-    expected_message = f"'description' is a required property"
+    expected_message = "'description' is a required property"
     assert str(e.value.message) == expected_message
 
 
 @pytest.mark.parametrize("suffix", ["csv", "tsv"])
 def test_validate_dataset_as_dictionary_csv_output(suffix):
+    """
+    vlmd_validate raises Exception when trying to validate data set as a dictionary
+    for csv output
+    """
     test_file = f"tests/test_data/vlmd/valid/vlmd_valid_data.{suffix}"
     file_type = suffix
     with pytest.raises(Exception) as e:
         vlmd_validate(input_file=test_file, file_type=file_type, output_type="csv")
 
-    expected_message = f"'description' is a required property in csv dictionaries"
+    expected_message = "'description' is a required property in csv dictionaries"
     assert str(e.value) == expected_message
 
 
@@ -171,6 +189,7 @@ def test_invalid_converted_data():
 
 
 def test_extract_conversion_error():
+    """vlmd_extract raises ExtractionError when convert_to_vlmd raises Exception"""
     input_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
     fail_message = "Some conversion error"
 
@@ -182,6 +201,7 @@ def test_extract_conversion_error():
 
 
 def test_invalid_csv_schema(invalid_csv_schema):
+    """vlmd_extract raises SchemaError for invalid CSV schema"""
     test_file = "tests/test_data/vlmd/valid/vlmd_valid.csv"
 
     with patch("heal.vlmd.validate.validate.get_schema") as mock_get_schema:
@@ -193,6 +213,7 @@ def test_invalid_csv_schema(invalid_csv_schema):
 
 
 def test_invalid_json_schema(invalid_json_schema):
+    """vlmd_extract raises SchemaError for invalid JSON schema"""
     test_file = "tests/test_data/vlmd/valid/vlmd_valid.json"
     with patch("heal.vlmd.validate.validate.get_schema") as mock_get_schema:
         mock_get_schema.return_value = invalid_json_schema
@@ -203,6 +224,7 @@ def test_invalid_json_schema(invalid_json_schema):
 
 
 def test_could_not_get_schema():
+    """vlmd_validate raises ValueError if get_schema returns None"""
     schema_type = "json"
     test_file = f"tests/test_data/vlmd/valid/vlmd_valid.{schema_type}"
 
