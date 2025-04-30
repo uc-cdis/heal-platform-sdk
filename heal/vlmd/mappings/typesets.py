@@ -1,7 +1,8 @@
-import visions as v
-import pandas.api.types as pdt
-import pandas as pd
 from functools import partial
+
+import pandas as pd
+import pandas.api.types as pdt
+import visions as v
 
 # for declarative API example used as reference see:
 # https://github.com/dylan-profiler/visions/blob/develop/examples/declarative_typeset.py

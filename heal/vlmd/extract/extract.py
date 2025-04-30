@@ -1,12 +1,11 @@
+import re
 from os.path import isfile
 from pathlib import Path
-import re
 
+import jsonschema
 from cdislogging import get_logger
 from jsonschema import ValidationError
-import jsonschema
 
-from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd import ExtractionError, vlmd_validate
 from heal.vlmd.config import (
     ALLOWED_FILE_TYPES,
@@ -15,6 +14,7 @@ from heal.vlmd.config import (
     TOP_LEVEL_PROPS,
 )
 from heal.vlmd.extract.conversion import convert_to_vlmd
+from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd.file_utils import get_output_filepath, write_vlmd_dict
 from heal.vlmd.validate.validate import file_type_to_fxn_map
 from heal.vlmd.utils import add_types_to_props

@@ -2,11 +2,9 @@
 CSV data to HEAL VLMD conversion
 """
 
-import pandas as pd
-
-from heal.vlmd.validate.utils import read_delim
 from heal.vlmd.extract.json_dict_conversion import convert_template_json
 from heal.vlmd.mappings import typesets
+from heal.vlmd.validate.utils import read_delim
 
 
 def convert_dataset_csv(file_path, data_dictionary_props={}):
