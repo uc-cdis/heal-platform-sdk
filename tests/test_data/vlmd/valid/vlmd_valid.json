@@ -105,7 +105,11 @@
             "name": "pulse_rate",
             "title": "Pulse Rate",
             "description": "Heart rate measured at systemic artery",
-            "type": "number"
+            "type": "number",
+            "constraints": {
+                "maximum": 90,
+                "minimum": 0.9
+            }
         }
     ]
 }

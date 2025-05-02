@@ -117,6 +117,25 @@ def valid_array_data():
             "falseValues": "",
             "custom.notes": "This is a custom note",
         },
+        {
+            "section": "Biomeasures",
+            "name": "pulse_rate",
+            "title": "Pulse Rate",
+            "description": "pulse-rate",
+            "type": "number",
+            "format": "",
+            "constraints.maxLength": "",
+            "constraints.enum": "",
+            "constraints.pattern": "",
+            "constraints.maximum": 9.0,
+            "constraints.minimum": 0.9,
+            "enumLabels": "",
+            "enumOrdered": "",
+            "missingValues": "99",
+            "trueValues": "",
+            "falseValues": "",
+            "custom.notes": "",
+        },
     ]
 
 
