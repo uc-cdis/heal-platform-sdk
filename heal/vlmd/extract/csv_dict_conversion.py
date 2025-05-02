@@ -205,6 +205,10 @@ def convert_datadict_csv(
                 )
             elif field_prop["type"] == "number":
                 tbl_csv[new_column_name] = tbl_csv[new_column_name].astype(float)
+            elif field_prop["type"] == ["integer", "number"]:
+                tbl_csv[new_column_name] = tbl_csv[new_column_name].apply(
+                    lambda s: float(s) if s else s
+                )
             elif field_prop["type"] == "object":
                 possible_key_val = ["=", ":"]
                 possible_list = [";", "|"]
