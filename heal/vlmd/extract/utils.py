@@ -252,6 +252,51 @@ def join_dict_items(dictionary: dict, sep_key_val="=", sep_items="|"):
     return sep_items.join(dict_list)
 
 
+def sync_fields(data: list, field_list: list, missing_value=None):
+    """
+    Sorts fields and adds missing fields (with None value).
+    If extra fields exist in a record that are not in field_list, then tacks on at
+    end of record.
+
+    Args:
+        data (list): json array of values
+        field_list (list): the list of all field names  (e.g., properties from a schema)
+
+    Returns:
+        list: json array with fields added if missing
+    """
+    data_with_missing = []
+
+    for record in data:
+        new_record = {}
+        for fieldpropname in field_list:
+            # check if the fieldname is a property (or could be a pattern property)
+            fieldnames = re.findall(
+                "|".join("^" + fieldname + "$" for fieldname in record), fieldpropname
+            )
+            # if match then add to new record
+            if fieldnames:
+                for name in fieldnames:
+                    new_record[name] = record[name]
+            # if no record than add missing value (if there is a regex list index, then add [0])
+            else:
+                extra_fieldname = (
+                    fieldpropname.replace("^", "")
+                    .replace("$", "")
+                    .replace("\[\d+\]", "[0]")
+                )  # replace list item regex
+                new_record[extra_fieldname] = missing_value
+
+        # tack on extra fields not in field_list at back
+        extra_fields = list(set(list(record)).difference(list(new_record)))
+        for name in extra_fields:
+            new_record[name] = record[name]
+
+        # append the newly synced record with missing values
+        data_with_missing.append(new_record)
+    return data_with_missing
+
+
 # Working with schemas
 def flatten_properties(properties, parent_key="", sep=".", item_sep=r"\[\d+\]"):
     """Flatten schema properties"""

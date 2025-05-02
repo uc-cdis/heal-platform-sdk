@@ -117,6 +117,25 @@ def valid_array_data():
             "falseValues": "",
             "custom.notes": "This is a custom note",
         },
+        {
+            "section": "Biomeasures",
+            "name": "pulse_rate",
+            "title": "Pulse Rate",
+            "description": "pulse-rate",
+            "type": "number",
+            "format": "",
+            "constraints.maxLength": "",
+            "constraints.enum": "",
+            "constraints.pattern": "",
+            "constraints.maximum": 9.0,
+            "constraints.minimum": 0.9,
+            "enumLabels": "",
+            "enumOrdered": "",
+            "missingValues": "99",
+            "trueValues": "",
+            "falseValues": "",
+            "custom.notes": "",
+        },
     ]
 
 
@@ -149,6 +168,18 @@ def valid_converted_csv_to_json():
 
 
 @pytest.fixture()
+def valid_converted_csv_dataset_to_json():
+    """valid csv dataset extracted to json dictionary"""
+    with open(
+        "tests/test_data/vlmd/valid/vlmd_dataset_csv_to_json.json",
+        "r",
+        encoding="utf-8",
+    ) as f:
+        data = json.load(f)
+    return data
+
+
+@pytest.fixture()
 def valid_csv_output():
     """valid extracted csv data"""
     with open(
@@ -175,7 +206,7 @@ def valid_converted_csv_to_json_output():
 def valid_redcap_csv_dict():
     """valid redcap csv dict"""
     with open(
-        "tests/test_data/vlmd/valid/vlmd_redcap_dict_small", "r", encoding="utf-8"
+        "tests/test_data/vlmd/valid/vlmd_redcap_dict_small.csv", "r", encoding="utf-8"
     ) as f:
         data = json.load(f)
     return data
