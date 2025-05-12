@@ -11,7 +11,12 @@ from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv
 from heal.vlmd.utils import has_redcap_headers
 from heal.vlmd.validate.utils import read_delim
 
-logger = get_logger("csv-conversion", log_level="debug")
+
+class RedcapExtractionError(Exception):
+    pass
+
+
+logger = get_logger("csv-conversion", log_level="info")
 
 
 def _parse_string_objects(
@@ -129,17 +134,20 @@ def convert_datadict_csv(
         return inferred_delim
 
     if isinstance(csv_template, (str, PathLike)):
-        logger.debug("Getting data from path to CSV file")
         template_tbl = read_delim(str(Path(csv_template)))
     else:
-        logger.debug("Getting data from input dataframe")
         template_tbl = pd.DataFrame(csv_template)
 
-    # If REDCap then get dictionary and return.
+    # If REDCap then get dictionary and return or raise RedcapExtractionError.
     column_names = template_tbl.columns
     if has_redcap_headers(column_names):
         logger.debug("File appears to have REDCap headers. Ready to convert.")
-        converted_dict = convert_redcap_csv(template_tbl)
+        try:
+            converted_dict = convert_redcap_csv(template_tbl)
+        except Exception as err:
+            logger.error("Error in extracting REDCap dictionary")
+            logger.error(err)
+            raise RedcapExtractionError(str(err))
         return converted_dict
     else:
         logger.debug("File is CSV dictionary, not REDCap dictionary.")
@@ -197,6 +205,10 @@ def convert_datadict_csv(
                 )
             elif field_prop["type"] == "number":
                 tbl_csv[new_column_name] = tbl_csv[new_column_name].astype(float)
+            elif field_prop["type"] == ["integer", "number"]:
+                tbl_csv[new_column_name] = tbl_csv[new_column_name].apply(
+                    lambda s: float(s) if s else s
+                )
             elif field_prop["type"] == "object":
                 possible_key_val = ["=", ":"]
                 possible_list = [";", "|"]

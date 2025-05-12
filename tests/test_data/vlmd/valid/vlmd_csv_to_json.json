@@ -47,6 +47,27 @@
             "custom": {
                 "notes": "This is a custom note"
             }
+        },
+        {
+            "section": "Biomeasures",
+            "name": "pulse_rate",
+            "title": "Pulse Rate",
+            "description": "pulse-rate",
+            "type": "number",
+            "format": "",
+            "constraints": {
+                "maxLength": "",
+                "enum": "",
+                "pattern": "",
+                "maximum": 9.0,
+                "minimum": 0.9
+            },
+            "enumLabels": "",
+            "enumOrdered": "",
+            "missingValues": ["99"],
+            "trueValues": "",
+            "falseValues": "",
+            "custom": {}
         }
     ]
 }

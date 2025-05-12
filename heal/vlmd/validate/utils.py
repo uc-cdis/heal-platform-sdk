@@ -9,7 +9,7 @@ from cdislogging import get_logger
 
 from heal.vlmd.config import CSV_SCHEMA, JSON_SCHEMA
 
-logger = get_logger("validate-utils", log_level="debug")
+logger = get_logger("validate-utils", log_level="info")
 
 
 def detect_file_encoding(file_path):
@@ -89,15 +89,12 @@ def get_schema(data_or_path, schema_type: str):
 
     if schema_type == "csv" or (schema_type == "auto" and dictionary_type == "csv"):
         schema = {"type": "array", "items": CSV_SCHEMA}
-        logger.debug("Validator will use CSV schema")
         return schema
     if schema_type == "tsv" or (schema_type == "auto" and dictionary_type == "tsv"):
         schema = {"type": "array", "items": CSV_SCHEMA}
-        logger.debug("Validator will use CSV schema for TSV file")
         return schema
     if schema_type == "json" or (schema_type == "auto" and dictionary_type == "json"):
         schema = JSON_SCHEMA
-        logger.debug("Validator will use json schema")
         return schema
 
     return None

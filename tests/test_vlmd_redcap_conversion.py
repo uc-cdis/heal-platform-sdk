@@ -182,16 +182,19 @@ def test_convert_redcap_csv_bad_input():
     assert expected_message in str(err.value)
 
 
-def test_convert_failed_mapping():
-    """Test that converted raises a value error on failed mapping"""
-    expected_message = "some mapping exception"
+def test_gather_failed_mapping():
+    """
+    Test that convert raises a ValueError on failed mapping.
+    Here, mock will trigger an error on the first field of the input source fields.
+    """
+    first_field = VALID_REDCAP_SOURCE_FIELDS[0]["name"]
+    expected_message = f"REDCap conversion error for mapping field '{first_field}'"
     with patch(
         "heal.vlmd.extract.redcap_csv_dict_conversion._add_metadata"
     ) as mock_mappings:
         mock_mappings.side_effect = Exception("some mapping exception")
         with pytest.raises(ValueError) as err:
             result = gather(VALID_REDCAP_SOURCE_FIELDS)
-            print(f"Result {result}")
 
         mock_mappings.assert_called()
         assert expected_message in str(err.value)
