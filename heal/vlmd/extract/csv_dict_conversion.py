@@ -16,7 +16,7 @@ class RedcapExtractionError(Exception):
     pass
 
 
-logger = get_logger("csv-conversion", log_level="debug")
+logger = get_logger("csv-conversion", log_level="info")
 
 
 def _parse_string_objects(

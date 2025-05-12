@@ -8,7 +8,7 @@ from cdislogging import get_logger
 
 from heal.vlmd.config import OUTPUT_FILE_PREFIX
 
-logger = get_logger("vlmd-file-utils", log_level="debug")
+logger = get_logger("vlmd-file-utils", log_level="info")
 
 
 # file writing

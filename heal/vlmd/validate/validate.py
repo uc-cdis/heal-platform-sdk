@@ -17,7 +17,7 @@ from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd.utils import add_types_to_props
 from heal.vlmd.validate.utils import get_schema, read_data_from_json_file, read_delim
 
-logger = get_logger("vlmd-validate-extract", log_level="debug")
+logger = get_logger("vlmd-validate-extract", log_level="info")
 
 
 class ExtractionError(Exception):

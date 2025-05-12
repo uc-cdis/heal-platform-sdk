@@ -21,7 +21,7 @@ from heal.vlmd.utils import add_types_to_props
 from heal.vlmd.validate.utils import get_schema
 
 
-logger = get_logger("extract", log_level="debug")
+logger = get_logger("extract", log_level="info")
 
 
 def set_title_if_missing(file_type: str, title: str, converted_dict: dict) -> dict:

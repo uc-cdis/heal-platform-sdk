@@ -9,7 +9,7 @@ from cdislogging import get_logger
 
 from heal.vlmd.config import CSV_SCHEMA, JSON_SCHEMA
 
-logger = get_logger("validate-utils", log_level="debug")
+logger = get_logger("validate-utils", log_level="info")
 
 
 def detect_file_encoding(file_path):

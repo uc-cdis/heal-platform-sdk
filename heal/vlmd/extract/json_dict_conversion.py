@@ -9,7 +9,7 @@ from cdislogging import get_logger
 from heal.vlmd.config import JSON_SCHEMA
 from heal.vlmd.extract import utils
 
-logger = get_logger("json-conversion", log_level="debug")
+logger = get_logger("json-conversion", log_level="info")
 
 
 def convert_template_json(

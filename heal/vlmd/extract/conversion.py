@@ -12,7 +12,7 @@ from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv
 from heal.vlmd.extract.utils import sync_fields
 from heal.vlmd.utils import clean_json_fields
 
-logger = get_logger("vlmd-conversion", log_level="debug")
+logger = get_logger("vlmd-conversion", log_level="info")
 
 choice_fxn = {
     "csv-data-set": convert_dataset_csv,
