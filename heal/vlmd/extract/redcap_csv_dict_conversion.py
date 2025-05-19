@@ -20,7 +20,7 @@ from heal.vlmd.extract.json_dict_conversion import convert_template_json
 from heal.vlmd.mappings.redcap_field_mapping import type_mappings
 from heal.vlmd.validate.utils import read_delim
 
-logger = get_logger("redcap-conversion", log_level="debug")
+logger = get_logger("redcap-conversion", log_level="info")
 
 
 def read_from_file(file_path):

@@ -140,7 +140,7 @@ def vlmd_validate(
         except jsonschema.ValidationError as err:
             logger.error("Error in validating json input")
             raise err
-        logger.debug("JSON input is valid")
+        logger.info("JSON input is valid")
         if return_converted_output:
             return data
         else:
