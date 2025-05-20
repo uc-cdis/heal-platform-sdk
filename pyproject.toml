@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "heal-sdk"
-version = "1.1.1"
+version = "1.1.0"
 description = "HEAL Platform SDK"
 authors = ["Center for Translational Data Science at the University of Chicago <support@gen3.org>"]
 license = "Apache-2.0"
