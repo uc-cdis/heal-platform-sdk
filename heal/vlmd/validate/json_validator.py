@@ -9,7 +9,7 @@ from cdislogging import get_logger
 from heal.vlmd.config import ALLOWED_SCHEMA_TYPES
 from heal.vlmd.validate.utils import get_schema
 
-logger = get_logger("json-validator", log_level="debug")
+logger = get_logger("json-validator", log_level="info")
 
 
 def read_data_from_json_file(input_file: str) -> Dict:

@@ -13,10 +13,11 @@ from heal.vlmd.config import (
     ALLOWED_SCHEMA_TYPES,
 )
 from heal.vlmd.extract.conversion import convert_to_vlmd
+from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd.utils import add_types_to_props
 from heal.vlmd.validate.utils import get_schema, read_data_from_json_file, read_delim
 
-logger = get_logger("vlmd-validate-extract", log_level="debug")
+logger = get_logger("vlmd-validate-extract", log_level="info")
 
 
 class ExtractionError(Exception):
@@ -25,6 +26,8 @@ class ExtractionError(Exception):
 
 file_type_to_fxn_map = {
     "csv": "csv-data-dict",
+    "dataset_csv": "csv-data-set",
+    "dataset_tsv": "csv-data-set",
     "json": "json-template",
     "tsv": "csv-data-dict",
     "redcap": "redcap-csv-dict",
@@ -63,24 +66,28 @@ def vlmd_validate(
         Raises ValidationError if the input VLMD is not valid.
         Raises ValueError for unallowed input file types or unallowed schema types.
         Raises SchemaError if the schema is invalid.
-        Raises ExctractionError if the input cannot be converted to VLMD dictionary.
+        Raises ExtractionError if the input cannot be converted to VLMD dictionary.
+        Raises RedcapExtractionError if input is detected as Redcap and cannot be
+            converted to VLMD dictionary.
     """
-    logger.debug("In vlmd validate")
+
+    if file_type in ["dataset_csv", "dataset_tsv"]:
+        message = f"Data set input file types are not valid dictionaries."
+        logger.error(message)
+        raise ValueError(message)
 
     if isinstance(input_file, (str, os.PathLike)):
         logger.info(
-            f"Validating VLMD file '{input_file}' against schema type '{schema_type}'"
+            f"Validating VLMD file '{input_file}' using file_type '{file_type}'"
         )
         if not isfile(input_file):
             message = f"Input file does not exist: {input_file}"
             logger.error(message)
             raise IOError(message)
-        logger.debug(f"File_type = {file_type}")
         file_suffix = Path(input_file).suffix.replace(".", "")
         data = None
     else:
-        logger.info(f"Validating VLMD json data against schema type '{schema_type}'")
-        logger.debug(f"File_type = {file_type}")
+        logger.info(f"Validating VLMD json data using file_type '{file_type}'")
         file_suffix = "json"
         data = input_file
 
@@ -113,19 +120,16 @@ def vlmd_validate(
 
     if file_suffix in ["csv", "tsv"]:
         schema = add_types_to_props(schema)
-    logger.debug("Checking schema")
     jsonschema.validators.Draft7Validator.check_schema(schema)
 
     # read the input file
     if file_suffix in ["csv", "tsv"]:
-        logger.debug("Getting csv data from file")
         data = read_delim(input_file).to_dict(orient="records")
         if len(data) == 0:
             message = "Could not read csv data from input"
             logger.error(message)
             raise ValidationError(message)
     elif file_suffix == "json" and data is None:
-        logger.debug("Getting json data from file")
         data = read_data_from_json_file(input_file)
 
     # if input is json then try a validation and return input
@@ -136,7 +140,7 @@ def vlmd_validate(
         except jsonschema.ValidationError as err:
             logger.error("Error in validating json input")
             raise err
-        logger.debug("JSON input is valid")
+        logger.info("JSON input is valid")
         if return_converted_output:
             return data
         else:
@@ -163,10 +167,14 @@ def vlmd_validate(
             input_type=file_convert_function,
             data_dictionary_props=data_dictionary_props,
         )
-    except Exception as e:
+    except RedcapExtractionError as redcap_err:
+        logger.error(f"Error in converting REDCap dictionary from {input_file}")
+        logger.error(redcap_err)
+        raise RedcapExtractionError(str(redcap_err))
+    except Exception as extract_err:
         logger.error(f"Error in converting dictionary from {input_file}")
-        logger.error(e)
-        raise ExtractionError(str(e))
+        logger.error(extract_err)
+        raise ExtractionError(str(extract_err))
     if output_type == "json":
         converted_dictionary = data_dictionaries["template_json"]
     elif output_type == "csv":
@@ -176,9 +184,6 @@ def vlmd_validate(
     if output_type != file_suffix and not (
         file_suffix == "tsv" and output_type == "csv"
     ):
-        logger.debug(
-            f"Getting schema for '{output_type}' to validate converted dictionary"
-        )
         schema = get_schema(converted_dictionary, schema_type=output_type)
         if output_type == "csv":
             schema = add_types_to_props(schema)
@@ -188,11 +193,23 @@ def vlmd_validate(
             raise ValueError(message)
 
     try:
+        logger.debug(f"Validating converted dictionary")
         jsonschema.validate(instance=converted_dictionary, schema=schema)
     except jsonschema.ValidationError as err:
-        logger.error("Error in validating converted dictionary")
+        logger.error(f"Validation Error: {str(err.message)}")
         raise err
-    logger.debug("Converted dict is valid")
+
+    # Special check not covered by jsonschema.validate: required props in csv output
+    if output_type == "csv":
+        existing_fields = list(converted_dictionary[0].keys())
+        required_fields = ["name", "description"]
+        for field in required_fields:
+            if field not in existing_fields:
+                message = f"'{field}' is a required property in csv dictionaries"
+                logger.error(message)
+                raise Exception(message)
+
+    logger.info("Converted dictionary is valid")
 
     if return_converted_output:
         return converted_dictionary

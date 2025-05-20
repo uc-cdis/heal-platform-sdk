@@ -140,15 +140,18 @@ def test_add_missing_type():
     ],
 )
 def test_add_types_to_props(input_schema, expected_schema):
+    """Test adding properties"""
     # Propeties get wrapped in 'anyOf' or 'allOf'
     assert add_types_to_props(input_schema) == expected_schema
 
 
 def test_remove_empty_props():
+    """Test removing properties"""
     assert remove_empty_props(input_prop_with_empties) == expected_prop
 
 
 def test_clean_json_fields():
+    """Test the removal of empty json fields"""
     fields = [input_prop_with_empties, input_prop_with_empties]
     expected_fields = [expected_prop, expected_prop]
     assert clean_json_fields(fields) == expected_fields

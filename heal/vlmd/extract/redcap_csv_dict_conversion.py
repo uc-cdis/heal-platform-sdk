@@ -20,7 +20,7 @@ from heal.vlmd.extract.json_dict_conversion import convert_template_json
 from heal.vlmd.mappings.redcap_field_mapping import type_mappings
 from heal.vlmd.validate.utils import read_delim
 
-logger = get_logger("redcap-conversion", log_level="debug")
+logger = get_logger("redcap-conversion", log_level="info")
 
 
 def read_from_file(file_path):
@@ -128,10 +128,11 @@ def gather(source_fields: list[dict]) -> list[dict]:
                 target_field_with_name.update(target_field)
                 target_fields.append(target_field_with_name)
         except Exception as err:
-            logger.error(
-                "REDCap conversion error for field '" f"{source_field['name']}" "'"
+            err_message = (
+                f"REDCap conversion error for mapping field '{source_field['name']}'"
             )
-            raise ValueError(str(err))
+            logger.error(err_message)
+            raise ValueError(err_message)
 
     return target_fields
 

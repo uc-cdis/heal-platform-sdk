@@ -8,7 +8,7 @@ from cdislogging import get_logger
 
 from heal.vlmd.config import OUTPUT_FILE_PREFIX
 
-logger = get_logger("vlmd-file-utils", log_level="debug")
+logger = get_logger("vlmd-file-utils", log_level="info")
 
 
 # file writing
@@ -62,7 +62,6 @@ def write_vlmd_dict(dictionary, output_filepath, file_type="auto"):
     if file_type == "auto":
         file_type = output_filepath.suffix.replace(".", "")
 
-    logger.debug(f"Output dictionary type is {file_type}")
     dirname = os.path.dirname(output_filepath)
     if dirname != "":
         os.makedirs(dirname, exist_ok=True)

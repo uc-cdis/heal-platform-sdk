@@ -47,32 +47,35 @@ def test_read_delim(file_type):
     # dataFrame structure is column and values; this data matches the test input files
     expected_df = pd.DataFrame(
         {
-            "section": {0: "Enrollment", 1: "Demographics"},
-            "name": {0: "participant_id", 1: "race"},
-            "title": {0: "Participant Id", 1: "Race"},
+            "section": {0: "Enrollment", 1: "Demographics", 2: "Biomeasures"},
+            "name": {0: "participant_id", 1: "race", 2: "pulse_rate"},
+            "title": {0: "Participant Id", 1: "Race", 2: "Pulse Rate"},
             "description": {
                 0: "Unique identifier for participant",
                 1: "Self-reported race",
+                2: "pulse-rate",
             },
-            "type": {0: "string", 1: "integer"},
-            "format": {0: "", 1: ""},
-            "constraints.maxLength": {0: "", 1: ""},
-            "constraints.enum": {0: "", 1: "1|2|3|4|5|6|7|8"},
+            "type": {0: "string", 1: "integer", 2: "number"},
+            "format": {0: "", 1: "", 2: ""},
+            "constraints.maxLength": {0: "", 1: "", 2: ""},
+            "constraints.enum": {0: "", 1: "1|2|3|4|5|6|7|8", 2: ""},
             "constraints.pattern": {
                 0: "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
                 1: "",
+                2: "",
             },
-            "constraints.maximum": {0: "", 1: ""},
-            "constraints.minimum": {0: "", 1: ""},
+            "constraints.maximum": {0: "", 1: "", 2: "9"},
+            "constraints.minimum": {0: "", 1: "", 2: "0.9"},
             "enumLabels": {
                 0: "",
                 1: "1=White|2=Black or African American|3=American Indian or Alaska Native|4=Native| 5=Hawaiian or Other Pacific Islander|6=Asian|7=Some other race|8=Multiracial|99=Not reported",
+                2: "",
             },
-            "enumOrdered": {0: "", 1: ""},
-            "missingValues": {0: "", 1: "99"},
-            "trueValues": {0: "", 1: ""},
-            "falseValues": {0: "", 1: ""},
-            "custom.notes": {0: "This is a note", 1: "This is a custom note"},
+            "enumOrdered": {0: "", 1: "", 2: ""},
+            "missingValues": {0: "", 1: "99", 2: "99"},
+            "trueValues": {0: "", 1: "", 2: ""},
+            "falseValues": {0: "", 1: "", 2: ""},
+            "custom.notes": {0: "This is a note", 1: "This is a custom note", 2: ""},
         }
     )
     assert result.to_dict() == expected_df.to_dict()

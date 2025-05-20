@@ -1,0 +1,37 @@
+{
+    "schemaVersion": "0.3.2",
+    "title": "HEAL Data Dictionary",
+    "fields": [
+        {
+            "name": "id",
+            "type": "integer",
+            "description": "description required"
+        },
+        {
+            "name": "name",
+            "type": "string",
+            "description": "description required"
+        },
+        {
+            "name": "population",
+            "type": "string",
+            "description": "description required"
+        },
+        {
+            "name": "is_cool_country",
+            "type": "boolean",
+            "description": "description required"
+        },
+        {
+            "name": "coolness_scale",
+            "type": "integer",
+            "constraints": {
+                "enum": [
+                    1,
+                    2
+                ]
+            },
+            "description": "description required"
+        }
+    ]
+}
