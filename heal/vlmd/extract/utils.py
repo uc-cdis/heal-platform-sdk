@@ -98,10 +98,18 @@ def strip_html(html_string):
         return html_string
 
 
-def parse_dictionary_str(string, item_sep, key_val_sep):
+def parse_dictionary_str(string, item_sep, key_val_sep) -> dict:
     """
     Parses a stringified dictionary into a dictionary
     based on item separator
+
+    Args
+        string (str) - the input string of separated key-value pairs, eg "1=yes|2=No"
+        item_sep (str) - item separator, "|"
+        key_val_sep (str) - "="
+
+    Returns
+        dictionary of keys and values if valid input
     """
     if string != "" and string is not None:
         str_items = string.strip().split(item_sep)
@@ -109,6 +117,10 @@ def parse_dictionary_str(string, item_sep, key_val_sep):
 
         for str_item in str_items:
             if str_item:
+                if key_val_sep not in str_item:
+                    raise Exception(
+                        f"Value separator '{key_val_sep}' not present in string item '{str_item}'"
+                    )
                 item = str_item.split(key_val_sep, 1)
                 items[item[0].strip()] = item[1].strip()
 
