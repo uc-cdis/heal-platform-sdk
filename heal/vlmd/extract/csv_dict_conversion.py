@@ -25,6 +25,7 @@ def _parse_string_objects(
     """Parse string objects and array to create the dict (json) instance"""
     tbl_json = tbl_csv.copy()
     for column_name in tbl_json.columns.tolist():
+        logger.debug(f"Working on column '{column_name}'")
         # NOTE: the below methodology uses the schema to instruct how to convert to json.
         field_prop_name = utils.find_prop_name(column_name, field_properties)
         field_prop = field_properties.get(field_prop_name)
@@ -242,7 +243,6 @@ def convert_datadict_csv(
                 tbl_csv[new_column_name] = tbl_csv[new_column_name].replace(
                     item_sep, "|"
                 )
-
     tbl_json = _parse_string_objects(tbl_csv, field_properties)
 
     # drop all custom columns (as I have nested already)

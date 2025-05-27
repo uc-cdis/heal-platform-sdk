@@ -271,6 +271,18 @@ def test_parse_dictionary_str():
     assert output_dict == expected_dict
 
 
+def test_parse_dictionary_str_missing_separator():
+    """Test that an Exception is raised for a missing key_val_separator"""
+    input_string = "1 = Yes | 2 - No"
+    key_val_sep = "="
+    with pytest.raises(Exception) as err:
+        parse_dictionary_str(input_string, item_sep="|", key_val_sep=key_val_sep)
+    expected_error_message = (
+        f"Value separator '{key_val_sep}' not present in string item ' 2 - No'"
+    )
+    assert expected_error_message in str(err.value)
+
+
 @pytest.mark.parametrize(
     "input_string, separator, expected_output_list",
     [
