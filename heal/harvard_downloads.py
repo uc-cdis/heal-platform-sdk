@@ -11,10 +11,11 @@ https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dat
 
 from pathlib import Path
 from typing import Dict, List
-from heal.utils import unpackage_object, get_id, download_from_url
 
 from cdislogging import get_logger
 from gen3.tools.download.drs_download import DownloadStatus
+
+from heal.utils import download_from_url, get_filename, get_id, unpackage_object
 
 logger = get_logger("__name__", log_level="debug")
 
@@ -51,6 +52,10 @@ def get_harvard_dataverse_files(
         logger.info(f"ID = {id}")
         completed[id] = DownloadStatus(filename=id, status="pending")
 
+        filename = get_filename(file_metadata)
+        if filename is not None:
+            logger.info(f"Filename = {filename}")
+
         download_url = get_download_url_for_harvard_dataverse(file_metadata)
         if download_url is None:
             logger.critical(f"Could not get download_url for {id}")
@@ -62,6 +67,7 @@ def get_harvard_dataverse_files(
             api_url=download_url,
             headers=None,
             download_path=download_path,
+            filename=filename,
         )
         if downloaded_file is None:
             completed[id].status = "failed"

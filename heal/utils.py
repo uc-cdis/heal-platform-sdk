@@ -84,10 +84,21 @@ def get_id(file_metadata: Dict) -> str:
     return None
 
 
+def get_filename(file_metadata: Dict) -> str:
+    """
+    Get the filename from the external_file_metadata object.
+
+    Args:
+        file_metadata (Dict)
+
+    Returns:
+        string
+    """
+    return file_metadata.get("filename", None)
+
+
 def download_from_url(
-    api_url: str,
-    headers=None,
-    download_path: str = ".",
+    api_url: str, headers=None, download_path: str = ".", filename: str = None
 ) -> str:
     """
     Retrieve data file (study_id or file_id) from url.
@@ -97,6 +108,8 @@ def download_from_url(
         api_url (str): url for QDR or Harvard API
         headers (Dict): request headers
         download_path (str): path for saving downloaded zip file
+        filename (str): filename to save downloaded files to, default is to get a
+          filename by parsing response headers.
 
     Returns:
         path to downloaded and renamed file.
@@ -119,15 +132,17 @@ def download_from_url(
         logger.critical(f"Error in download {exc}")
         return None
     logger.debug(f"Status code={response.status_code}")
-    downloaded_file_name = get_filename_from_headers(response.headers)
-    if downloaded_file_name is None:
-        downloaded_file_name = api_url.split("/")[-1]
-        logger.info(f"Using file name from id in url {downloaded_file_name}")
+    if filename is not None:
+        downloaded_file_name = filename
+    else:
+        downloaded_file_name = get_filename_from_headers(response.headers)
+        if downloaded_file_name is None:
+            downloaded_file_name = api_url.split("/")[-1]
 
-    if downloaded_file_name.endswith(
-        "zip"
-    ) and not "application/zip" in response.headers.get("Content-Type"):
-        logger.critical("Response headers do not show zipfile content-type")
+        if downloaded_file_name.endswith(
+            "zip"
+        ) and not "application/zip" in response.headers.get("Content-Type"):
+            logger.critical("Response headers do not show zipfile content-type")
 
     total_downloaded = 0
     block_size = 8092  # 8K blocks might want to tune this.

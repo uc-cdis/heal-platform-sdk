@@ -19,13 +19,19 @@ The WTS-SERVER is a Gen3 commons that has been configured to return
 tokens for the 'idp' specified in the external_file_metadata.
 """
 
-
 from pathlib import Path
 from typing import Dict, List
-from heal.utils import unpackage_object, get_id, download_from_url, get_idp_access_token
 
 from cdislogging import get_logger
 from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
+
+from heal.utils import (
+    download_from_url,
+    get_filename,
+    get_id,
+    get_idp_access_token,
+    unpackage_object,
+)
 
 logger = get_logger("__name__", log_level="debug")
 
@@ -62,6 +68,10 @@ def get_syracuse_qdr_files(
         logger.info(f"ID = {id}")
         completed[id] = DownloadStatus(filename=id, status="pending")
 
+        filename = get_filename(file_metadata)
+        if filename is not None:
+            logger.info(f"Filename = {filename}")
+
         download_url = get_download_url_for_qdr(file_metadata)
         if download_url is None:
             logger.critical(f"Could not get download_url for {id}")
@@ -80,6 +90,7 @@ def get_syracuse_qdr_files(
             api_url=download_url,
             headers=request_headers,
             download_path=download_path,
+            filename=filename,
         )
         if downloaded_file is None:
             completed[id].status = "failed"

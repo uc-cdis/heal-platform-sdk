@@ -346,6 +346,7 @@ def test_download_from_url_failures(download_dir):
 
 
 def test_get_syracuse_qdr_files(wts_hostname, download_dir):
+    """Without filename in metadata should download with file_id"""
     test_idp = "test-external-idp"
     test_data = "foo"
 
@@ -386,6 +387,59 @@ def test_get_syracuse_qdr_files(wts_hostname, download_dir):
             download_path=download_dir,
         )
         assert result == expected_status
+        # file is downloaded by file_id in external_file_metadata
+        downloaded_file_path = Path(download_dir) / test_file_id
+        assert downloaded_file_path.exists()
+
+
+def test_get_syracuse_qdr_files_with_filename(wts_hostname, download_dir):
+    """Specify filename in metadata for downloaded file"""
+    test_idp = "test-external-idp"
+    test_data = "foo"
+    test_filename = "test_qdr.pdf"
+
+    # valid input and successful download
+    test_file_id = "some_id"
+    file_metadata_list = [
+        {
+            "external_oidc_idp": test_idp,
+            "file_retriever": "QDR",
+            "file_id": test_file_id,
+            "filename": test_filename,
+        },
+    ]
+    # the status uses the file_id of the download
+    expected_status = {
+        test_file_id: DownloadStatus(filename=test_file_id, status="downloaded")
+    }
+
+    returned_idp_token = "some-idp-token"
+    mock_auth = MagicMock()
+    mock_auth.get_access_token.return_value = "some_token"
+    valid_response_headers = {"Content-Type": "application/pdf"}
+    with requests_mock.Mocker() as m, mock.patch(
+        "gen3.tools.download.drs_download.wts_get_token"
+    ) as wts_get_token:
+        m.get(
+            f"https://{wts_hostname}/wts/token/?idp={test_idp}",
+            json={"token": returned_idp_token},
+        )
+        m.get(
+            f"https://data.qdr.syr.edu/api/access/datafile/{test_file_id}",
+            headers=valid_response_headers,
+            content=bytes(test_data, "utf-8"),
+        )
+        wts_get_token.return_value = "some-idp-token"
+        result = get_syracuse_qdr_files(
+            wts_hostname=wts_hostname,
+            auth=mock_auth,
+            file_metadata_list=file_metadata_list,
+            download_path=download_dir,
+        )
+        assert result == expected_status
+        # file is downloaded by filename in external_file_metadata
+        downloaded_file_path = Path(download_dir) / test_filename
+        assert downloaded_file_path.exists()
 
 
 @pytest.mark.parametrize(

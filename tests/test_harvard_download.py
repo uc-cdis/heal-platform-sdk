@@ -15,7 +15,7 @@ from heal.harvard_downloads import (
     get_download_url_for_harvard_dataverse,
     get_harvard_dataverse_files,
 )
-from heal.utils import get_filename_from_headers, download_from_url
+from heal.utils import download_from_url, get_filename, get_filename_from_headers
 
 
 @pytest.fixture(scope="session")
@@ -77,6 +77,17 @@ def test_is_valid_harvard_file_metadata_failed():
 )
 def test_get_id(file_metadata: Dict, expected: str):
     assert get_id(file_metadata) == expected
+
+
+def test_get_filename():
+    external_file_metadata = {
+        "external_oidc_idp": "test-external-idp",
+        "file_retriever": "Dataverse",
+        "study_id": "harvard_study_01",
+        "filename": "harvard_file.pdf",
+    }
+    expected_filename = "harvard_file.pdf"
+    assert get_filename(external_file_metadata) == expected_filename
 
 
 def test_get_id_bad_input():
@@ -165,6 +176,7 @@ def test_get_filename_from_headers_invalid():
 
 
 def test_download_from_url(download_dir):
+    """Test that the downloaded filename is parsed from the response headers"""
     request_headers = {"Authorization": "Bearer some-idp-token"}
     mock_data = "foo"
     mock_filename = "test.zip"
@@ -182,6 +194,7 @@ def test_download_from_url(download_dir):
             headers=valid_response_headers,
             content=bytes(mock_data, "utf-8"),
         )
+        # do not include filename in call to download_from_url
         download_filename = download_from_url(
             api_url=harvard_url,
             headers=request_headers,
@@ -214,6 +227,39 @@ def test_download_from_url(download_dir):
         # filename is from file_id
         assert download_filename != f"{download_dir}/{mock_filename}"
         assert download_filename == f"{download_dir}/{mock_file_id}"
+        assert os.path.exists(download_filename)
+        with open(download_filename, "r") as f:
+            assert f.read() == mock_data
+
+
+def test_download_from_url_with_filename(download_dir):
+    """Test that we can pass a filename to download_from_url for downloads"""
+    request_headers = {"Authorization": "Bearer some-idp-token"}
+    mock_data = "foo"
+    mock_zip_file_name = "test.zip"
+    test_filename = "test.pdf"
+
+    with requests_mock.Mocker() as m:
+        mock_zip_file_name = "dataverse_files.zip"
+        harvard_url = "https://demo.dataverse.org/api/access/:persistentId/?persistentId=harvard_study_01"
+        valid_response_headers = {
+            "Content-Type": "application/zip",
+            "Content-Disposition": f"application; filename={mock_zip_file_name}",
+        }
+        m.get(
+            harvard_url,
+            headers=valid_response_headers,
+            content=bytes(mock_data, "utf-8"),
+        )
+        # pass a filename to download_from_url
+        download_filename = download_from_url(
+            api_url=harvard_url,
+            headers=request_headers,
+            download_path=download_dir,
+            filename=test_filename,
+        )
+        assert download_filename != f"{download_dir}/{mock_zip_file_name}"
+        assert download_filename == f"{download_dir}/{test_filename}"
         assert os.path.exists(download_filename)
         with open(download_filename, "r") as f:
             assert f.read() == mock_data
@@ -272,8 +318,11 @@ def test_download_from_url_failures(download_dir):
 
 
 def test_get_harvard_dataverse_files(download_dir):
+    """Test with study_id in metadata or override with filename in metadata"""
     test_data = "foo"
     test_study_id = "some_id"
+    response_filename = "test_file.txt"
+    metadata_filename = "other_file.pdf"
     file_metadata_list = [
         {
             "file_retriever": "harvard_dataverse",
@@ -285,7 +334,7 @@ def test_get_harvard_dataverse_files(download_dir):
     }
 
     valid_response_headers = {
-        "Content-Disposition": "attachment; filename=test_file.txt"
+        "Content-Disposition": f"attachment; filename={response_filename}"
     }
 
     with requests_mock.Mocker() as m:
@@ -309,7 +358,32 @@ def test_get_harvard_dataverse_files(download_dir):
         # Check if the result matches the expected status
         assert result == expected_status
 
-        # Verify the file was saved
-        downloaded_file_path = Path(download_dir) / "test_file.txt"
+        # Verify the file was saved with filename parsed from header response
+        downloaded_file_path = Path(download_dir) / response_filename
+        assert downloaded_file_path.exists()
+        assert downloaded_file_path.read_text() == test_data
+
+        # Include the filename in the external_file_metadata
+        file_metadata_list = [
+            {
+                "file_retriever": "harvard_dataverse",
+                "study_id": test_study_id,
+                "filename": metadata_filename,
+            },
+        ]
+
+        # Call the function to test
+        result = get_harvard_dataverse_files(
+            wts_hostname="",
+            auth=mock_auth,
+            file_metadata_list=file_metadata_list,
+            download_path=download_dir,
+        )
+
+        # Check if the result matches the expected status
+        assert result == expected_status
+
+        # file is downloaded by file_id in external_file_metadata
+        downloaded_file_path = Path(download_dir) / metadata_filename
         assert downloaded_file_path.exists()
         assert downloaded_file_path.read_text() == test_data
