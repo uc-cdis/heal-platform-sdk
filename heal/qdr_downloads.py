@@ -22,9 +22,9 @@ tokens for the 'idp' specified in the external_file_metadata.
 from pathlib import Path
 from typing import Dict, List
 
-from cdislogging import get_logger
 from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
 
+from cdislogging import get_logger
 from heal.utils import (
     download_from_url,
     get_filename,

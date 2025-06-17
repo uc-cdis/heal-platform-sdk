@@ -1,11 +1,13 @@
 import os
-import requests
+import zipfile
 from typing import Dict
 from urllib.parse import unquote
-import zipfile
-from cdislogging import get_logger
+
+import requests
 from gen3.auth import Gen3Auth
 from gen3.tools.download.drs_download import wts_get_token
+
+from cdislogging import get_logger
 
 logger = get_logger("__name__", log_level="debug")
 

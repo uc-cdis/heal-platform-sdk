@@ -1,25 +1,24 @@
 import os
 from pathlib import Path
-import requests
-from typing import Dict, List, Tuple
-from unittest import mock
+from typing import Dict
+from unittest.mock import MagicMock
 
 import pytest
 import requests_mock
-from unittest.mock import MagicMock
-
 from gen3.tools.download.drs_download import DownloadStatus
+
 from heal.harvard_downloads import (
-    is_valid_harvard_file_metadata,
-    get_id,
     get_download_url_for_harvard_dataverse,
     get_harvard_dataverse_files,
+    get_id,
+    is_valid_harvard_file_metadata,
 )
 from heal.utils import download_from_url, get_filename, get_filename_from_headers
 
 
 @pytest.fixture(scope="session")
 def download_dir(tmpdir_factory):
+    """Fixture for temporary download dir"""
     path = tmpdir_factory.mktemp("harvard_download_dir")
     return path
 
@@ -43,10 +42,12 @@ def download_dir(tmpdir_factory):
     ],
 )
 def test_is_valid_harvard_file_metadata(file_metadata: Dict):
-    assert is_valid_harvard_file_metadata(file_metadata) == True
+    """Test valid metadata"""
+    assert is_valid_harvard_file_metadata(file_metadata)
 
 
 def test_is_valid_harvard_file_metadata_failed():
+    """Test invalid metadata"""
     # missing keys
     file_metadata = (
         {
@@ -55,11 +56,11 @@ def test_is_valid_harvard_file_metadata_failed():
             "description": "missing study_id or file_id",
         },
     )
-    assert is_valid_harvard_file_metadata(file_metadata) == False
+    assert not is_valid_harvard_file_metadata(file_metadata)
 
     # not a dict
     file_metadata = ("file_metadata_is_not_a_dict",)
-    assert is_valid_harvard_file_metadata(file_metadata) == False
+    assert not is_valid_harvard_file_metadata(file_metadata)
 
 
 @pytest.mark.parametrize(
@@ -76,10 +77,12 @@ def test_is_valid_harvard_file_metadata_failed():
     ],
 )
 def test_get_id(file_metadata: Dict, expected: str):
+    """Test get_id from valid metadata"""
     assert get_id(file_metadata) == expected
 
 
 def test_get_filename():
+    """Test get_filename from valid metadata"""
     external_file_metadata = {
         "external_oidc_idp": "test-external-idp",
         "file_retriever": "Dataverse",
@@ -91,12 +94,13 @@ def test_get_filename():
 
 
 def test_get_id_bad_input():
+    """Test get_id from metadata missing study_id and file_id"""
     # missing study_id
     file_metadata = {
         "external_oidc_idp": "test-external-idp",
         "file_retriever": "Dataverse",
     }
-    assert get_id(file_metadata) == None
+    assert get_id(file_metadata) is None
 
 
 @pytest.mark.parametrize(
@@ -117,6 +121,7 @@ def test_get_id_bad_input():
     ],
 )
 def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
+    """Test get_download_url for valid metadata"""
     assert get_download_url_for_harvard_dataverse(file_metadata) == expected
 
 
@@ -137,6 +142,7 @@ def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
 def test_get_download_url_for_harvard_staging(
     file_metadata_harvard_staging: Dict, expected: str
 ):
+    """Test get_download_url for valid staging metadata"""
     assert (
         get_download_url_for_harvard_dataverse(file_metadata_harvard_staging)
         == expected
@@ -144,12 +150,14 @@ def test_get_download_url_for_harvard_staging(
 
 
 def test_get_download_url_for_harvard_failed():
+    """Test get_download_url for metadata missing study_id and file_id"""
     # missing file_ids or study_id
     file_metadata = {}
-    assert get_download_url_for_harvard_dataverse(file_metadata) == None
+    assert get_download_url_for_harvard_dataverse(file_metadata) is None
 
 
 def test_get_filename_from_headers():
+    """Test get_filename for valid metadata"""
     # zip file for study_id
     mock_zip_file_name = "test.zip"
     mock_response_headers = {
@@ -168,11 +176,12 @@ def test_get_filename_from_headers():
 
 
 def test_get_filename_from_headers_invalid():
+    """Test get_filename for invalid metadata"""
     mock_response_headers = {
         "Content-Type": "application/pdf",
-        "Content-Disposition": f"application; filename",
+        "Content-Disposition": "application; filename",
     }
-    assert get_filename_from_headers(mock_response_headers) == None
+    assert get_filename_from_headers(mock_response_headers) is None
 
 
 def test_download_from_url(download_dir):
@@ -266,6 +275,7 @@ def test_download_from_url_with_filename(download_dir):
 
 
 def test_download_from_url_failures(download_dir):
+    """Test download with failures"""
     request_headers = {"Authorization": "Bearer some-idp-token"}
     valid_response_headers = {"Content-Type": "application/zip"}
     mock_data = "foo"
@@ -280,7 +290,7 @@ def test_download_from_url_failures(download_dir):
         headers=request_headers,
         download_path=download_dir,
     )
-    assert downloaded_file == None
+    assert downloaded_file is None
     assert not os.path.exists(download_filename)
 
     with requests_mock.Mocker() as m:
@@ -302,7 +312,7 @@ def test_download_from_url_failures(download_dir):
             headers=request_headers,
             download_path="/path/does/not/exist",
         )
-        assert download_file == None
+        assert download_file is None
         assert not os.path.exists(download_filename)
 
         # zero size response
@@ -312,7 +322,7 @@ def test_download_from_url_failures(download_dir):
             headers=request_headers,
             download_path=download_dir,
         )
-        assert download_file == None
+        assert download_file is None
         assert (os.path.getsize(download_filename)) == 0
         Path(download_filename).unlink()
 

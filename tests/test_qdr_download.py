@@ -1,14 +1,13 @@
 import os
 from pathlib import Path
-import requests
-from typing import Dict, List, Tuple
+from typing import Dict
 from unittest import mock
+from unittest.mock import MagicMock
 
 import pytest
 import requests_mock
-from unittest.mock import MagicMock
+from gen3.tools.download.drs_download import DownloadStatus
 
-from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
 from heal.qdr_downloads import (
     get_download_url_for_qdr,
     get_id,
@@ -17,17 +16,19 @@ from heal.qdr_downloads import (
     get_syracuse_qdr_files,
     is_valid_qdr_file_metadata,
 )
-from heal.utils import get_filename_from_headers, download_from_url
+from heal.utils import download_from_url, get_filename_from_headers
 
 
 @pytest.fixture(scope="session")
 def download_dir(tmpdir_factory):
+    """Fixture for temporary download dir"""
     path = tmpdir_factory.mktemp("qdr_download_dir")
     return path
 
 
 @pytest.fixture
 def wts_hostname():
+    """Fixture for a wts_hostname"""
     return "test.commons.io"
 
 
@@ -51,10 +52,12 @@ def wts_hostname():
     ],
 )
 def test_is_valid_qdr_file_metadata(file_metadata: Dict):
-    assert is_valid_qdr_file_metadata(file_metadata) == True
+    """Test valid external file metadata"""
+    assert is_valid_qdr_file_metadata(file_metadata)
 
 
 def test_is_valid_qdr_file_metadata_failed():
+    """Test invalid external file metadata"""
     # missing keys
     file_metadata = (
         {
@@ -63,7 +66,7 @@ def test_is_valid_qdr_file_metadata_failed():
             "description": "missing study_id or file_id",
         },
     )
-    assert is_valid_qdr_file_metadata(file_metadata) == False
+    assert not is_valid_qdr_file_metadata(file_metadata)
 
     # has both study_id and file_id keys
     file_metadata = (
@@ -74,11 +77,11 @@ def test_is_valid_qdr_file_metadata_failed():
             "study_id": "QDR_file_02",
         },
     )
-    assert is_valid_qdr_file_metadata(file_metadata) == False
+    assert not is_valid_qdr_file_metadata(file_metadata)
 
     # not a dict
     file_metadata = ("file_metadata_is_not_a_dict",)
-    assert is_valid_qdr_file_metadata(file_metadata) == False
+    assert not is_valid_qdr_file_metadata(file_metadata)
 
 
 @pytest.mark.parametrize(
@@ -103,19 +106,22 @@ def test_is_valid_qdr_file_metadata_failed():
     ],
 )
 def test_get_id(file_metadata: Dict, expected: str):
+    """Test get file id from metadata"""
     assert get_id(file_metadata) == expected
 
 
 def test_get_id_bad_input():
+    """Metadata that is missing study_id and file_id should return null file_id"""
     # missing study_id and file_id
     file_metadata = {
         "external_oidc_idp": "test-external-idp",
         "file_retriever": "QDR",
     }
-    assert get_id(file_metadata) == None
+    assert get_id(file_metadata) is None
 
 
 def test_get_idp_access_token(wts_hostname):
+    """Test the idp access token"""
     test_idp = "extermal-keycloak"
     file_metadata = {
         "external_oidc_idp": test_idp,
@@ -145,6 +151,7 @@ def test_get_idp_access_token(wts_hostname):
 
 
 def test_get_request_headers_for_study_or_file():
+    """Test get_request_headers"""
     mock_idp_token = "some-idp-token"
 
     # idp_token is present - just the bearer token
@@ -173,6 +180,7 @@ def test_get_request_headers_for_study_or_file():
     ],
 )
 def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
+    """Test get_download_url with valid metadata"""
     assert get_download_url_for_qdr(file_metadata) == expected
 
 
@@ -193,16 +201,18 @@ def test_get_download_url_for_qdr(file_metadata: Dict, expected: str):
 def test_get_download_url_for_qdr_staging(
     file_metadata_qdr_staging: Dict, expected: str
 ):
+    """Test get_download_url with valid metadata"""
     assert get_download_url_for_qdr(file_metadata_qdr_staging) == expected
 
 
 def test_get_download_url_for_qdr_failed():
-    # missing file_ids or study_id
+    """Test download with metadata missing file_ids or study_id"""
     file_metadata = {}
-    assert get_download_url_for_qdr(file_metadata) == None
+    assert get_download_url_for_qdr(file_metadata) is None
 
 
 def test_get_filename_from_headers():
+    """Test get filename from response headers"""
     # zip file for study_id
     mock_zip_file_name = "test.zip"
     mock_response_headers = {
@@ -221,14 +231,16 @@ def test_get_filename_from_headers():
 
 
 def test_get_filename_from_headers_invalid():
+    """Test get filename from incomplete response headers"""
     mock_response_headers = {
         "Content-Type": "application/pdf",
-        "Content-Disposition": f"application; filename",
+        "Content-Disposition": "application; filename",
     }
-    assert get_filename_from_headers(mock_response_headers) == None
+    assert get_filename_from_headers(mock_response_headers) is None
 
 
 def test_download_from_url(download_dir):
+    """Test successful downloads"""
     request_headers = {"Authorization": "Bearer some-idp-token"}
     mock_data = "foo"
 
@@ -296,6 +308,7 @@ def test_download_from_url(download_dir):
 
 
 def test_download_from_url_failures(download_dir):
+    """Test download with failures from external api"""
     request_headers = {"Authorization": "Bearer some-idp-token"}
     valid_response_headers = {"Content-Type": "application/zip"}
     mock_data = "foo"
@@ -310,7 +323,7 @@ def test_download_from_url_failures(download_dir):
         headers=request_headers,
         download_path=download_dir,
     )
-    assert downloaded_file == None
+    assert downloaded_file is None
     assert not os.path.exists(download_filename)
 
     with requests_mock.Mocker() as m:
@@ -330,7 +343,7 @@ def test_download_from_url_failures(download_dir):
             headers=request_headers,
             download_path="/path/does/not/exist",
         )
-        assert download_file == None
+        assert download_file is None
         assert not os.path.exists(download_filename)
 
         # zero size response
@@ -340,7 +353,7 @@ def test_download_from_url_failures(download_dir):
             headers=request_headers,
             download_path=download_dir,
         )
-        assert download_file == None
+        assert download_file is None
         assert (os.path.getsize(download_filename)) == 0
         Path(download_filename).unlink()
 
@@ -461,6 +474,7 @@ def test_get_syracuse_qdr_files_with_filename(wts_hostname, download_dir):
 def test_get_syracuse_qdr_files_bad_input(
     wts_hostname, download_dir, file_metadata_list
 ):
+    """Test get files with bad input"""
     mock_auth = MagicMock()
     mock_auth.get_access_token.return_value = "some_token"
 
@@ -470,10 +484,11 @@ def test_get_syracuse_qdr_files_bad_input(
         file_metadata_list=file_metadata_list,
         download_path=download_dir,
     )
-    assert result == None
+    assert result is None
 
 
 def test_get_syracuse_qdr_files_no_url(wts_hostname, download_dir):
+    """Test get files with failed get url"""
     test_file_id = "some_id"
     file_metadata_list = [
         {
@@ -503,6 +518,7 @@ def test_get_syracuse_qdr_files_no_url(wts_hostname, download_dir):
 
 
 def test_get_syracuse_qdr_files_failed_download(wts_hostname, download_dir):
+    """Test get files with failed download"""
     idp = "test-external-idp"
     test_data = "foo"
 
