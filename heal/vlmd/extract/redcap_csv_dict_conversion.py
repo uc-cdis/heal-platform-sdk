@@ -47,7 +47,11 @@ def rename_and_fill(source_dataframe) -> list[dict]:
 
     # downfill section (if blank -- given we read in with petl, blanks are "" but ffill takes in np.nan)
     source_dataframe["section"] = (
-        source_dataframe.replace({"": np.nan}).groupby("form")["section"].ffill()
+        source_dataframe.assign(
+            section=source_dataframe["section"].replace({"": np.nan})
+        )
+        .groupby("form")["section"]
+        .ffill()
     )
     # Recover any remaining np.nan (ie, not converted by 'ffill') back to "".
     # Include the 'infer_objects' method as described here
