@@ -304,7 +304,7 @@ def map_checkbox(field: dict) -> dict:
             "name": checkbox_name
             + "___"
             + re.sub(
-                "^\-", "_", val
+                r"^-", "_", val
             ).strip(),  # NOTE: REDCAP changes negative sign to underscore
             "type": field_type,
             "constraints": {"enum": field_enums},
