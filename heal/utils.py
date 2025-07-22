@@ -141,10 +141,10 @@ def download_from_url(
         if downloaded_file_name is None:
             downloaded_file_name = api_url.split("/")[-1]
 
-        if downloaded_file_name.endswith(
-            "zip"
-        ) and not "application/zip" in response.headers.get("Content-Type"):
-            logger.critical("Response headers do not show zipfile content-type")
+    if downloaded_file_name.endswith(
+        "zip"
+    ) and not "application/zip" in response.headers.get("Content-Type"):
+        logger.critical("Response headers do not show zipfile content-type")
 
     total_downloaded = 0
     block_size = 8092  # 8K blocks might want to tune this.
