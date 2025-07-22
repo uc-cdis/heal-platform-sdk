@@ -14,7 +14,6 @@ import visions as v
 class contains:
     def is_category(series, state):
         return isinstance(series.dtype, pd.CategoricalDtype)
-        # return pdt.is_categorical_dtype(series)
 
     def is_boolean(series, state):
         return pdt.is_bool_dtype(series)
