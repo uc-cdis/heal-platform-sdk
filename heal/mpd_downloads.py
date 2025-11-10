@@ -6,7 +6,7 @@ The retriever function sends requests to the Mouse Phenome Database (MPD)
 for downloading project data or phenotype measures.
 
 The MPD documentation:
-https://phenome.jax.org/apidocs/
+https://phenome.jax.org/about/api
 
 Note:
 MPD dynamically generates files (CSV or JSON) on request; there are no static files.
