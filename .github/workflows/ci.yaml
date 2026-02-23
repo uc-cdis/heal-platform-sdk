@@ -15,6 +15,6 @@ jobs:
     secrets: inherit  # pragma: allowlist secret
   UnitTest:
     name: Python Unit Test
-    uses: uc-cdis/.github/.github/workflows/python_unit_test.yaml@master
+    uses: uc-cdis/.github/.github/workflows/python_unit_test.yaml@test-debug
     with:
         python-version: '3.9'
