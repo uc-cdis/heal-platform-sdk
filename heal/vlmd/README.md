@@ -1,5 +1,7 @@
 # VLMD methods
 
+*Please see our [full documentation on VLMD here](https://heal.github.io/platform-documentation/vlmd/vlmd_tools/)*
+
 ## CLI
 
 The CLI can be invoked as follows

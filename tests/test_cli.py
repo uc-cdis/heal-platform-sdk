@@ -108,10 +108,9 @@ def test_extract_dataset_csv(tmp_path):
 def test_extract_missing_input_file(tmp_path):
     """Test the cli extract"""
     runner = CliRunner()
-    input_file = None
     result = runner.invoke(
         cli_module.main,
-        ["vlmd", "extract", "--input_file", input_file, "--output_dir", tmp_path],
+        ["vlmd", "extract", "--output_dir", tmp_path],
     )
     assert result.exit_code != 0
 
@@ -143,8 +142,5 @@ def test_validate(tmp_path):
 def test_validate_missing_input_file(tmp_path):
     """Test the cli validation"""
     runner = CliRunner()
-    input_file = None
-    result = runner.invoke(
-        cli_module.main, ["vlmd", "validate", "--input_file", input_file]
-    )
+    result = runner.invoke(cli_module.main, ["vlmd", "validate"])
     assert result.exit_code != 0

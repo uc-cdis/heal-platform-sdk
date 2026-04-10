@@ -67,7 +67,7 @@ reference the git repo and branch. For example, the following installs
 the branch `my-branch` of the SDK:
 
 ```bash
-pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git@my-branch#egg=heal
+pip install -e git+https://github.com/uc-cdis/heal-platform-sdk.git@my-branch#egg=heal-sdk
 ```
 
 ### Run tests
