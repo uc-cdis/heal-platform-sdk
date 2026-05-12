@@ -22,7 +22,7 @@ tokens for the 'idp' specified in the external_file_metadata.
 from pathlib import Path
 from typing import Dict, List
 
-from gen3.tools.download.drs_download import DownloadStatus, wts_get_token
+from gen3.tools.download.drs_download import DownloadStatus, ensure_dirpath_exists
 
 from cdislogging import get_logger
 from heal.utils import (
@@ -51,10 +51,7 @@ def get_syracuse_qdr_files(
     Returns:
         Dict of download status
     """
-    if not Path(download_path).exists():
-        logger.critical(f"Download path does not exist: {download_path}")
-        return None
-
+    download_path = ensure_dirpath_exists(Path(download_path))
     completed = {}
     logger.debug(f"Input file metadata list={file_metadata_list}")
 
