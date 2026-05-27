@@ -12,7 +12,7 @@ https://guides.dataverse.org/en/latest/api/dataaccess.html#basic-download-by-dat
 from pathlib import Path
 from typing import Dict, List
 
-from gen3.tools.download.drs_download import DownloadStatus
+from gen3.tools.download.drs_download import DownloadStatus, ensure_dirpath_exists
 
 from cdislogging import get_logger
 from heal.utils import download_from_url, get_filename, get_id, unpackage_object
@@ -35,10 +35,7 @@ def get_harvard_dataverse_files(
     Returns:
         Dict of download status
     """
-    if not Path(download_path).exists():
-        logger.critical(f"Download path does not exist: {download_path}")
-        return None
-
+    download_path = ensure_dirpath_exists(Path(download_path))
     completed = {}
     logger.debug(f"Input file metadata list={file_metadata_list}")
 

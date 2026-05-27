@@ -135,7 +135,9 @@ def test_get_mpd_files_with_project_symbol(download_dir):
 
     # The object_id should be the project_symbol
     expected_status = {
-        test_project: DownloadStatus(filename=f"{test_project}.csv", status="downloaded")
+        test_project: DownloadStatus(
+            filename=f"{test_project}.csv", status="downloaded"
+        )
     }
 
     with requests_mock.Mocker() as m:
@@ -336,27 +338,6 @@ def test_get_mpd_files_failed_download(download_dir):
         assert result == expected_status
 
 
-def test_get_mpd_files_invalid_download_path():
-    """Test get_mpd_files with non-existent download path"""
-    file_metadata_list = [
-        {
-            "file_retriever": "MPD",
-            "project_symbol": "Gould2",
-        },
-    ]
-
-    mock_auth = MagicMock()
-
-    result = get_mpd_files(
-        wts_hostname="",
-        auth=mock_auth,
-        file_metadata_list=file_metadata_list,
-        download_path="/path/does/not/exist",
-    )
-
-    assert result is None
-
-
 def test_get_mpd_files_multiple_files(download_dir):
     """Test downloading multiple MPD files in one call"""
     test_project_data = "project_id,strain,value\n1,C57BL/6J,10.5\n"
@@ -379,7 +360,9 @@ def test_get_mpd_files_multiple_files(download_dir):
         test_project: DownloadStatus(
             filename=f"{test_project}.csv", status="downloaded"
         ),
-        test_measure: DownloadStatus(filename=f"{test_measure}.csv", status="downloaded"),
+        test_measure: DownloadStatus(
+            filename=f"{test_measure}.csv", status="downloaded"
+        ),
     }
 
     with requests_mock.Mocker() as m:

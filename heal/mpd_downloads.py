@@ -18,7 +18,7 @@ other external retrievers like Dryad, QDR, and Harvard Dataverse.
 from pathlib import Path
 from typing import Dict, List
 from cdislogging import get_logger
-from gen3.tools.download.drs_download import DownloadStatus
+from gen3.tools.download.drs_download import DownloadStatus, ensure_dirpath_exists
 from heal.utils import download_from_url, get_filename, get_id
 
 MPD_API_BASE = "https://phenome.jax.org/api"
@@ -30,13 +30,14 @@ def get_mpd_files(
     wts_hostname: str, auth, file_metadata_list: List, download_path: str = "."
 ) -> Dict:
     """Retrieve data from the Mouse Phenome Database (MPD)."""
-    if not Path(download_path).exists():
-        logger.critical(f"Download path does not exist: {download_path}")
-        return None
-
+    download_path = ensure_dirpath_exists(Path(download_path))
     completed = {}
     for file_metadata in file_metadata_list:
-        object_id = get_id(file_metadata) or file_metadata.get("project_symbol") or file_metadata.get("measure_id")
+        object_id = (
+            get_id(file_metadata)
+            or file_metadata.get("project_symbol")
+            or file_metadata.get("measure_id")
+        )
         if not object_id:
             logger.warning(f"Invalid MPD metadata: {file_metadata}")
             continue
