@@ -232,12 +232,10 @@ def map_radio(field: dict) -> dict:
     """
     encodings_string = field[CHOICES_FIELD_NAME]
     if not encodings_string:
-        error_message = (
-            "Missing value in radio field '"
-            f"{field.get('name')}"
-            f"' in column '{CHOICES_LABEL_INPUT}'."
-        )
-        raise ValueError(error_message)
+        field_name = field.get("name")
+        message = f"Missing radio values in 'Choices' column for row '{field_name}'"
+        logger.error(message)
+        raise ValueError
     return _parse_field_properties_from_encodings(encodings_string)
 
 
@@ -290,6 +288,12 @@ def map_checkbox(field: dict) -> dict:
     is not considered missing.
     """
     checkbox_name = field["name"]
+    if field[CHOICES_FIELD_NAME] is None or field[CHOICES_FIELD_NAME] == "":
+        message = (
+            f"Missing checkbox values in 'Choices' column for row '{checkbox_name}'"
+        )
+        logger.error(message)
+        raise ValueError
     choices = utils.parse_dictionary_str(
         field[CHOICES_FIELD_NAME], item_sep="|", key_val_sep=","
     )
