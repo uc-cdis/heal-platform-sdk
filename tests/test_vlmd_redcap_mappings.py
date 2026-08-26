@@ -181,10 +181,9 @@ def test_map_radio_with_error():
         "name": "some_field_name",
         CHOICES_FIELD_NAME: "",
     }
+    field_name = input_row.get("name")
     expected_message = (
-        "Missing value in radio field '"
-        f"{input_row.get('name')}"
-        f"' in column '{CHOICES_LABEL_INPUT}'."
+        f"Missing radio values in 'Choices' column for row '{field_name}'"
     )
     with pytest.raises(ValueError) as err:
         map_radio(input_row)
@@ -217,3 +216,19 @@ def test_map_checkbox():
         },
     ]
     assert map_checkbox(input_dict) == expected_output_list
+
+
+def test_map_checkbox_with_error():
+    """Test that map_checkbox raises error with empty Choices field"""
+    input_dict = {
+        "name": "gym",
+        "type": "checkbox",
+        "choice_calc_lbls": "",
+    }
+    field_name = input_dict.get("name")
+    expected_message = (
+        f"Missing checkbox values in 'Choices' column for row '{field_name}'"
+    )
+    with pytest.raises(ValueError) as err:
+        map_checkbox(input_dict)
+    assert expected_message in str(err.value)
