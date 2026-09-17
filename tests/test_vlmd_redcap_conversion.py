@@ -11,11 +11,12 @@ from heal.vlmd.extract.redcap_csv_dict_conversion import (
     rename_and_fill,
 )
 
+# subset of renamed-and-filled fields from test dict
 VALID_REDCAP_SOURCE_FIELDS = [
     {
         "name": "study_id",
         "form": "demographics",
-        "section": "",
+        "section": "Demographic Characteristics",
         "type": "text",
         "label": "Study ID",
         "choice_calc_lbls": "",
@@ -89,12 +90,30 @@ VALID_REDCAP_SOURCE_FIELDS = [
         "form": "demographics",
         "section": "Demographic Characteristics",
         "type": "number",
-        "label": "Gender",
-        "choice_calc_lbls": "0, Female | 1, Male",
+        "label": "Height (cm)",
+        "choice_calc_lbls": "",
         "note": "",
         "text_valid_slider_num": "",
         "text_valid_min": "130",
         "text_valid_max": "215",
+        "identifier": "",
+        "skip_logic": "",
+        "required": "",
+        "align": "",
+        "question_num": "",
+        "matrix_group": "",
+    },
+    {
+        "name": "change_exercise",
+        "form": "changes",
+        "section": "Ready for Changes",
+        "type": "integer",
+        "label": "_1 On a scale of 1 to 10, how ready are you to change the amount that you exercise? A response of 1 indicates not ready at all, while a 10 corresponds to very ready.",
+        "choice_calc_lbls": "Not Ready|Ready|Very Ready",
+        "note": "",
+        "text_valid_slider_num": "",
+        "text_valid_min": "1",
+        "text_valid_max": "10",
         "identifier": "",
         "skip_logic": "",
         "required": "",
@@ -132,6 +151,18 @@ def test_rename_and_fill():
             assert record["type"] == "dropdown"
             assert record["text_valid_slider_num"] == ""
             assert record["choice_calc_lbls"] == "0, Female | 1, Male"
+        if record["name"] == "height":
+            assert record["type"] == "text"
+            assert record["text_valid_slider_num"] == "number"
+            assert record["choice_calc_lbls"] == ""
+            assert record["text_valid_min"] == "130"
+            assert record["text_valid_max"] == "215"
+        if record["name"] == "change_exercise":
+            assert record["type"] == "slider"
+            assert record["text_valid_slider_num"] == "integer"
+            assert record["choice_calc_lbls"] == "Not Ready|Ready|Very Ready"
+            assert record["text_valid_min"] == "1"
+            assert record["text_valid_max"] == "10"
 
 
 def test_gather():
@@ -164,10 +195,9 @@ def test_gather():
             assert record["type"] == "integer"
             assert record["enumLabels"] == {"0": "Female", "1": "Male"}
             assert record["constraints"] == {"enum": ["0", "1"]}
-        if record["name"] == "height":
-            assert record["type"] == "number"
-            assert record["constraints"] == {"min": 130.0, "max": 215.0}
-    pass
+
+        # 'gather' does not map number or integer fields
+        assert record["name"] not in ["height", "change_exercise"]
 
 
 def test_convert_redcap_csv_bad_input():
