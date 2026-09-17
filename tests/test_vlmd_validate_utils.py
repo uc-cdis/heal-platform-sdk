@@ -47,35 +47,58 @@ def test_read_delim(file_type):
     # dataFrame structure is column and values; this data matches the test input files
     expected_df = pd.DataFrame(
         {
-            "section": {0: "Enrollment", 1: "Demographics", 2: "Biomeasures"},
-            "name": {0: "participant_id", 1: "race", 2: "pulse_rate"},
-            "title": {0: "Participant Id", 1: "Race", 2: "Pulse Rate"},
+            "section": {
+                0: "Enrollment",
+                1: "Demographics",
+                2: "Biomeasures",
+                3: "Biomeasures",
+            },
+            "name": {
+                0: "participant_id",
+                1: "race",
+                2: "pulse_rate",
+                3: "total_modules_qrt",
+            },
+            "title": {
+                0: "Participant Id",
+                1: "Race",
+                2: "Pulse Rate",
+                3: "total_modules_qrt",
+            },
             "description": {
                 0: "Unique identifier for participant",
                 1: "Self-reported race",
                 2: "pulse-rate",
+                3: "Total Modules",
             },
-            "type": {0: "string", 1: "integer", 2: "number"},
-            "format": {0: "", 1: "", 2: ""},
-            "constraints.maxLength": {0: "", 1: "", 2: ""},
-            "constraints.enum": {0: "", 1: "1|2|3|4|5|6|7|8", 2: ""},
+            "type": {0: "string", 1: "integer", 2: "number", 3: "string"},
+            "format": {0: "", 1: "", 2: "", 3: ""},
+            "constraints.maxLength": {0: "", 1: "", 2: "", 3: ""},
+            "constraints.enum": {0: "", 1: "1|2|3|4|5|6|7|8", 2: "", 3: "Q1|Q2|Q3|Q4"},
             "constraints.pattern": {
                 0: "[A-Z][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
                 1: "",
                 2: "",
+                3: "",
             },
-            "constraints.maximum": {0: "", 1: "", 2: "9"},
-            "constraints.minimum": {0: "", 1: "", 2: "0.9"},
+            "constraints.maximum": {0: "", 1: "", 2: "9", 3: ""},
+            "constraints.minimum": {0: "", 1: "", 2: "0.9", 3: ""},
             "enumLabels": {
                 0: "",
                 1: "1=White|2=Black or African American|3=American Indian or Alaska Native|4=Native| 5=Hawaiian or Other Pacific Islander|6=Asian|7=Some other race|8=Multiracial|99=Not reported",
                 2: "",
+                3: "Q1=0|Q2=1-9|Q3=10-31|Q4=>=32",
             },
-            "enumOrdered": {0: "", 1: "", 2: ""},
-            "missingValues": {0: "", 1: "99", 2: "99"},
-            "trueValues": {0: "", 1: "", 2: ""},
-            "falseValues": {0: "", 1: "", 2: ""},
-            "custom.notes": {0: "This is a note", 1: "This is a custom note", 2: ""},
+            "enumOrdered": {0: "", 1: "", 2: "", 3: ""},
+            "missingValues": {0: "", 1: "99", 2: "99", 3: ""},
+            "trueValues": {0: "", 1: "", 2: "", 3: ""},
+            "falseValues": {0: "", 1: "", 2: "", 3: ""},
+            "custom.notes": {
+                0: "This is a note",
+                1: "This is a custom note",
+                2: "",
+                3: "",
+            },
         }
     )
     assert result.to_dict() == expected_df.to_dict()
