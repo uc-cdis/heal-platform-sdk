@@ -10,6 +10,7 @@ from heal.vlmd.mappings.redcap_field_mapping import (
     map_dropdown,
     map_radio,
     map_text,
+    map_slider,
 )
 
 
@@ -181,10 +182,9 @@ def test_map_radio_with_error():
         "name": "some_field_name",
         CHOICES_FIELD_NAME: "",
     }
+    field_name = input_row.get("name")
     expected_message = (
-        "Missing value in radio field '"
-        f"{input_row.get('name')}"
-        f"' in column '{CHOICES_LABEL_INPUT}'."
+        f"Missing radio values in 'Choices' column for row '{field_name}'"
     )
     with pytest.raises(ValueError) as err:
         map_radio(input_row)
@@ -217,3 +217,149 @@ def test_map_checkbox():
         },
     ]
     assert map_checkbox(input_dict) == expected_output_list
+
+
+def test_map_checkbox_with_error():
+    """Test that map_checkbox raises error with empty Choices field"""
+    input_dict = {
+        "name": "gym",
+        "type": "checkbox",
+        "choice_calc_lbls": "",
+    }
+    field_name = input_dict.get("name")
+    expected_message = (
+        f"Missing checkbox values in 'Choices' column for row '{field_name}'"
+    )
+    with pytest.raises(ValueError) as err:
+        map_checkbox(input_dict)
+    assert expected_message in str(err.value)
+
+
+@pytest.mark.parametrize(
+    "input_dict, expected_output_dict",
+    [
+        (
+            {
+                "name": "default_range_0_labels",
+                "text_valid_slider_num": "integer",
+            },
+            {
+                "type": "integer",
+                "constraints": {"minimum": 0, "maximum": 100},
+            },
+        ),
+        (
+            {
+                "name": "default_range_2_labels",
+                "text_valid_slider_num": "integer",
+                "choice_calc_lbls": "Not Confident|Very Confident",
+            },
+            {
+                "type": "integer",
+                "constraints": {"minimum": 0, "maximum": 100},
+                "enumLabels": {"0": "Not Confident", "50": "", "100": "Very Confident"},
+            },
+        ),
+        (
+            {
+                "name": "default_range_3_labels",
+                "text_valid_slider_num": "integer",
+                "choice_calc_lbls": "Not Confident|Confident|Very Confident",
+            },
+            {
+                "type": "integer",
+                "constraints": {"minimum": 0, "maximum": 100},
+                "enumLabels": {
+                    "0": "Not Confident",
+                    "50": "Confident",
+                    "100": "Very Confident",
+                },
+            },
+        ),
+        (
+            {
+                "name": "custom_min_3_labels",
+                "text_valid_slider_num": "integer",
+                "text_valid_min": "20",
+                "choice_calc_lbls": "Not Confident|Confident|Very Confident",
+            },
+            {
+                "type": "integer",
+                "constraints": {"minimum": 20, "maximum": 100},
+                "enumLabels": {
+                    "20": "Not Confident",
+                    "60": "Confident",
+                    "100": "Very Confident",
+                },
+            },
+        ),
+        (
+            {
+                "name": "custom_max_3_labels",
+                "text_valid_slider_num": "integer",
+                "text_valid_max": "80",
+                "choice_calc_lbls": "Not Confident|Confident|Very Confident",
+            },
+            {
+                "type": "integer",
+                "constraints": {"minimum": 0, "maximum": 80},
+                "enumLabels": {
+                    "0": "Not Confident",
+                    "40": "Confident",
+                    "80": "Very Confident",
+                },
+            },
+        ),
+        (
+            {
+                "name": "custom_number_3_labels",
+                "text_valid_slider_num": "number",
+                "text_valid_min": "1.1",
+                "text_valid_max": "3.5",
+                "choice_calc_lbls": "Not Confident|Confident|Very Confident",
+            },
+            {
+                "type": "number",
+                "constraints": {"minimum": 1.1, "maximum": 3.5},
+                "enumLabels": {
+                    "1.1": "Not Confident",
+                    "2.3": "Confident",
+                    "3.5": "Very Confident",
+                },
+            },
+        ),
+    ],
+)
+def test_map_slider(input_dict, expected_output_dict):
+    """Test mapping function map_slider"""
+    assert map_slider(input_dict) == expected_output_dict
+
+
+@pytest.mark.parametrize(
+    "input_dict, expected_error_message",
+    [
+        (
+            {
+                "name": "invalid integer",
+                "text_valid_slider_num": "integer",
+                "text_valid_min": "1.1",
+                "text_valid_max": "3.5",
+            },
+            "Skipping non-integer min value '1.1' for row 'invalid integer'",
+        ),
+        (
+            {
+                "name": "invalid number",
+                "text_valid_slider_num": "number",
+                "text_valid_min": "1.1",
+                "text_valid_max": "foo",
+            },
+            "Skipping non-numeric max value 'foo' for row 'invalid number'",
+        ),
+    ],
+)
+def test_map_slider_with_error(input_dict, expected_error_message):
+    """Test that map_slider raises error with invalid Text Min and Max"""
+    with pytest.raises(ValueError) as err:
+        map_slider(input_dict)
+    assert expected_error_message in str(err.value)

@@ -136,6 +136,25 @@ def valid_array_data():
             "falseValues": "",
             "custom.notes": "",
         },
+        {
+            "section": "Biomeasures",
+            "name": "total_modules_qrt",
+            "title": "total_modules_qrt",
+            "description": "Total Modules",
+            "type": "string",
+            "format": "",
+            "constraints.maxLength": "",
+            "constraints.enum": "Q1|Q2|Q3|Q4",
+            "constraints.pattern": "",
+            "constraints.maximum": "",
+            "constraints.minimum": "",
+            "enumLabels": "Q1=0|Q2=1-9|Q3=10-31|Q4=>=32",
+            "enumOrdered": "",
+            "missingValues": "",
+            "trueValues": "",
+            "falseValues": "",
+            "custom.notes": "",
+        },
     ]
 
 

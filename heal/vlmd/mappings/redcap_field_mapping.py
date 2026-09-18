@@ -32,6 +32,9 @@ from heal.vlmd.mappings.redcap_csv_headers import (
     TEXT_VALID_FIELD_NAME,
 )
 
+INTEGER_PATTERN = r"^-?\s*\d+\s*$"
+NUMBER_PATTERN = r"^-?\s*\d+(\.\d+)?([eE][-+]?\d+)?\s*$"
+
 logger = get_logger("redcap-mapping", log_level="warning")
 
 
@@ -78,8 +81,6 @@ def map_text(field: dict) -> dict:
     Looks at the text validation field, defined by
     'TEXT_VALID_FIELD_NAME' in 'redcap_csv_headers.py'
     """
-    integer_pattern = r"^-?\s*\d+\s*$"
-    number_pattern = r"^-?\s*\d+(\.\d+)?([eE][-+]?\d+)?\s*$"
     if field.get(TEXT_VALID_FIELD_NAME):
         text_validation = field[TEXT_VALID_FIELD_NAME].lower()
     else:
@@ -101,7 +102,7 @@ def map_text(field: dict) -> dict:
         field_type = "integer"
         min_value = field.get("text_valid_min")
         if min_value:
-            if re.match(integer_pattern, min_value):
+            if re.match(INTEGER_PATTERN, min_value):
                 constraints_min = int(min_value)
             else:
                 warning_message = (
@@ -112,7 +113,7 @@ def map_text(field: dict) -> dict:
                 logger.warning(warning_message)
         max_value = field.get("text_valid_max")
         if max_value:
-            if re.match(integer_pattern, max_value):
+            if re.match(INTEGER_PATTERN, max_value):
                 constraints_max = int(max_value)
             else:
                 warning_message = (
@@ -130,7 +131,7 @@ def map_text(field: dict) -> dict:
         if min_value:
             if "comma_decimal" in text_validation:
                 min_value.replace(",", ".")
-            if re.match(number_pattern, min_value):
+            if re.match(NUMBER_PATTERN, min_value):
                 constraints_min = float(min_value)
             else:
                 warning_message = (
@@ -143,7 +144,7 @@ def map_text(field: dict) -> dict:
         if max_value:
             if "comma_decimal" in text_validation:
                 max_value = max_value.replace(",", ".")
-            if re.match(number_pattern, max_value):
+            if re.match(NUMBER_PATTERN, max_value):
                 constraints_max = float(max_value)
             else:
                 warning_message = (
@@ -232,12 +233,10 @@ def map_radio(field: dict) -> dict:
     """
     encodings_string = field[CHOICES_FIELD_NAME]
     if not encodings_string:
-        error_message = (
-            "Missing value in radio field '"
-            f"{field.get('name')}"
-            f"' in column '{CHOICES_LABEL_INPUT}'."
-        )
-        raise ValueError(error_message)
+        field_name = field.get("name")
+        message = f"Missing radio values in 'Choices' column for row '{field_name}'"
+        logger.error(message)
+        raise ValueError(message)
     return _parse_field_properties_from_encodings(encodings_string)
 
 
@@ -290,6 +289,12 @@ def map_checkbox(field: dict) -> dict:
     is not considered missing.
     """
     checkbox_name = field["name"]
+    if field[CHOICES_FIELD_NAME] is None or field[CHOICES_FIELD_NAME] == "":
+        message = (
+            f"Missing checkbox values in 'Choices' column for row '{checkbox_name}'"
+        )
+        logger.error(message)
+        raise ValueError(message)
     choices = utils.parse_dictionary_str(
         field[CHOICES_FIELD_NAME], item_sep="|", key_val_sep=","
     )
@@ -344,12 +349,112 @@ def map_true_false(field: dict) -> dict:
 
 
 def map_slider(field: dict) -> dict:
+    """
+    SLIDER - slider bar with optional min/max and optional labels.
+
+    Defaults to 0-100 with no labels.
+
+    Determined by "Text Validation Min", "Text Validation Max", "Choices, Calculations, OR Slider Labels"
+    """
+
+    field_name = field.get("name")
+    # REDCap default.
     vallist = ["0", "50", "100"]
-    lbllist = utils.parse_list_str(field[SLIDER_FIELD_NAME], "|")
+    constraints_min = int(vallist[0])
+    constraints_max = int(vallist[2])
+    min_value = None
+    max_value = None
+
+    # Check for any specified min-max overrides
+    text_validation = None
+    if field.get(TEXT_VALID_FIELD_NAME):
+        text_validation = field[TEXT_VALID_FIELD_NAME].lower()
+
+    if "number" in text_validation:
+        field_type = "number"
+        min_value_input = field.get("text_valid_min")
+        if min_value_input:
+            if re.match(NUMBER_PATTERN, min_value_input):
+                min_value = float(min_value_input)
+            else:
+                message = f"Skipping non-numeric min value '{min_value_input}' for row '{field_name}'"
+                logger.error()
+                raise ValueError(message)
+        max_value_input = field.get("text_valid_max")
+        if max_value_input:
+            if re.match(NUMBER_PATTERN, max_value_input):
+                max_value = float(max_value_input)
+            else:
+                message = f"Skipping non-numeric max value '{max_value_input}' for row '{field_name}'"
+                logger.error(message)
+                raise ValueError(message)
+    else:
+        field_type = "integer"
+        min_value_input = field.get("text_valid_min")
+        if min_value_input:
+            if re.match(INTEGER_PATTERN, min_value_input):
+                min_value = int(min_value_input)
+            else:
+                message = f"Skipping non-integer min value '{min_value_input}' for row '{field_name}'"
+                logger.error(message)
+                raise ValueError(message)
+        max_value_input = field.get("text_valid_max")
+        if max_value_input:
+            if re.match(INTEGER_PATTERN, max_value_input):
+                max_value = int(max_value_input)
+            else:
+                message = f"Skipping non-integer max value '{max_value_input}' for row '{field_name}'"
+                logger.error(message)
+                raise ValueError(message)
+
+    if min_value:
+        constraints_min = min_value
+    if max_value:
+        constraints_max = max_value
+
+    # update the vallist if min/max are specified
+    min_max_changed = False
+    if constraints_min != int(vallist[0]):
+        min_max_changed = True
+        vallist[0] = f"{constraints_min}"
+    if constraints_max != int(vallist[2]):
+        min_max_changed = True
+        vallist[2] = f"{constraints_max}"
+
+    if field.get(SLIDER_FIELD_NAME):
+        lbllist = utils.parse_list_str(field[SLIDER_FIELD_NAME], "|")
+    else:
+        lbllist = None
+
+    if not isinstance(lbllist, list):
+        # no labels found
+        return {
+            "type": field_type,
+            "constraints": {"minimum": constraints_min, "maximum": constraints_max},
+        }
+
+    if len(lbllist) == 1:
+        message = f"Found 1 label but have {len(vallist)} values."
+        logger.warning(message)
+    elif len(lbllist) == 2 and len(vallist) == 3:
+        # assume that provided labels are for min and max
+        lbllist.insert(1, "")
+    elif len(lbllist) == 3 and min_max_changed:
+        # set middle level
+        if field_type == "integer":
+            middle = (int(vallist[0]) + int(vallist[2])) // 2
+            vallist[1] = f"{middle}"
+        elif field_type == "number":
+            middle = (float(vallist[0]) + float(vallist[2])) / 2
+            vallist[1] = f"{middle}"
+    elif len(lbllist) >= 3:
+        message = f"Found {len(lbllist)} label in slider. Expecting 2 or 3 labels."
+        logger.warning(message)
+
     field_encodings = {vallist[i]: lbl for i, lbl in enumerate(lbllist)}
     return {
-        "type": "integer",
-        "constraints": {"minimum": 0, "maximum": 100},
+        "type": field_type,
+        "constraints": {"minimum": constraints_min, "maximum": constraints_max},
         "enumLabels": field_encodings,
     }
 
