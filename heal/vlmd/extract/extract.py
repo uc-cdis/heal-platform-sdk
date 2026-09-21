@@ -82,7 +82,7 @@ def vlmd_extract(
     title: str = None,
     file_type: str = "auto",
     output_dir: str = ".",
-    output_type: str = "json",
+    output_type: str | list[str] = "json",
     include_all_fields: bool = True,
 ) -> bool:
     """
@@ -102,7 +102,9 @@ def vlmd_extract(
             Defaults to “auto”.
         output_dir (str): the directory of where the extracted VLMD file will
             be written. Defaults to “.”
-        output_type (str): format of dictionary to write: "csv" or "json".
+        output_type (str|list): file format of dictionary to write. Can take single
+            value in string, like "csv" or "json", or can take list for multiple
+            output dictionaries, like ["csv","json"].
             The default is "json".
         include_all_fields (bool): If true then csv dictionaries extracted from
             csv datasets will include columns for all fields in the schema.
@@ -141,17 +143,37 @@ def vlmd_extract(
         logger.debug(f"Changing file_type from 'auto' to '{file_type}'")
         type_is_auto = True
 
-    if output_type not in ALLOWED_OUTPUT_TYPES:
-        message = f"Unrecognized output_type '{output_type}' - should be in {ALLOWED_OUTPUT_TYPES}"
+    if isinstance(output_type, str):
+        output_types = [output_type]
+    elif isinstance(output_type, list):
+        unique_list = list(set(output_type))
+        output_types = unique_list
+        if len(output_types) != len(output_type):
+            message = f"Output_type list should have unique items, found {output_type}"
+            logger.warning(message)
+    else:
+        message = (
+            f"Incorrect type for output_type '{output_type}' - should be str or list"
+        )
         logger.error(message)
         raise ExtractionError(message)
+
+    for type in output_types:
+        if type not in ALLOWED_OUTPUT_TYPES:
+            message = f"Unrecognized output_type '{type}' - should be in {ALLOWED_OUTPUT_TYPES}"
+            logger.error(message)
+            raise ExtractionError(message)
 
     if title is not None and re.match(r"^\s*$", title):
         message = f"Empty title is not allowed"
         logger.error(message)
         raise ExtractionError(message)
 
-    # input json file require explicit conversion and post validation steps
+    converted_dictionaries = {}
+    for type in output_types:
+        converted_dictionaries[type] = {}
+
+    # input json file requires explicit conversion and post validation steps
     if file_type == "json":
         file_convert_function = file_type_to_fxn_map.get(file_type)
         data_dictionary_props = {}
@@ -162,20 +184,23 @@ def vlmd_extract(
                 input_type=file_convert_function,
                 data_dictionary_props=data_dictionary_props,
             )
-            if output_type == "json":
-                converted_dictionary = data_dictionaries["template_json"]
-                logger.debug(
-                    f"Ready to validate converted dict with output type '{output_type}'"
-                )
-                is_valid = vlmd_validate(
-                    converted_dictionary,
-                    file_type=file_type,
-                    output_type=output_type,
-                    return_converted_output=False,
-                )
-                logger.debug(f"Converted dictionary is valid: {is_valid}")
-            else:
-                converted_dictionary = data_dictionaries["template_csv"]["fields"]
+            for type in output_types:
+                if type == "json":
+                    converted_dictionaries[type] = data_dictionaries["template_json"]
+                    logger.debug(
+                        f"Ready to validate converted dict with output type '{output_type}'"
+                    )
+                    is_valid = vlmd_validate(
+                        converted_dictionaries[type],
+                        file_type=file_type,
+                        output_type=type,
+                        return_converted_output=False,
+                    )
+                    logger.debug(f"Converted dictionary is valid: {is_valid}")
+                else:
+                    converted_dictionaries["csv"] = data_dictionaries["template_csv"][
+                        "fields"
+                    ]
         except Exception as err:
             logger.error(f"Error in extracting JSON dictionary from {input_file}")
             logger.error(err)
@@ -184,12 +209,13 @@ def vlmd_extract(
     elif file_type in ["csv", "redcap", "tsv"]:
         try:
             # csv files are converted as part of validate
-            converted_dictionary = vlmd_validate(
-                input_file,
-                file_type=file_type,
-                output_type=output_type,
-                return_converted_output=True,
-            )
+            for type in output_types:
+                converted_dictionaries[type] = vlmd_validate(
+                    input_file,
+                    file_type=file_type,
+                    output_type=type,
+                    return_converted_output=True,
+                )
         except RedcapExtractionError as err:
             logger.error("Error in extracting REDCap dictionary")
             if type_is_auto:
@@ -232,11 +258,13 @@ def vlmd_extract(
                 data_dictionary_props=data_dictionary_props,
                 include_all_fields=include_all_fields,
             )
-
-            if output_type == "json":
-                converted_dictionary = data_dictionaries["template_json"]
-            else:
-                converted_dictionary = data_dictionaries["template_csv"]["fields"]
+            for type in output_types:
+                if type == "json":
+                    converted_dictionaries[type] = data_dictionaries["template_json"]
+                else:
+                    converted_dictionaries[type] = data_dictionaries["template_csv"][
+                        "fields"
+                    ]
 
         except ValidationError as err:
             logger.error(
@@ -250,39 +278,49 @@ def vlmd_extract(
             raise ExtractionError(str(err))
 
         schema_type = "csv"
-        schema = get_schema(converted_dictionary, schema_type=output_type)
-        if output_type == "csv":
-            schema = add_types_to_props(schema)
-        if schema is None:
-            message = f"Could not get schema for type = {schema_type}"
-            logger.error(message)
-            raise ValueError(message)
-        try:
-            logger.debug(f"Validating converted dictionary")
-            jsonschema.validate(instance=converted_dictionary, schema=schema)
-        except jsonschema.ValidationError as err:
-            logger.error("Error in validating converted dictionary")
-            raise err
-        logger.debug("Converted dictionary is valid")
+        for type in output_types:
+            schema = get_schema(converted_dictionaries[type], schema_type=type)
+            if type == "csv":
+                schema = add_types_to_props(schema)
+            if schema is None:
+                message = f"Could not get schema for type = {schema_type}"
+                logger.error(message)
+                raise ValueError(message)
+            try:
+                logger.debug(f"Validating converted dictionary for output_type {type}")
+                jsonschema.validate(
+                    instance=converted_dictionaries[type], schema=schema
+                )
+            except jsonschema.ValidationError as err:
+                logger.error(
+                    f"Error in validating converted dictionary for output_type {type}"
+                )
+                raise err
+            logger.debug(f"Converted dictionary for type {type} is valid")
 
-    if output_type == "json":
-        converted_dictionary = set_title_if_missing(
-            file_type=file_type, title=title, converted_dict=converted_dictionary
+    if "json" in output_types:
+        converted_dictionaries["json"] = set_title_if_missing(
+            file_type=file_type,
+            title=title,
+            converted_dict=converted_dictionaries["json"],
         )
-        if converted_dictionary.get("title") is None:
-            logger.error("JSON dictionary is missing 'title'")
-            raise ExtractionError("JSON dictionary is missing 'title'")
+        if converted_dictionaries["json"].get("title") is None:
+            message = "JSON dictionary is missing 'title'"
+            logger.error(message)
+            raise ExtractionError(message)
 
     # write to file
-    output_filepath = get_output_filepath(
-        output_dir, input_file, output_type=output_type
-    )
-    logger.info(f"Writing converted dictionary to {output_filepath}")
-    try:
-        write_vlmd_dict(converted_dictionary, output_filepath, file_type=output_type)
-    except Exception as err:
-        logger.error("Error in writing converted dictionary")
-        logger.error(err)
-        raise ExtractionError("Error in writing converted dictionary")
+    for type in output_types:
+        output_filepath = get_output_filepath(output_dir, input_file, output_type=type)
+        logger.info(f"Writing converted dictionary to {output_filepath}")
+        try:
+            write_vlmd_dict(
+                converted_dictionaries[type], output_filepath, file_type=type
+            )
+        except Exception as err:
+            message = f"Error in writing converted dictionary for output_type {type}"
+            logger.error(message)
+            logger.error(err)
+            raise ExtractionError(message)
 
     return True
