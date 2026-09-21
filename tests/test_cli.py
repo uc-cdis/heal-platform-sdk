@@ -39,13 +39,16 @@ def test_extract_help():
     expected_text = "Extract HEAL-compliant VLMD file from input file"
     # truncated to avoid wrapped lines
     expected_commands = [
-        "--input_file PATH  name of file to extract HEAL-compliant VLMD file",
-        "--file_type TEXT   Type of input file: auto, csv, json, tsv, dataset_csv",
-        "                   dataset_tsv, redcap  [default: auto]",
-        "--title TEXT       Root level title for the dictionary (required if",
-        "--output_dir PATH  directory to write converted dictionary'  [default: .]",
+        "--input_file PATH   name of file to extract HEAL-compliant VLMD file",
+        "--file_type TEXT    Type of input file: auto, csv, json, tsv, dataset_csv",
+        "                    dataset_tsv, redcap  [default: auto]",
+        "--title TEXT        Root level title for the dictionary (required if",
+        "--output_dir PATH   directory to write converted dictionary  [default: .]",
+        "--output_type TEXT  File type(s) for extracted dictionary. Single value (csv),",
+        "                    or comma separated values ('csv,json')  [default: json]",
     ]
     result = runner.invoke(cli_module.main, ["vlmd", "extract", "--help"])
+    print(result.output)
     assert result.exit_code == 0
     assert expected_text in result.output
     for command_text in expected_commands:
