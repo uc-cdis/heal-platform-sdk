@@ -25,7 +25,7 @@ The `--title` option is required when extracting from `csv` to `json`.
 
 The default output file type is `json`. Use the `--output_type` option for other output.
 To get a `csv` output dictionary include `--output_type csv`. To get both `csv` and `json`
-use a comma separated list of values such as `--output_type "csv, "json"`.
+use a comma separated list of values such as `--output_type "csv, json"`.
 
 
 ## VLMD validation
