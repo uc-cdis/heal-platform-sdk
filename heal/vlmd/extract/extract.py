@@ -188,7 +188,7 @@ def vlmd_extract(
                 if type == "json":
                     converted_dictionaries[type] = data_dictionaries["template_json"]
                     logger.debug(
-                        f"Ready to validate converted dict with output type '{output_type}'"
+                        f"Ready to validate converted dict with output type '{type}'"
                     )
                     is_valid = vlmd_validate(
                         converted_dictionaries[type],
@@ -277,13 +277,12 @@ def vlmd_extract(
             logger.error(err)
             raise ExtractionError(str(err))
 
-        schema_type = "csv"
         for type in output_types:
             schema = get_schema(converted_dictionaries[type], schema_type=type)
             if type == "csv":
                 schema = add_types_to_props(schema)
             if schema is None:
-                message = f"Could not get schema for type = {schema_type}"
+                message = f"Could not get schema for type = {type}"
                 logger.error(message)
                 raise ValueError(message)
             try:
