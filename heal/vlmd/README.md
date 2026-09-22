@@ -23,6 +23,10 @@ write a json file in the directory `output`:
 
 The `--title` option is required when extracting from `csv` to `json`.
 
+The default output file type is `json`. Use the `--output_type` option for other output.
+To get a `csv` output dictionary include `--output_type csv`. To get both `csv` and `json`
+use a comma separated list of values such as `--output_type "csv, json"`.
+
 
 ## VLMD validation
 
@@ -85,6 +89,11 @@ except ExtractionError as e_err:
 The above will write a HEAL-compliant VLMD json dictionary to
 
 `output/heal-dd_vlmd_for_extraction.json`
+
+ The default output file type is `json`. Use the `output_type` paramater for other output. To get a csv output dictionary include `output_type="csv"`. To get both `csv` and `json`, use a list for the parameter values, such as
+ ```python
+ output_type=["csv", "json"]
+ ```
 
 ## Adding new file types for extraction and validation
 
