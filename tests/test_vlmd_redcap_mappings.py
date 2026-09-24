@@ -14,15 +14,47 @@ from heal.vlmd.mappings.redcap_field_mapping import (
 )
 
 
-def test_parse_field_properties():
-    """Test mapping function parse_field_properties_from_encodings"""
-    encodings_string = "0, No | 1, Yes"
-    expected_dict = {
-        "type": "integer",
-        "enumLabels": {"0": "No", "1": "Yes"},
-        "constraints": {"enum": ["0", "1"]},
-    }
-    assert _parse_field_properties_from_encodings(encodings_string) == expected_dict
+@pytest.mark.parametrize(
+    "test_encodings_string, expected_dict",
+    [
+        (
+            "0, No | 1, Yes",
+            {
+                "type": "integer",
+                "enumLabels": {"0": "No", "1": "Yes"},
+                "constraints": {"enum": ["0", "1"]},
+            },
+        ),
+        (
+            '0, "No" | 1, "Yes"',
+            {
+                "type": "integer",
+                "enumLabels": {"0": "No", "1": "Yes"},
+                "constraints": {"enum": ["0", "1"]},
+            },
+        ),
+        (
+            "1, " "Yes, one operation" "| 2," "Yes, more than one operation" "| 3, No",
+            {
+                "type": "integer",
+                "enumLabels": {
+                    "1": "Yes, one operation",
+                    "2": "Yes, more than one operation",
+                    "3": "No",
+                },
+                "constraints": {"enum": ["1", "2", "3"]},
+            },
+        ),
+    ],
+)
+def test_parse_field_properties(test_encodings_string, expected_dict):
+    """
+    Test mapping function parse_field_properties_from_encodings.
+    Output key-values should have a single set of wrapping quotes.
+    """
+    assert (
+        _parse_field_properties_from_encodings(test_encodings_string) == expected_dict
+    )
 
 
 @pytest.mark.parametrize(
@@ -160,6 +192,49 @@ def test_map_integer_skip_calc(input_dict, expected_output_dict):
     assert map_text(input_dict) == expected_output_dict
 
 
+@pytest.mark.parametrize(
+    "input_dict, expected_output_dict",
+    [
+        (
+            {
+                "name": "sex",
+                "type": "dropdown",
+                "choice_calc_lbls": "0, Female | 1, Male ",
+            },
+            {
+                "type": "integer",
+                "enumLabels": {"0": "Female", "1": "Male"},
+                "constraints": {"enum": ["0", "1"]},
+            },
+        ),
+        (
+            {
+                "name": "discharge_summary_1",
+                "description": "Discharge summary in patients binder?",
+                "title": "Discharge summary in patients binder?",
+                "type": "dropdown",
+                "choice_calc_lbls": "0, "
+                "No, not in binder"
+                " | 1, "
+                "Yes, in binder"
+                " ",
+            },
+            {
+                "type": "integer",
+                "enumLabels": {"0": "No, not in binder", "1": "Yes, in binder"},
+                "constraints": {"enum": ["0", "1"]},
+            },
+        ),
+    ],
+)
+def test_map_dropdown(input_dict, expected_output_dict):
+    """
+    Test the mapping of dropdown data into dictionary.
+    Any extra quotes around the choices values should be removed.
+    """
+    assert map_dropdown(input_dict) == expected_output_dict
+
+
 def test_map_dropdown_with_error():
     """Test that map_dropdown raises error with empty Choices field"""
     input_row = {
@@ -191,34 +266,70 @@ def test_map_radio_with_error():
     assert expected_message in str(err.value)
 
 
-def test_map_checkbox():
-    """Test the mapping of checkbox data into expanded list of bools"""
-    input_dict = {
-        "name": "gym",
-        "type": "checkbox",
-        "choice_calc_lbls": "0, Monday | 1, Tuesday",
-    }
-    expected_output_list = [
-        {
-            "description": "[choice=Monday]",
-            "title": "Gym: Monday",
-            "name": "gym___0",
-            "type": "boolean",
-            "constraints": {"enum": ["0", "1"]},
-            "enumLabels": {"0": "Unchecked", "1": "Checked"},
-        },
-        {
-            "description": "[choice=Tuesday]",
-            "title": "Gym: Tuesday",
-            "name": "gym___1",
-            "type": "boolean",
-            "constraints": {"enum": ["0", "1"]},
-            "enumLabels": {"0": "Unchecked", "1": "Checked"},
-        },
-    ]
+@pytest.mark.parametrize(
+    "input_dict, expected_output_list",
+    [
+        (
+            {
+                "name": "gym",
+                "type": "checkbox",
+                "choice_calc_lbls": "0, Monday | 1, Tuesday",
+            },
+            [
+                {
+                    "description": "[choice=Monday]",
+                    "title": "Gym: Monday",
+                    "name": "gym___0",
+                    "type": "boolean",
+                    "constraints": {"enum": ["0", "1"]},
+                    "enumLabels": {"0": "Unchecked", "1": "Checked"},
+                },
+                {
+                    "description": "[choice=Tuesday]",
+                    "title": "Gym: Tuesday",
+                    "name": "gym___1",
+                    "type": "boolean",
+                    "constraints": {"enum": ["0", "1"]},
+                    "enumLabels": {"0": "Unchecked", "1": "Checked"},
+                },
+            ],
+        ),
+        (
+            {
+                "name": "gym",
+                "type": "checkbox",
+                "choice_calc_lbls": "0, " "Monday, am" " | 1, " "Tuesday, pm" " ",
+            },
+            [
+                {
+                    "description": "[choice=Monday, am]",
+                    "title": "Gym: Monday, am",
+                    "name": "gym___0",
+                    "type": "boolean",
+                    "constraints": {"enum": ["0", "1"]},
+                    "enumLabels": {"0": "Unchecked", "1": "Checked"},
+                },
+                {
+                    "description": "[choice=Tuesday, pm]",
+                    "title": "Gym: Tuesday, pm",
+                    "name": "gym___1",
+                    "type": "boolean",
+                    "constraints": {"enum": ["0", "1"]},
+                    "enumLabels": {"0": "Unchecked", "1": "Checked"},
+                },
+            ],
+        ),
+    ],
+)
+def test_map_checkbox(input_dict, expected_output_list):
+    """
+    Test the mapping of checkbox data into expanded list of bools.
+    Any extra quotes around the choices values should be removed.
+    """
     assert map_checkbox(input_dict) == expected_output_list
 
 
+# TODO: add rows with repeated keys and missing values.
 def test_map_checkbox_with_error():
     """Test that map_checkbox raises error with empty Choices field"""
     input_dict = {
