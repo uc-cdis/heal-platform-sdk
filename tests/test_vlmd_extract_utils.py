@@ -257,17 +257,33 @@ def test_strip_html():
     assert strip_html(input_string) == expected
 
 
-def test_parse_dictionary_str():
-    input_string = (
-        "title=Example VLMD|description=This is an example description"
-        "|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+@pytest.mark.parametrize(
+    "input_string, test_key_val_sep, expected_dict",
+    [
+        (
+            (
+                "title=Example VLMD|description=This is an example description"
+                "|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+            ),
+            "=",
+            {
+                "title": "Example VLMD",
+                "description": "This is an example description",
+                "fields": "[{'section': 'Enrollment', 'name': 'participant_id'}]",
+            },
+        ),
+        ("0, Female | 1, Male", ",", {"0": "Female", "1": "Male"}),
+        (
+            "1," "Yes, one operation" "| 2," "Yes, more than one operation" "| 3, No",
+            ",",
+            {"1": "Yes, one operation", "2": "Yes, more than one operation", "3": "No"},
+        ),
+    ],
+)
+def test_parse_dictionary_str(input_string, test_key_val_sep, expected_dict):
+    output_dict = parse_dictionary_str(
+        input_string, item_sep="|", key_val_sep=test_key_val_sep
     )
-    expected_dict = {
-        "title": "Example VLMD",
-        "description": "This is an example description",
-        "fields": "[{'section': 'Enrollment', 'name': 'participant_id'}]",
-    }
-    output_dict = parse_dictionary_str(input_string, item_sep="|", key_val_sep="=")
     assert output_dict == expected_dict
 
 
