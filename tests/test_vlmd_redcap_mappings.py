@@ -26,7 +26,15 @@ from heal.vlmd.mappings.redcap_field_mapping import (
             },
         ),
         (
-            "1," "Yes, one operation" "| 2," "Yes, more than one operation" "| 3, No",
+            '0, "No" | 1, "Yes"',
+            {
+                "type": "integer",
+                "enumLabels": {"0": "No", "1": "Yes"},
+                "constraints": {"enum": ["0", "1"]},
+            },
+        ),
+        (
+            "1, " "Yes, one operation" "| 2," "Yes, more than one operation" "| 3, No",
             {
                 "type": "integer",
                 "enumLabels": {
@@ -40,7 +48,10 @@ from heal.vlmd.mappings.redcap_field_mapping import (
     ],
 )
 def test_parse_field_properties(test_encodings_string, expected_dict):
-    """Test mapping function parse_field_properties_from_encodings"""
+    """
+    Test mapping function parse_field_properties_from_encodings.
+    Output key-values should have a single set of wrapping quotes.
+    """
     assert (
         _parse_field_properties_from_encodings(test_encodings_string) == expected_dict
     )
