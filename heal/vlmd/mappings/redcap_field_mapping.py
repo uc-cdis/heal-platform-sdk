@@ -68,7 +68,8 @@ def _parse_field_properties_from_encodings(encodings_string: str) -> dict:
     return {
         "type": field_type,
         "enumLabels": {
-            key.strip(): value.strip() for key, value in field_encodings.items()
+            key.strip(): value.strip().strip('"')
+            for key, value in field_encodings.items()
         },
         "constraints": {"enum": [value.strip() for value in field_enums]},
     }

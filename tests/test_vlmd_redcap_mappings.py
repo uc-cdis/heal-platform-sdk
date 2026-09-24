@@ -14,15 +14,36 @@ from heal.vlmd.mappings.redcap_field_mapping import (
 )
 
 
-def test_parse_field_properties():
+@pytest.mark.parametrize(
+    "test_encodings_string, expected_dict",
+    [
+        (
+            "0, No | 1, Yes",
+            {
+                "type": "integer",
+                "enumLabels": {"0": "No", "1": "Yes"},
+                "constraints": {"enum": ["0", "1"]},
+            },
+        ),
+        (
+            "1," "Yes, one operation" "| 2," "Yes, more than one operation" "| 3, No",
+            {
+                "type": "integer",
+                "enumLabels": {
+                    "1": "Yes, one operation",
+                    "2": "Yes, more than one operation",
+                    "3": "No",
+                },
+                "constraints": {"enum": ["1", "2", "3"]},
+            },
+        ),
+    ],
+)
+def test_parse_field_properties(test_encodings_string, expected_dict):
     """Test mapping function parse_field_properties_from_encodings"""
-    encodings_string = "0, No | 1, Yes"
-    expected_dict = {
-        "type": "integer",
-        "enumLabels": {"0": "No", "1": "Yes"},
-        "constraints": {"enum": ["0", "1"]},
-    }
-    assert _parse_field_properties_from_encodings(encodings_string) == expected_dict
+    assert (
+        _parse_field_properties_from_encodings(test_encodings_string) == expected_dict
+    )
 
 
 @pytest.mark.parametrize(
@@ -219,6 +240,7 @@ def test_map_checkbox():
     assert map_checkbox(input_dict) == expected_output_list
 
 
+# TODO: add rows with repeated keys and missing values.
 def test_map_checkbox_with_error():
     """Test that map_checkbox raises error with empty Choices field"""
     input_dict = {
