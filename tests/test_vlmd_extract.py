@@ -87,9 +87,53 @@ def test_extract_valid_input_csv_output(input_file_name, test_title, tmp_path):
     with open(expected_file_name, "r") as csv_file:
         reader = csv.reader(csv_file)
         header = next(reader)
-        print(f"Expected fields {expected_fields}")
-        print(f"header {header}")
         assert set(expected_fields).issubset(header)
+
+
+@pytest.mark.parametrize(
+    "test_output_type",
+    [
+        "csv",
+        "json",
+        ["csv"],
+        ["json"],
+        ["csv", "json"],
+    ],
+)
+def test_extract_valid_input_mixed_output(test_output_type, test_title, tmp_path):
+    """Extract valid csv input into csv and/or json"""
+    input_file_name = "vlmd_valid.csv"
+    input_file_path = f"tests/test_data/vlmd/valid/{input_file_name}"
+    root_name, _ = os.path.splitext(input_file_name)
+    expected_fields = ["section", "name", "title", "description", "type"]
+
+    result = vlmd_extract(
+        input_file_path,
+        title=test_title,
+        output_dir=tmp_path,
+        output_type=test_output_type,
+    )
+
+    assert result
+    if test_output_type == "json" or (
+        isinstance(test_output_type, list) and "json" in test_output_type
+    ):
+        expected_file_name = f"{tmp_path}/{OUTPUT_FILE_PREFIX}_{root_name}.json"
+        assert os.path.isfile(expected_file_name)
+        with open(expected_file_name, "r") as json_file:
+            data = json.load(json_file)
+        assert "schemaVersion" in data.keys()
+        assert "fields" in data.keys()
+        assert set(expected_fields).issubset(list(data["fields"][0].keys()))
+    if test_output_type == "csv" or (
+        isinstance(test_output_type, list) and "csv" in test_output_type
+    ):
+        expected_file_name = f"{tmp_path}/{OUTPUT_FILE_PREFIX}_{root_name}.csv"
+        assert os.path.isfile(expected_file_name)
+        with open(expected_file_name, "r") as csv_file:
+            reader = csv.reader(csv_file)
+            header = next(reader)
+            assert set(expected_fields).issubset(header)
 
 
 @pytest.mark.parametrize("file_type", ["dataset_csv", "dataset_tsv"])
