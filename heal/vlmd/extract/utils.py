@@ -122,7 +122,7 @@ def parse_dictionary_str(string, item_sep, key_val_sep) -> dict:
                         f"Value separator '{key_val_sep}' not present in string item '{str_item}'"
                     )
                 item = str_item.split(key_val_sep, 1)
-                items[item[0].strip()] = item[1].strip()
+                items[item[0].strip()] = item[1].strip().strip('"')
 
         return items
     else:
