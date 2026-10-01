@@ -215,11 +215,9 @@ def test_map_integer_skip_calc(input_dict, expected_output_dict):
                 "description": "Discharge summary in patients binder?",
                 "title": "Discharge summary in patients binder?",
                 "type": "dropdown",
-                "choice_calc_lbls": "0, "
-                "No, not in binder"
-                " | 1, "
-                "Yes, in binder"
-                " ",
+                # fmt: off
+                "choice_calc_lbls": "0, ""No, not in binder"" | 1, ""Yes, in binder"" ",
+                # fmt: on
             },
             {
                 "type": "integer",
