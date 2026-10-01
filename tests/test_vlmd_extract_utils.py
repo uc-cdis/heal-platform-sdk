@@ -274,7 +274,7 @@ def test_strip_html():
         ),
         ("0, Female | 1, Male", ",", {"0": "Female", "1": "Male"}),
         (
-            "1," "Yes, one operation" "| 2," "Yes, more than one operation" "| 3, No",
+            "1, ""Yes, one operation"" | 2, ""Yes, more than one operation"" | 3, No",  # fmt: skip
             ",",
             {"1": "Yes, one operation", "2": "Yes, more than one operation", "3": "No"},
         ),

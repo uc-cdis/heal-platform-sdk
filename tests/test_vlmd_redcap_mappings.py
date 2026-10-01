@@ -34,7 +34,9 @@ from heal.vlmd.mappings.redcap_field_mapping import (
             },
         ),
         (
-            "1, " "Yes, one operation" "| 2," "Yes, more than one operation" "| 3, No",
+            # fmt: off
+            "1, ""Yes, one operation"" | 2, ""Yes, more than one operation"" | 3, No",
+            # fmt: on
             {
                 "type": "integer",
                 "enumLabels": {
@@ -298,7 +300,7 @@ def test_map_radio_with_error():
             {
                 "name": "gym",
                 "type": "checkbox",
-                "choice_calc_lbls": "0, " "Monday, am" " | 1, " "Tuesday, pm" " ",
+                "choice_calc_lbls": "0, ""Monday, am"" | 1, ""Tuesday, pm"" ",  # fmt: skip
             },
             [
                 {
