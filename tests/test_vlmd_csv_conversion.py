@@ -92,3 +92,43 @@ def test_parse_string_objects(valid_json_schema):
 
     result = _parse_string_objects(tbl_csv, field_properties)
     assert_frame_equal(result, expected_tbl_json)
+
+
+def test_parse_string_objects_multiple_custom_columns(valid_json_schema):
+    """A row with more than one populated custom.* column must keep all of
+    them, and different rows' custom dicts must not leak into each other."""
+    field_properties = utils.flatten_properties(
+        valid_json_schema["properties"]["fields"]["items"]["properties"]
+    )
+
+    csv_data = """
+        {
+            "section": ["Enrollment", "Enrollment", "Enrollment"],
+            "name": ["age", "weight", "sex"],
+            "description": ["Age in years", "Weight in kg", "Sex"],
+            "custom.unit": ["years", "kg", ""],
+            "custom.details": ["Age at enrollment", "", ""]
+        }
+    """
+    csv_data_io = StringIO(csv_data)
+    tbl_csv = pd.read_json(csv_data_io)
+
+    expected_json_data = """
+        {
+            "section": ["Enrollment", "Enrollment", "Enrollment"],
+            "name": ["age", "weight", "sex"],
+            "description": ["Age in years", "Weight in kg", "Sex"],
+            "custom.unit": ["years", "kg", ""],
+            "custom.details": ["Age at enrollment", "", ""],
+            "custom": [
+                {"unit": "years", "details": "Age at enrollment"},
+                {"unit": "kg"},
+                {}
+            ]
+        }
+    """
+    expected_json_data_io = StringIO(expected_json_data)
+    expected_tbl_json = pd.read_json(expected_json_data_io)
+
+    result = _parse_string_objects(tbl_csv, field_properties)
+    assert_frame_equal(result, expected_tbl_json)
