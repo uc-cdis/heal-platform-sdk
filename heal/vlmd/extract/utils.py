@@ -111,6 +111,7 @@ def parse_dictionary_str(string, item_sep, key_val_sep) -> dict:
     Returns
         dictionary of keys and values if valid input
     """
+    pattern = re.compile(r'^\s*["\']?([^"]*)["\']?\s*$')
     if string != "" and string is not None:
         str_items = string.strip().split(item_sep)
         items = {}
@@ -122,7 +123,8 @@ def parse_dictionary_str(string, item_sep, key_val_sep) -> dict:
                         f"Value separator '{key_val_sep}' not present in string item '{str_item}'"
                     )
                 item = str_item.split(key_val_sep, 1)
-                items[item[0].strip()] = item[1].strip().strip('"')
+                match = pattern.match(item[1])
+                items[item[0].strip()] = match.group(1).strip() if match else item[1]
 
         return items
     else:
