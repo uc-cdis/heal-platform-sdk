@@ -300,6 +300,26 @@ def test_parse_dictionary_str_missing_separator():
 
 
 @pytest.mark.parametrize(
+    "input_string, key_val_separator, expected_error_message",
+    [
+        (
+            "1 = Yes | 2 - No",
+            "=",
+            "Value separator '=' not present in string item ' 2 - No'",
+        ),
+        ("1 = Yes | 1 = No", "=", "Duplicate key '1' in choices '1 = Yes | 1 = No'"),
+    ],
+)
+def test_parse_dictionary_str_errors(
+    input_string, key_val_separator, expected_error_message
+):
+    """Test that an Exception is raised for a duplicate keys or missing key_val_separator"""
+    with pytest.raises(Exception) as err:
+        parse_dictionary_str(input_string, item_sep="|", key_val_sep=key_val_separator)
+    assert expected_error_message in str(err.value)
+
+
+@pytest.mark.parametrize(
     "input_string, separator, expected_output_list",
     [
         ("a,b,c", ",", ["a", "b", "c"]),

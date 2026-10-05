@@ -364,17 +364,29 @@ def test_map_checkbox(input_dict, expected_output_list):
 
 
 # TODO: add rows with repeated keys and missing values.
-def test_map_checkbox_with_error():
-    """Test that map_checkbox raises error with empty Choices field"""
-    input_dict = {
-        "name": "gym",
-        "type": "checkbox",
-        "choice_calc_lbls": "",
-    }
-    field_name = input_dict.get("name")
-    expected_message = (
-        f"Missing checkbox values in 'Choices' column for row '{field_name}'"
-    )
+@pytest.mark.parametrize(
+    "input_dict, expected_message",
+    [
+        (
+            {
+                "name": "gym",
+                "type": "checkbox",
+                "choice_calc_lbls": "",
+            },
+            "Missing checkbox values in 'Choices' column for row 'gym'",
+        ),
+        (
+            {
+                "name": "gym",
+                "type": "checkbox",
+                "choice_calc_lbls": "0, 'Monday' | 0, 'Tuesday' ",
+            },
+            "Duplicate key '0' in choices '0, 'Monday' | 0, 'Tuesday' '",
+        ),
+    ],
+)
+def test_map_checkbox_with_error(input_dict, expected_message):
+    """Test that map_checkbox raises error with for repeated keys or empty Choices field"""
     with pytest.raises(ValueError) as err:
         map_checkbox(input_dict)
     assert expected_message in str(err.value)

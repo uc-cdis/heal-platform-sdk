@@ -5,7 +5,10 @@ from collections.abc import MutableMapping
 
 import jsonschema
 import pandas as pd
+from cdislogging import get_logger
 from pandas.api.types import is_object_dtype
+
+logger = get_logger("extract-utils", log_level="warning")
 
 
 def _get_prop_names_to_rearrange(prop_names, schema):
@@ -123,8 +126,13 @@ def parse_dictionary_str(string, item_sep, key_val_sep) -> dict:
                         f"Value separator '{key_val_sep}' not present in string item '{str_item}'"
                     )
                 item = str_item.split(key_val_sep, 1)
+                key = item[0].strip()
+                if key in items:
+                    message = f"Duplicate key '{key}' in choices '{string}'"
+                    logger.error(message)
+                    raise ValueError(message)
                 match = pattern.match(item[1])
-                items[item[0].strip()] = match.group(1).strip() if match else item[1]
+                items[key] = match.group(1).strip() if match else item[1]
 
         return items
     else:
