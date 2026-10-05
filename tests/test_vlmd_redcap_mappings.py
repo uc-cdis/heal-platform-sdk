@@ -34,7 +34,9 @@ from heal.vlmd.mappings.redcap_field_mapping import (
             },
         ),
         (
-            "0, " " No " " | 1, " " Yes" " ",
+            # fmt: off
+            "0, "' No '" | 1, " " Yes" " ",
+            # fmt: on
             {
                 "type": "integer",
                 "enumLabels": {"0": "No", "1": "Yes"},
