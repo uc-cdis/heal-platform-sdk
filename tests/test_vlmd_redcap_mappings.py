@@ -34,8 +34,38 @@ from heal.vlmd.mappings.redcap_field_mapping import (
             },
         ),
         (
+            "0, " " No " " | 1, " " Yes" " ",
+            {
+                "type": "integer",
+                "enumLabels": {"0": "No", "1": "Yes"},
+                "constraints": {"enum": ["0", "1"]},
+            },
+        ),
+        (
+            '0, "No" | 1, "Yes"',
+            {
+                "type": "integer",
+                "enumLabels": {"0": "No", "1": "Yes"},
+                "constraints": {"enum": ["0", "1"]},
+            },
+        ),
+        (
             # fmt: off
             "1, ""Yes, one operation"" | 2, ""Yes, more than one operation"" | 3, No",
+            # fmt: on
+            {
+                "type": "integer",
+                "enumLabels": {
+                    "1": "Yes, one operation",
+                    "2": "Yes, more than one operation",
+                    "3": "No",
+                },
+                "constraints": {"enum": ["1", "2", "3"]},
+            },
+        ),
+        (
+            # fmt: off
+            "1, "' Yes, one operation '" | 2, "' Yes, more than one operation '" | 3, No",
             # fmt: on
             {
                 "type": "integer",

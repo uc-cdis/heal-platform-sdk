@@ -111,7 +111,7 @@ def parse_dictionary_str(string, item_sep, key_val_sep) -> dict:
     Returns
         dictionary of keys and values if valid input
     """
-    pattern = re.compile(r'^\s*["\']?([^"]*)["\']?\s*$')
+    pattern = re.compile(r'^\s*["\']?\s*(.*?)\s*["\']?\s*$')
     if string != "" and string is not None:
         str_items = string.strip().split(item_sep)
         items = {}
