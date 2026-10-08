@@ -1,3 +1,4 @@
+import csv
 import os
 from unittest.mock import patch
 
@@ -48,6 +49,7 @@ def test_extract_help():
         "--output_dir PATH   directory to write converted dictionary  [default: .]",
         "--output_type TEXT  File type(s) for extracted dictionary. Single value (csv),",
         "                    or comma separated values ('csv,json')  [default: json]",
+        "--map_type FROM TO  Treat FROM as the VLMD type TO in the 'type' column of a",
     ]
     result = runner.invoke(cli_module.main, ["vlmd", "extract", "--help"])
 
@@ -99,6 +101,7 @@ def test_extract_valid_input(tmp_path, test_output_type, expected_output_type):
         file_type="auto",
         output_dir=tmp_path,
         output_type=expected_output_type,
+        type_aliases=None,
     )
 
 
@@ -137,6 +140,7 @@ def test_extract_dataset_csv(tmp_path):
         file_type=file_type,
         output_dir=tmp_path,
         output_type=["json"],
+        type_aliases=None,
     )
 
 
@@ -182,7 +186,8 @@ def test_validate_help():
     runner = CliRunner()
     expected_text = "Validate VLMD input file"
     expected_commands = [
-        "--input_file PATH  name of file to validate",
+        "--input_file PATH   name of file to validate",
+        "--map_type FROM TO  Treat FROM as the VLMD type TO in the 'type' column of a",
     ]
     result = runner.invoke(cli_module.main, ["vlmd", "validate", "--help"])
     assert result.exit_code == 0
@@ -206,3 +211,83 @@ def test_validate_missing_input_file(tmp_path):
     runner = CliRunner()
     result = runner.invoke(cli_module.main, ["vlmd", "validate"])
     assert result.exit_code != 0
+
+
+def test_extract_with_map_type(tmp_path):
+    """Test that --map_type recodes only the 'type' column in a csv to csv extraction"""
+    runner = CliRunner()
+    input_file = "tests/test_data/vlmd/invalid/vlmd_custom_types.csv"
+    result = runner.invoke(
+        cli_module.main,
+        [
+            "vlmd",
+            "extract",
+            "--input_file",
+            input_file,
+            "--file_type",
+            "csv",
+            "--output_type",
+            "csv",
+            "--output_dir",
+            tmp_path,
+            "--map_type",
+            "Whole Number",
+            "integer",
+            "--map_type",
+            "calendar_date",
+            "date",
+            "--map_type",
+            "Free Text",
+            "string",
+        ],
+    )
+    assert result.exit_code == 0
+    with open(tmp_path / "heal-dd_vlmd_custom_types.csv") as output_file:
+        rows = list(csv.DictReader(output_file))
+    assert [row["type"] for row in rows] == ["integer", "date", "string", "number"]
+    assert rows[0]["description"] == "Age in years as a Whole Number"
+
+
+def test_extract_invalid_map_type(tmp_path):
+    """Test that a --map_type target that isn't a VLMD type raises click.BadParameter"""
+    runner = CliRunner()
+    result = runner.invoke(
+        cli_module.main,
+        [
+            "vlmd",
+            "extract",
+            "--input_file",
+            "tests/test_data/vlmd/invalid/vlmd_custom_types.csv",
+            "--output_dir",
+            tmp_path,
+            "--map_type",
+            "Whole Number",
+            "whole",
+        ],
+    )
+    assert result.exit_code != 0
+    assert "Invalid value for '--map_type'" in result.output
+    assert "targets must be one of" in result.output
+
+
+def test_validate_with_map_type():
+    """Test that --map_type is passed to vlmd_validate"""
+    runner = CliRunner()
+    input_file = "tests/test_data/vlmd/invalid/vlmd_custom_types.csv"
+    with patch("heal.cli.validate.vlmd_validate") as mock_vlmd_validate:
+        result = runner.invoke(
+            cli_module.main,
+            [
+                "vlmd",
+                "validate",
+                "--input_file",
+                input_file,
+                "--map_type",
+                "Whole Number",
+                "integer",
+            ],
+        )
+    assert result.exit_code == 0
+    mock_vlmd_validate.assert_called_once_with(
+        input_file, type_aliases={"Whole Number": "integer"}
+    )
