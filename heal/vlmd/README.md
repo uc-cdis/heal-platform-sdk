@@ -27,6 +27,28 @@ The default output file type is `json`. Use the `--output_type` option for other
 To get a `csv` output dictionary include `--output_type csv`. To get both `csv` and `json`
 use a comma separated list of values such as `--output_type "csv, json"`.
 
+### Mapping your own type names
+
+If a csv dictionary's `type` column uses names that VLMD doesn't recognise, map them with
+`--map_type FROM TO` (repeatable) on `validate` or `extract`. For example, this writes a
+VLMD csv dictionary to `output/` with only the `type` column recoded:
+
+```bash
+heal vlmd extract --input_file "my_dict.csv" --file_type csv --output_type csv \
+    --output_dir "./output" --map_type "Whole Number" integer --map_type "Free Text" string
+```
+
+`FROM` is matched after the same normalisation applied to the column (trimmed, lowercased,
+`_` and spaces replaced by `-`), so `whole_number` also matches `Whole Number`. `TO` must be
+one of the types in the csv schema. Mappings are ignored, with a warning, for json, dataset
+and REDCap input. In Python, pass the same mapping as
+`type_aliases={"Whole Number": "integer"}` to `vlmd_validate` or `vlmd_extract`.
+
+Pass `--file_type csv` explicitly when fixing types: with the default `auto`, a csv
+dictionary that fails validation is retried as a csv *dataset*, and the "successful" output
+describes the columns of your dictionary (`name`, `description`, `type`, ...) rather than
+your variables. Only an INFO log line says this happened.
+
 
 ## VLMD validation
 

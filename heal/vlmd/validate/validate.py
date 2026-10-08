@@ -14,6 +14,7 @@ from heal.vlmd.config import (
 )
 from heal.vlmd.extract.conversion import convert_to_vlmd
 from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
+from heal.vlmd.mappings.values import check_type_aliases
 from heal.vlmd.utils import add_types_to_props
 from heal.vlmd.validate.utils import get_schema, read_data_from_json_file, read_delim
 
@@ -40,6 +41,7 @@ def vlmd_validate(
     schema_type="auto",
     output_type="json",
     return_converted_output=False,
+    type_aliases=None,
 ):
     """
     Validates the input file against a VLMD schema.
@@ -58,6 +60,8 @@ def vlmd_validate(
             The default is "json".
         return_converted_output (bool): set to True to get converted output, else
             get a boolean for valid/invalid input.
+        type_aliases (dict): extra {"source type": "VLMD type"} recodings for the
+            `type` column of csv/tsv dictionaries, e.g. {"Whole Number": "integer"}.
 
     Returns:
         True if input is valid and return_converted_output=False.
@@ -105,6 +109,13 @@ def vlmd_validate(
         message = f"Schema type must be in {ALLOWED_SCHEMA_TYPES}"
         logger.error(message)
         raise ValueError(message)
+
+    if type_aliases:
+        try:
+            check_type_aliases(type_aliases)
+        except ValueError as err:
+            logger.error(str(err))
+            raise
 
     schema = get_schema(input_file, schema_type)
     if schema is None:
@@ -166,6 +177,7 @@ def vlmd_validate(
             input_filepath=input_file,
             input_type=file_convert_function,
             data_dictionary_props=data_dictionary_props,
+            type_aliases=type_aliases,
         )
     except RedcapExtractionError as redcap_err:
         logger.error(f"Error in converting REDCap dictionary from {input_file}")

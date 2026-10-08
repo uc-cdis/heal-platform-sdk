@@ -8,6 +8,7 @@ from cdislogging import get_logger
 from heal.vlmd.config import JSON_SCHEMA
 from heal.vlmd.extract import utils
 from heal.vlmd.extract.redcap_csv_dict_conversion import convert_redcap_csv
+from heal.vlmd.mappings.values import add_type_aliases, slugify
 from heal.vlmd.utils import has_redcap_headers
 from heal.vlmd.validate.utils import read_delim
 
@@ -64,6 +65,7 @@ def convert_datadict_csv(
     rename_map: dict = None,
     recode_map: dict = None,
     drop_list: dict = None,
+    type_aliases: dict = None,
     item_sep: str = "|",
     key_val_sep: str = "=",
 ) -> dict:
@@ -89,6 +91,8 @@ def convert_datadict_csv(
         recode_map: A mapping of values for each column in HEAL spec, eg,
             {..."column_name":{"old_value":"new_value"...}...}
         drop_list: a list of variables to drop from headers before processing
+        type_aliases: extra {"source type": "VLMD type"} recodings for the `type`
+            column, added to those in recode_map. Not applied to REDCap dictionaries.
         item_sep:str (default:"|") Used to split stringified items (in objects and arrays)
         key_val_sep:str (default:"=") Used to split stringified each key-value pair
 
@@ -143,6 +147,8 @@ def convert_datadict_csv(
     column_names = template_tbl.columns
     if has_redcap_headers(column_names):
         logger.debug("File appears to have REDCap headers. Ready to convert.")
+        if type_aliases:
+            logger.warning("Type aliases are not applied to REDCap dictionaries.")
         try:
             converted_dict = convert_redcap_csv(template_tbl)
         except Exception as err:
@@ -160,10 +166,12 @@ def convert_datadict_csv(
     if not recode_map:
         recode_map = {}
 
+    if type_aliases:
+        recode_map = add_type_aliases(recode_map, type_aliases)
+
     if not drop_list:
         drop_list = []
 
-    slugify = lambda s: s.strip().lower().replace("_", "-").replace(" ", "-")
     # flattened properties
     field_properties = utils.flatten_properties(
         JSON_SCHEMA["properties"]["fields"]["items"]["properties"]
