@@ -180,6 +180,7 @@ def test_extract_dataset_auto_with_fallback(
                 file_type=suffix,
                 output_type="json",
                 return_converted_output=True,
+                type_aliases=None,
             )
             # Test that convert_to_vlmd was called with dataset input type
             # ie, we did a fallback to dataset after trying dictionary
@@ -188,6 +189,7 @@ def test_extract_dataset_auto_with_fallback(
                 input_type="csv-data-set",
                 data_dictionary_props={},
                 include_all_fields=True,
+                type_aliases=None,
             )
 
     assert result
@@ -244,6 +246,7 @@ def test_extract_dict_auto_without_fallback(
                 file_type=file_type,
                 output_type=output_type,
                 return_converted_output=True,
+                type_aliases=None,
             )
             # Test that convert_to_vlmd was not called
             # ie, no fallback after successful dictionary validation.
@@ -291,6 +294,7 @@ def test_extract_invalid_redcap_auto_without_fallback(test_title, tmp_path):
                     file_type="csv",
                     output_type=output_type,
                     return_converted_output=True,
+                    type_aliases=None,
                 )
                 # Test that convert_to_vlmd was not called
                 # ie, no fallback after unsuccessful REDCap dictionary validation.

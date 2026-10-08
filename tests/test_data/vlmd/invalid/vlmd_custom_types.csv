@@ -1,0 +1,5 @@
+name,title,description,type
+age,Age,Age in years as a Whole Number,Whole Number
+visit_date,Visit date,Date of visit,Calendar_Date
+notes,Notes,Free text notes,Free Text
+weight,Weight,Weight in kg,float
