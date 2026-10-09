@@ -55,7 +55,6 @@ def _parse_field_properties_from_encodings(encodings_string: str) -> dict:
     field_enums = list(field_encodings.keys())
     # interpret type from enums
     for value in field_enums:
-        value = value.strip()
         if value.isnumeric():
             try:
                 int(value)
@@ -67,10 +66,8 @@ def _parse_field_properties_from_encodings(encodings_string: str) -> dict:
 
     return {
         "type": field_type,
-        "enumLabels": {
-            key.strip(): value.strip() for key, value in field_encodings.items()
-        },
-        "constraints": {"enum": [value.strip() for value in field_enums]},
+        "enumLabels": {key.strip(): value for key, value in field_encodings.items()},
+        "constraints": {"enum": [value for value in field_enums]},
     }
 
 
