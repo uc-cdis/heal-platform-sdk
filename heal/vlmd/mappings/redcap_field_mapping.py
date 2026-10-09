@@ -47,7 +47,6 @@ def _parse_field_properties_from_encodings(encodings_string: str) -> dict:
 
     Currently supports strings, ints, and nums for types
     """
-    pattern = re.compile(r'^\s*["\']?\s*(.*?)\s*["\']?\s*$')
     # parse encodings
     field_encodings = utils.parse_dictionary_str(
         encodings_string, item_sep="|", key_val_sep=","
@@ -64,8 +63,6 @@ def _parse_field_properties_from_encodings(encodings_string: str) -> dict:
                 field_type = "number"
         else:
             field_type = "string"
-            match = pattern.match(value)
-            value = match.group(1).strip() if match else value
 
     return {
         "type": field_type,
