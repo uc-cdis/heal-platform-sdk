@@ -132,7 +132,7 @@ def parse_dictionary_str(string, item_sep, key_val_sep) -> dict:
                     logger.error(message)
                     raise ValueError(message)
                 match = pattern.match(item[1])
-                items[key] = match.group(1).strip() if match else item[1]
+                items[key] = match.group(1).strip() if match else item[1].strip()
 
         return items
     else:
