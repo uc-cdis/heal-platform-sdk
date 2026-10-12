@@ -257,17 +257,33 @@ def test_strip_html():
     assert strip_html(input_string) == expected
 
 
-def test_parse_dictionary_str():
-    input_string = (
-        "title=Example VLMD|description=This is an example description"
-        "|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+@pytest.mark.parametrize(
+    "input_string, test_key_val_sep, expected_dict",
+    [
+        (
+            (
+                "title=Example VLMD|description=This is an example description"
+                "|fields=[{'section': 'Enrollment', 'name': 'participant_id'}]"
+            ),
+            "=",
+            {
+                "title": "Example VLMD",
+                "description": "This is an example description",
+                "fields": "[{'section': 'Enrollment', 'name': 'participant_id'}]",
+            },
+        ),
+        ("0, Female | 1, Male", ",", {"0": "Female", "1": "Male"}),
+        (
+            "1, ""Yes, one operation"" | 2, ""Yes, more than one operation"" | 3, No",  # fmt: skip
+            ",",
+            {"1": "Yes, one operation", "2": "Yes, more than one operation", "3": "No"},
+        ),
+    ],
+)
+def test_parse_dictionary_str(input_string, test_key_val_sep, expected_dict):
+    output_dict = parse_dictionary_str(
+        input_string, item_sep="|", key_val_sep=test_key_val_sep
     )
-    expected_dict = {
-        "title": "Example VLMD",
-        "description": "This is an example description",
-        "fields": "[{'section': 'Enrollment', 'name': 'participant_id'}]",
-    }
-    output_dict = parse_dictionary_str(input_string, item_sep="|", key_val_sep="=")
     assert output_dict == expected_dict
 
 
@@ -280,6 +296,26 @@ def test_parse_dictionary_str_missing_separator():
     expected_error_message = (
         f"Value separator '{key_val_sep}' not present in string item ' 2 - No'"
     )
+    assert expected_error_message in str(err.value)
+
+
+@pytest.mark.parametrize(
+    "input_string, key_val_separator, expected_error_message",
+    [
+        (
+            "1 = Yes | 2 - No",
+            "=",
+            "Value separator '=' not present in string item ' 2 - No'",
+        ),
+        ("1 = Yes | 1 = No", "=", "Duplicate key '1' in choices '1 = Yes | 1 = No'"),
+    ],
+)
+def test_parse_dictionary_str_errors(
+    input_string, key_val_separator, expected_error_message
+):
+    """Test that an Exception is raised for a duplicate keys or missing key_val_separator"""
+    with pytest.raises(Exception) as err:
+        parse_dictionary_str(input_string, item_sep="|", key_val_sep=key_val_separator)
     assert expected_error_message in str(err.value)
 
 
