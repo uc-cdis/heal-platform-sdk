@@ -121,19 +121,34 @@ def parse_dictionary_str(string, item_sep, key_val_sep) -> dict:
 
         for str_item in str_items:
             if str_item:
-                if key_val_sep not in str_item:
-                    raise Exception(
-                        f"Value separator '{key_val_sep}' not present in string item '{str_item}'"
-                    )
-                item = str_item.split(key_val_sep, 1)
-                key = item[0].strip()
-                if key in items:
-                    message = f"Duplicate key '{key}' in choices '{string}'"
-                    logger.error(message)
-                    raise ValueError(message)
-                match = pattern.match(item[1])
-                items[key] = match.group(1).strip() if match else item[1].strip()
-
+                if key_val_sep in str_item:
+                    # get a key-value pair
+                    item = str_item.split(key_val_sep, 1)
+                    key = item[0].strip()
+                    if key in items:
+                        message = f"Duplicate key '{key}' in choices '{string}'"
+                        logger.error(message)
+                        raise ValueError(message)
+                    match = pattern.match(item[1])
+                    if match:
+                        value = match.group(1).strip()
+                        if value == "":
+                            message = f"Null value in key-value pair '{str_item}' in choices '{string}'"
+                            logger.error(message)
+                            raise ValueError(message)
+                    else:
+                        value = item[1].strip()
+                else:
+                    # parse item for key and set value to None
+                    value = None
+                    key = str_item.strip()
+                    if len(key.split()) > 1:
+                        message = (
+                            f"Multiple words in key '{key}' and no key-val separator"
+                        )
+                        logger.error(message)
+                        raise ValueError(message)
+                items[key] = value
         return items
     else:
         return string
