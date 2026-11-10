@@ -278,23 +278,28 @@ def test_strip_html():
             ",",
             {"1": "Yes, one operation", "2": "Yes, more than one operation", "3": "No"},
         ),
+        ("0| 1", ",", {"0": None, "1": None}),
     ],
 )
 def test_parse_dictionary_str(input_string, test_key_val_sep, expected_dict):
+    """Test non-error dictionary strings. Missing key-val separator is okay."""
     output_dict = parse_dictionary_str(
         input_string, item_sep="|", key_val_sep=test_key_val_sep
     )
     assert output_dict == expected_dict
 
 
-def test_parse_dictionary_str_missing_separator():
-    """Test that an Exception is raised for a missing key_val_separator"""
-    input_string = "1 = Yes | 2 - No"
+def test_parse_dictionary_str_missing_values():
+    """
+    Test that a ValueError is raised for missing values in key-values pairs
+    when a key-value separator is present.
+    """
+    input_string = "1 = Yes | 2 ="
     key_val_sep = "="
-    with pytest.raises(Exception) as err:
+    with pytest.raises(ValueError) as err:
         parse_dictionary_str(input_string, item_sep="|", key_val_sep=key_val_sep)
     expected_error_message = (
-        f"Value separator '{key_val_sep}' not present in string item ' 2 - No'"
+        f"Null value in key-value pair ' 2 =' in choices '{input_string}'"
     )
     assert expected_error_message in str(err.value)
 
@@ -305,7 +310,12 @@ def test_parse_dictionary_str_missing_separator():
         (
             "1 = Yes | 2 - No",
             "=",
-            "Value separator '=' not present in string item ' 2 - No'",
+            "Multiple words in key '2 - No' and no key-val separator",
+        ),
+        (
+            "1 Yes | 2 No",
+            ",",
+            "Multiple words in key '1 Yes' and no key-val separator",
         ),
         ("1 = Yes | 1 = No", "=", "Duplicate key '1' in choices '1 = Yes | 1 = No'"),
     ],
@@ -313,7 +323,10 @@ def test_parse_dictionary_str_missing_separator():
 def test_parse_dictionary_str_errors(
     input_string, key_val_separator, expected_error_message
 ):
-    """Test that an Exception is raised for a duplicate keys or missing key_val_separator"""
+    """
+    Test that an Exception is raised for a duplicate keys or
+    multi-word keys and item is missing a key_val_separator.
+    """
     with pytest.raises(Exception) as err:
         parse_dictionary_str(input_string, item_sep="|", key_val_sep=key_val_separator)
     assert expected_error_message in str(err.value)

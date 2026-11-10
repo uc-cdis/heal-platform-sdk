@@ -299,10 +299,11 @@ def map_checkbox(field: dict) -> dict:
     field_enums = ["0", "1"]
     field_encodings = {"0": "Unchecked", "1": "Checked"}
 
+    # distinguish fields with a value label if present else use a key label
     fields_new = [
         {
-            "description": f"[choice={choice}]",
-            "title": checkbox_name.title() + ": " + choice,
+            "description": f"[choice={label}]",
+            "title": f"{checkbox_name.title()}: {label}",
             "name": checkbox_name
             + "___"
             + re.sub(
@@ -313,6 +314,7 @@ def map_checkbox(field: dict) -> dict:
             "enumLabels": field_encodings,
         }
         for val, choice in choices.items()
+        if (label := choice if choice is not None else str(val))
     ]
     return fields_new
 
