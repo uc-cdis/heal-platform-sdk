@@ -95,6 +95,30 @@ The above will write a HEAL-compliant VLMD json dictionary to
  output_type=["csv", "json"]
  ```
 
+## Supported variable types
+
+[`docs/vlmd_supported_types.csv`](../../docs/vlmd_supported_types.csv) lists every value
+allowed in the `type` column of a csv dictionary, the aliases that are recoded to it
+(e.g. `int` to `integer`), what validation checks, and which REDCap field types convert to it.
+It is generated from the schema and the mappings, so regenerate it after changing either:
+
+```bash
+poetry run python scripts/vlmd_supported_types.py -o docs/vlmd_supported_types.csv
+```
+
+`tests/test_vlmd_supported_types.py` fails if the committed copy is out of date.
+
+Things that commonly trip people up:
+
+* Before checking, a `type` value is trimmed, lowercased, and has `_` and spaces replaced by
+  `-`. So `Integer` is accepted, but `date_time` (which becomes `date-time`) and `year month`
+  are not.
+* Only the spelling of `type` is checked. Nothing checks that `format` or `constraints`
+  suit the type.
+* From REDCap, `sql` and `descriptive` fields (and any unrecognised field type) are dropped
+  without a warning, and a `slider` with no "Text Validation Type OR Show Slider Number" value
+  currently fails to convert.
+
 ## Adding new file types for extraction and validation
 
 The above moduels currently handle the following types of dictionaries: csv, json, tsv.
