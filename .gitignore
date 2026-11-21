@@ -1,3 +1,7 @@
+# /data/ should be used as a scratch directory.
+/data/
+
+# Python .gitignore
 *.DS_Store
 *.vscode
 .idea
