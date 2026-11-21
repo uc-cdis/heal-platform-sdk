@@ -42,6 +42,7 @@ def convert_to_vlmd(
     input_type: str = None,
     data_dictionary_props: dict = None,
     include_all_fields: bool = True,
+    type_aliases: dict = None,
 ) -> dict:
     """
     Converts a data dictionary or data file to HEAL compliant json or csv format.
@@ -58,6 +59,9 @@ def convert_to_vlmd(
             csv datasets will include columns for all fields in the schema.
             Useful for generating a template that can be manually updated.
             Default = True.
+        type_aliases (dict): Extra {"source type": "VLMD type"} recodings for the
+            `type` column of csv data dictionaries, e.g. {"Whole Number": "integer"}.
+            Ignored, with a warning, for other input types.
     Returns
         Dictionary with:
          1. csvtemplated array of fields.
@@ -79,8 +83,16 @@ def convert_to_vlmd(
 
     # get data dictionary package based on the input type
     data_dictionary_props = data_dictionary_props or {}
+    convert_kwargs = {}
+    if type_aliases:
+        if input_type == "csv-data-dict":
+            convert_kwargs["type_aliases"] = type_aliases
+        else:
+            logger.warning(
+                f"Type aliases only apply to csv data dictionaries, not '{input_type}'."
+            )
     data_dictionary_package = choice_fxn[input_type](
-        input_filepath, data_dictionary_props
+        input_filepath, data_dictionary_props, **convert_kwargs
     )
 
     # For now we return the csv and json in one package.

@@ -16,6 +16,7 @@ from heal.vlmd.config import (
 from heal.vlmd.extract.conversion import convert_to_vlmd
 from heal.vlmd.extract.csv_dict_conversion import RedcapExtractionError
 from heal.vlmd.file_utils import get_output_filepath, write_vlmd_dict
+from heal.vlmd.mappings.values import check_type_aliases
 from heal.vlmd.validate.validate import file_type_to_fxn_map
 from heal.vlmd.utils import add_types_to_props
 from heal.vlmd.validate.utils import get_schema
@@ -84,6 +85,7 @@ def vlmd_extract(
     output_dir: str = ".",
     output_type: str | list[str] = "json",
     include_all_fields: bool = True,
+    type_aliases: dict = None,
 ) -> bool:
     """
     Extract a HEAL compliant csv and json format VLMD data dictionary
@@ -110,6 +112,9 @@ def vlmd_extract(
             csv datasets will include columns for all fields in the schema.
             Useful for generating a template that can be manually updated.
             Default = True.
+        type_aliases (dict): extra {"source type": "VLMD type"} recodings for the
+            `type` column of csv/tsv dictionaries, e.g. {"Whole Number": "integer"}.
+            Targets must be types allowed by the csv schema.
 
     Returns:
         True if the input is valid and is successfully converted and written.
@@ -135,6 +140,13 @@ def vlmd_extract(
         message = f"File type must be one of {ALLOWED_FILE_TYPES}"
         logger.error(message)
         raise ExtractionError(message)
+
+    if type_aliases:
+        try:
+            check_type_aliases(type_aliases)
+        except ValueError as err:
+            logger.error(str(err))
+            raise ExtractionError(str(err))
 
     type_is_auto = False
     if file_type == "auto":
@@ -183,6 +195,7 @@ def vlmd_extract(
                 input_filepath=input_file,
                 input_type=file_convert_function,
                 data_dictionary_props=data_dictionary_props,
+                type_aliases=type_aliases,
             )
             for type in output_types:
                 if type == "json":
@@ -215,6 +228,7 @@ def vlmd_extract(
                     file_type=file_type,
                     output_type=type,
                     return_converted_output=True,
+                    type_aliases=type_aliases,
                 )
         except RedcapExtractionError as err:
             logger.error("Error in extracting REDCap dictionary")
@@ -257,6 +271,7 @@ def vlmd_extract(
                 input_type=file_convert_function,
                 data_dictionary_props=data_dictionary_props,
                 include_all_fields=include_all_fields,
+                type_aliases=type_aliases,
             )
             for type in output_types:
                 if type == "json":

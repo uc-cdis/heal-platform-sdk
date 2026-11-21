@@ -1,6 +1,7 @@
 import click
 from cdislogging import get_logger
 
+from heal.cli.options import map_type_option
 from heal.vlmd.config import ALLOWED_OUTPUT_TYPES
 from heal.vlmd.extract.extract import vlmd_extract
 
@@ -60,7 +61,8 @@ def parse_output_type(ctx, param, value):
     callback=parse_output_type,
     show_default=True,
 )
-def extract(input_file, title, file_type, output_dir, output_type):
+@map_type_option
+def extract(input_file, title, file_type, output_dir, output_type, type_aliases):
     """Extract HEAL-compliant VLMD file from input file"""
 
     logging.info(f"Extracting VLMD from {input_file}")
@@ -72,6 +74,7 @@ def extract(input_file, title, file_type, output_dir, output_type):
             file_type=file_type,
             output_dir=output_dir,
             output_type=output_type,
+            type_aliases=type_aliases,
         )
     except Exception as e:
         logging.error(f"Extraction error {str(e)}")

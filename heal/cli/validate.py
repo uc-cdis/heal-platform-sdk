@@ -2,6 +2,7 @@ import click
 from cdislogging import get_logger
 from jsonschema import ValidationError
 
+from heal.cli.options import map_type_option
 from heal.vlmd.validate.validate import vlmd_validate
 
 logging = get_logger("__name__")
@@ -15,13 +16,14 @@ logging = get_logger("__name__")
     help="name of file to validate",
     type=click.Path(writable=True),
 )
-def validate(input_file):
+@map_type_option
+def validate(input_file, type_aliases):
     """Validate VLMD input file"""
 
     logging.info(f"Validating VLMD file{input_file}")
 
     try:
-        vlmd_validate(input_file)
+        vlmd_validate(input_file, type_aliases=type_aliases)
         logging.info("Valid")
     except ValidationError as err:
         logging.error(f"Error in validating dictionary from {input_file}")
