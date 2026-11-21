@@ -49,6 +49,12 @@ dictionary that fails validation is retried as a csv *dataset*, and the "success
 describes the columns of your dictionary (`name`, `description`, `type`, ...) rather than
 your variables. Only an INFO log line says this happened.
 
+`--map_type` changes nothing but `type`, so a dictionary may still fail for other reasons. A
+codebook exported from REDCap usually writes `enumLabels` as `1, Yes | 0, No`. That fails
+during conversion, before any type is checked, with `Value separator '=' not present`.
+Rewrite it as `1=Yes|0=No`. Rows that are entirely blank pass csv output but fail json
+output with `'name' is a required property`, so remove them.
+
 
 ## VLMD validation
 
